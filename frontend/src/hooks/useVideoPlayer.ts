@@ -53,11 +53,40 @@ export function useVideoPlayer() {
   };
 
   const extractTranscript = async (videoId: string) => {
+    if (!videoId) {
+      setError('No video selected');
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
     try {
       const data = await api.transcripts.extract(videoId);
-      if (data.segments) {
+
+      // Captions found immediately
+      if (data?.segments?.length) {
         setTranscript(data);
+        return;
+      }
+
+      // Whisper background mode: poll until transcript is ready
+      if (data?.status === 'processing') {
+        const maxAttempts = 30;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          try {
+            const transcriptData = await api.transcripts.get(videoId);
+            if (transcriptData?.segments?.length) {
+              setTranscript(transcriptData);
+              return;
+            }
+          } catch {
+            // 404 while processing is expected, keep polling
+          }
+        }
+
+        setError('تم بدء الاستخراج لكن لم يكتمل بعد. حاول بعد قليل.');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to extract transcript');
