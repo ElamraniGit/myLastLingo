@@ -23,6 +23,23 @@ router = APIRouter()
 db_manager = None
 whisper_service = None
 
+
+def _ensure_whisper_dependencies() -> None:
+    """Validate optional Whisper dependencies before queuing background task."""
+    try:
+        import numpy  # noqa: F401
+        import faster_whisper  # noqa: F401
+    except ModuleNotFoundError as e:
+        missing = getattr(e, "name", "unknown")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Whisper dependency missing: {missing}. "
+                "Install optional offline STT dependencies: "
+                "pip install numpy faster-whisper"
+            )
+        )
+
 class TranscriptResponse(BaseModel):
     id: str
     video_id: str
@@ -58,6 +75,7 @@ async def extract_transcript(
         logger.info(f"YouTube captions found for {youtube_id}")
     except Exception as e:
         logger.warning(f"YouTube captions not available: {e}. Falling back to Whisper.")
+        _ensure_whisper_dependencies()
         # Fall back to local Whisper
         background_tasks.add_task(_transcribe_with_whisper, video_id, youtube_id, language)
         return {
@@ -191,13 +209,13 @@ async def _transcribe_with_whisper(video_id: str, youtube_id: str, language: str
     """Transcribe audio using local Whisper."""
     global whisper_service
     
-    if whisper_service is None:
-        from ai.whisper.service import WhisperService
-        from config import load_config
-        config = load_config()
-        whisper_service = WhisperService(config.ai.whisper)
-    
     try:
+        if whisper_service is None:
+            from ai.whisper.service import WhisperService
+            from config import load_config
+            config = load_config()
+            whisper_service = WhisperService(config.ai.whisper)
+
         # Extract audio from video
         audio_path = Path(f"data/temp/{video_id}.wav")
         video_path = Path(f"data/downloads/{video_id}.mp4")
