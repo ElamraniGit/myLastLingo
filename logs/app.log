@@ -1,0 +1,88 @@
+2026-05-24 20:18:52 | INFO     | root:setup_logging:61 | Logging initialized: level=INFO, file=logs/app.log
+2026-05-24 20:18:52 | INFO     | backend.main:lifespan:76 | Starting LinguaLearn application | Root: /data/data/com.termux/files/home/myLastLingo
+2026-05-24 20:18:52 | INFO     | backend.app.db.database:initialize:30 | Initializing database at /data/data/com.termux/files/home/myLastLingo/data/lingualearn.db
+2026-05-24 20:18:52 | INFO     | backend.app.db.database:initialize:45 | Database initialized successfully
+2026-05-24 20:18:52 | INFO     | backend.app.services.cache:initialize:50 | Cache manager initialized
+2026-05-24 20:18:52 | INFO     | backend.main:lifespan:107 | LinguaLearn started successfully
+2026-05-24 21:16:21 | INFO     | backend.app.api.videos:process_video:103 | Video processed: 😊 Welcome to English Extras
+2026-05-24 21:16:21 | ERROR    | backend.main:global_exception_handler:155 | Unhandled exception: cannot import name 'load_config' from 'config' (/data/data/com.termux/files/home/myLastLingo/config/__init__.py)
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/routing.py", line 121, in app
+    await response(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/responses.py", line 170, in __call__
+    await self.background()
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/background.py", line 36, in __call__
+    await task()
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/background.py", line 21, in __call__
+    await self.func(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/home/myLastLingo/backend/app/api/videos.py", line 112, in _download_video
+    from config import load_config
+ImportError: cannot import name 'load_config' from 'config' (/data/data/com.termux/files/home/myLastLingo/config/__init__.py)
+2026-05-24 21:16:56 | WARNING  | backend.app.api.transcripts:extract_transcript:60 | YouTube captions not available: Captions not found. Falling back to Whisper.
+2026-05-24 21:16:56 | ERROR    | backend.main:global_exception_handler:155 | Unhandled exception: No module named 'numpy'
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/fastapi/routing.py", line 121, in app
+    await response(scope, receive, send)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/responses.py", line 170, in __call__
+    await self.background()
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/background.py", line 36, in __call__
+    await task()
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/starlette/background.py", line 21, in __call__
+    await self.func(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/home/myLastLingo/backend/app/api/transcripts.py", line 195, in _transcribe_with_whisper
+    from ai.whisper.service import WhisperService
+  File "/data/data/com.termux/files/home/myLastLingo/backend/ai/whisper/service.py", line 10, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'

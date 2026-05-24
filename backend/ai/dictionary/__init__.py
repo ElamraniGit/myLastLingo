@@ -1,0 +1,1 @@
+"""Local dictionary module for word definitions and analysis."""

@@ -1,0 +1,60 @@
+# English Learning App - Local Configuration
+# All settings are for local-only operation
+
+app:
+  name: "LinguaLearn - English Learning App"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+
+server:
+  host: "127.0.0.1"
+  port: 8080
+  workers: 1
+  cors_origins: ["*"]
+
+database:
+  path: "data/lingualearn.db"
+  pool_size: 5
+  timeout: 30
+
+ai:
+  whisper:
+    model: "base"  # tiny, base, small, medium, large
+    model_path: "models/whisper/"
+    language: "en"
+    compute_type: "int8"  # for mobile optimization
+    beam_size: 1
+    vad_filter: true
+    word_timestamps: true
+    
+  dictionary:
+    type: "local"  # local, stardict, wiktionary
+    path: "data/dictionary/"
+    
+  llm:
+    enabled: false
+    model: "tinyllama-1.1b"
+    model_path: "models/llm/"
+    
+cache:
+  video_cache: "data/cache/videos/"
+  transcript_cache: "data/cache/transcripts/"
+  thumbnail_cache: "data/cache/thumbnails/"
+  max_size_mb: 500
+
+youtube:
+  download_path: "data/downloads/"
+  subtitles_lang: ["en", "ar"]
+  max_resolution: "720p"
+
+spaced_repetition:
+  algorithm: "sm2"
+  default_ease: 2.5
+  max_reviews_per_day: 100
+  
+logging:
+  level: "INFO"
+  file: "logs/app.log"
+  max_size_mb: 10
+  backup_count: 3

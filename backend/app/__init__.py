@@ -1,0 +1,1 @@
+"""LinguaLearn application package."""

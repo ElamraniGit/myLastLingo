@@ -1,0 +1,1 @@
+"""Local Whisper AI module for speech-to-text transcription."""

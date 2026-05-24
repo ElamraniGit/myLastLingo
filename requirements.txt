@@ -1,0 +1,30 @@
+# LinguaLearn - Python Dependencies
+# Run: pip install -r requirements.txt
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# WebSocket support
+websockets>=12.0
+
+# Database
+aiosqlite>=0.19.0
+
+# Configuration
+pyyaml>=6.0.1
+
+# HTTP Client
+aiohttp>=3.9.0
+
+# YouTube
+yt-dlp>=2023.11.0
+
+# Audio processing
+# ffmpeg must be installed separately: pkg install ffmpeg (Termux)
+
+# Speech-to-Text (Optional - for offline transcription)
+# faster-whisper>=1.0.0  # Uncomment if you want local Whisper
+
+# Utilities
+python-multipart>=0.0.6
