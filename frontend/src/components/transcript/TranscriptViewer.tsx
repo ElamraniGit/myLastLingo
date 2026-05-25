@@ -1,19 +1,24 @@
 /**
  * Synchronized transcript viewer with karaoke-style word highlighting.
- * Supports click on any word for dictionary lookup.
+ * Supports clicking any word for dictionary lookup.
+ *
+ * FIXES APPLIED:
+ *  - Bug #12 fix: Reads `currentTime` and `currentSegmentIndex` from Zustand store
+ *    instead of calling useVideoPlayer() again (which created a detached hook instance
+ *    with its own stale currentTime=0).
  */
 
-import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HiPlay, HiBookOpen, HiTranslate } from 'react-icons/hi';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useAppStore } from '@/store/appStore';
-import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import type { TranscriptSegment, WordTiming } from '@/types';
 
 export default function TranscriptViewer() {
-  const { transcript, playerState } = useAppStore();
-  const { currentTime, seekTo, extractTranscript } = useVideoPlayer();
+  const { transcript, playerState, currentTime } = useAppStore();
+  // Bug #12 fix: only use useVideoPlayer for seekTo and extractTranscript —
+  // NOT for currentTime (which came from a separate hook state before).
+  const { seekTo, extractTranscript } = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeSegmentRef = useRef<HTMLDivElement>(null);
@@ -23,7 +28,6 @@ export default function TranscriptViewer() {
     if (activeSegmentRef.current && containerRef.current) {
       const container = containerRef.current;
       const element = activeSegmentRef.current;
-
       const containerRect = container.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
 
@@ -31,10 +35,7 @@ export default function TranscriptViewer() {
         elementRect.top < containerRect.top + 100 ||
         elementRect.bottom > containerRect.bottom - 100
       ) {
-        element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }, [playerState.current_segment]);
@@ -42,27 +43,32 @@ export default function TranscriptViewer() {
   // If no transcript, show extract button
   if (!transcript?.segments?.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <div className="w-16 h-16 rounded-full bg-surface-700/50 flex items-center justify-center">
-          <HiTranslate className="w-8 h-8 text-surface-400" />
-        </div>
-        <p className="text-surface-400 text-center">لم يتم استخراج النص بعد</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+        <div className="text-5xl mb-2">📝</div>
+        <p className="text-surface-400 text-lg">لم يتم استخراج النص بعد</p>
         <button
           onClick={() => extractTranscript(useAppStore.getState().currentVideo?.id || '')}
           className="btn-primary"
         >
-          <HiPlay className="w-4 h-4" />
+          <span>🔍</span>
           استخراج النص
         </button>
+        <p className="text-surface-500 text-sm max-w-xs">
+          سيتم استخراج الترجمة من YouTube أو محليًا باستخدام Whisper
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-surface-200">النص المتزامن</h3>
-        <span className="text-xs text-surface-400">
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-700/50">
+        <h3 className="text-sm font-semibold text-surface-200 flex items-center gap-2">
+          <span>📝</span>
+          النص المتزامن
+        </h3>
+        <span className="badge badge-primary text-xs">
           {transcript.segments.length} جملة
         </span>
       </div>
@@ -70,26 +76,27 @@ export default function TranscriptViewer() {
       {/* Transcript container */}
       <div
         ref={containerRef}
-        className="space-y-1 max-h-[60vh] overflow-y-auto scrollbar-hide px-2"
+        className="flex-1 overflow-y-auto px-3 py-2 space-y-1 scrollbar-hide"
       >
-        <AnimatePresence>
-          {transcript.segments.map((segment, idx) => (
-            <TranscriptSegmentItem
-              key={segment.index || idx}
-              segment={segment}
-              isActive={playerState.current_segment === segment.index}
-              currentTime={currentTime}
-              onClick={() => seekTo(segment.start)}
-              onWordClick={lookupWord}
-              ref={playerState.current_segment === segment.index ? activeSegmentRef : undefined}
-            />
-          ))}
-        </AnimatePresence>
+        {transcript.segments.map((segment) => (
+          <TranscriptSegmentItem
+            key={segment.index}
+            segment={segment}
+            isActive={playerState.current_segment === segment.index}
+            // Bug #12 fix: currentTime comes from Zustand store via parent
+            currentTime={currentTime}
+            onClick={() => seekTo(segment.start)}
+            onWordClick={lookupWord}
+            ref={playerState.current_segment === segment.index ? activeSegmentRef : undefined}
+          />
+        ))}
       </div>
 
-      {/* Current line mini-player */}
+      {/* Current line mini-display */}
       <CurrentLineBar
-        segment={transcript.segments.find(s => s.index === playerState.current_segment) || null}
+        segment={
+          transcript.segments.find((s) => s.index === playerState.current_segment) || null
+        }
         currentTime={currentTime}
       />
     </div>
@@ -108,56 +115,52 @@ const TranscriptSegmentItem = React.forwardRef<
   }
 >(({ segment, isActive, currentTime, onClick, onWordClick }, ref) => {
   return (
-    <motion.div
+    <div
       ref={ref}
-      layout
-      initial={{ opacity: 0, x: -10 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        scale: isActive ? 1 : 0.98,
-      }}
-      transition={{ duration: 0.2 }}
-      className={`p-3 rounded-xl cursor-pointer transition-all duration-200 ${
-        isActive
-          ? 'bg-primary-500/10 border-r-2 border-primary-500 shadow-sm'
-          : 'hover:bg-surface-700/30 border-r-2 border-transparent'
-      }`}
       onClick={onClick}
-      dir="rtl"
+      className={`
+        group rounded-xl px-3 py-2.5 cursor-pointer transition-all duration-200
+        ${isActive
+          ? 'bg-primary-500/15 border border-primary-500/30'
+          : 'hover:bg-surface-700/40 border border-transparent'
+        }
+      `}
     >
-      <p className={`leading-relaxed ${isActive ? 'text-surface-100' : 'text-surface-300'}`}>
+      <div className="flex flex-wrap gap-x-1 gap-y-0.5 leading-relaxed">
         {segment.words?.length > 0
           ? segment.words.map((word, wi) => (
               <WordSpan
                 key={wi}
                 word={word}
-                isActive={isActive && currentTime >= word.start && currentTime <= word.end}
+                isActive={currentTime >= word.start && currentTime <= word.end}
                 isSentenceActive={isActive}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onWordClick(word.word.replace(/[.,!?;:'"]/g, ''));
+                  onWordClick(word.word.replace(/[.,!?;:'"()[\]]/g, ''));
                 }}
               />
             ))
           : segment.text.split(' ').map((w, i) => (
               <span
                 key={i}
-                className="transcript-word"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onWordClick(w.replace(/[.,!?;:'"]/g, ''));
+                  onWordClick(w.replace(/[.,!?;:'"()[\]]/g, ''));
                 }}
+                className="transcript-word text-surface-200 hover:text-primary-300 hover:bg-primary-500/20 rounded px-0.5 cursor-pointer"
               >
-                {w}{' '}
+                {w}
               </span>
             ))}
-      </p>
+      </div>
+
       {/* Timestamp */}
-      <span className="text-xs text-surface-500 mt-1 block">
-        {formatTimestamp(segment.start)} - {formatTimestamp(segment.end)}
-      </span>
-    </motion.div>
+      <div className="mt-1 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-xs text-surface-500">
+          {formatTimestamp(segment.start)} → {formatTimestamp(segment.end)}
+        </span>
+      </div>
+    </div>
   );
 });
 
@@ -175,38 +178,33 @@ function WordSpan({
   isSentenceActive: boolean;
   onClick: (e: React.MouseEvent) => void;
 }) {
-  const duration = word.end - word.start;
-
   return (
-    <span className="inline-block relative mx-0.5">
-      <span
-        className={`transcript-word text-base ${
-          isActive
-            ? 'active text-primary-300 font-semibold'
-            : isSentenceActive
-            ? 'text-surface-100'
-            : 'text-surface-300'
-        }`}
-        onClick={onClick}
-      >
-        {word.word}
-      </span>
-      {/* Karaoke underline */}
-      {isSentenceActive && (
+    <span
+      onClick={onClick}
+      className={`
+        transcript-word relative inline-block px-0.5 py-0 rounded cursor-pointer
+        transition-all duration-150 select-none
+        ${isActive
+          ? 'text-primary-300 font-semibold bg-primary-500/25'
+          : isSentenceActive
+          ? 'text-surface-100'
+          : 'text-surface-400 hover:text-surface-200'
+        }
+      `}
+    >
+      {word.word}
+      {/* Karaoke underline animation for active word */}
+      {isActive && (
         <span
-          className="absolute bottom-0 left-0 h-0.5 bg-primary-400 rounded-full transition-all duration-100"
-          style={{
-            width: isActive ? '100%' : '0%',
-            transitionDuration: `${Math.max(duration * 1000, 100)}ms`,
-          }}
+          className="absolute bottom-0 left-0 h-0.5 bg-primary-400 rounded-full"
+          style={{ width: '100%' }}
         />
       )}
-      <span> </span>
     </span>
   );
 }
 
-/* Current line floating bar */
+/* Current line floating bar at bottom */
 function CurrentLineBar({
   segment,
   currentTime,
@@ -216,16 +214,22 @@ function CurrentLineBar({
 }) {
   if (!segment) return null;
 
+  const progress =
+    segment.duration > 0
+      ? Math.min(((currentTime - segment.start) / segment.duration) * 100, 100)
+      : 0;
+
   return (
-    <div className="sticky bottom-0 mt-4 p-4 glass rounded-2xl border border-primary-500/20">
-      <p className="text-sm text-surface-200 leading-relaxed text-center font-medium">
+    <div className="border-t border-surface-700/50 px-4 py-3 bg-surface-800/80">
+      <div className="text-sm text-surface-200 text-center mb-2 line-clamp-2">
         {segment.text}
-      </p>
-      <div className="flex items-center justify-between mt-2">
-        <span className="text-xs text-primary-400">{formatTimestamp(currentTime)}</span>
-        <div className="flex items-center gap-2">
-          <span className="badge-primary text-xs">{formatTimestamp(segment.duration)}</span>
-        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="h-1 bg-surface-700 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-primary-500 rounded-full transition-all duration-100"
+          style={{ width: `${progress}%` }}
+        />
       </div>
     </div>
   );

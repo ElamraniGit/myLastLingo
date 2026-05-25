@@ -1,5 +1,11 @@
 /**
  * Global state management using Zustand.
+ *
+ * FIXES APPLIED:
+ *  - Bug #12 fix: Added `currentTime` to global store so both VideoPlayer
+ *    and TranscriptViewer share the same time reference without duplicate hooks.
+ *  - Bug #13 fix: `playerState` updates no longer cause stale closures in
+ *    the save interval because `currentTime` is now in the store.
  */
 
 import { create } from 'zustand';
@@ -29,6 +35,11 @@ interface AppState {
   setCurrentVideo: (video: Video | null) => void;
   playerState: PlayerState;
   updatePlayerState: (state: Partial<PlayerState>) => void;
+
+  // Bug #12 fix: shared currentTime in global store
+  currentTime: number;
+  setCurrentTime: (time: number) => void;
+
   transcript: Transcript | null;
   setTranscript: (transcript: Transcript | null) => void;
 
@@ -81,7 +92,7 @@ const initialPlayerState: PlayerState = {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Navigation
       currentPage: 'player',
       setCurrentPage: (page) => set({ currentPage: page }),
@@ -101,6 +112,11 @@ export const useAppStore = create<AppState>()(
         set((prev) => ({
           playerState: { ...prev.playerState, ...state },
         })),
+
+      // Bug #12 fix: currentTime is global
+      currentTime: 0,
+      setCurrentTime: (time) => set({ currentTime: time }),
+
       transcript: null,
       setTranscript: (transcript) => set({ transcript }),
 
@@ -149,10 +165,13 @@ export const useAppStore = create<AppState>()(
           currentVideo: null,
           playerState: initialPlayerState,
           transcript: null,
+          currentTime: 0,
         }),
     }),
     {
       name: 'lingualearn-storage',
+      // Only persist settings and vocabulary — NOT player state or video list
+      // (avoids stale data on reload)
       partialize: (state) => ({
         theme: state.theme,
         savedWords: state.savedWords,

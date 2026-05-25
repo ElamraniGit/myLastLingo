@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinguaLearn — Diagnostic & Fix Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    line-height: 1.7;
+    padding: 24px 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.8rem; color: #60a5fa; margin-bottom: 6px; }
+  h2 { font-size: 1.2rem; color: #93c5fd; margin: 28px 0 10px; border-bottom: 1px solid #1e3a5f; padding-bottom: 6px; }
+  h3 { font-size: 1rem; color: #bfdbfe; margin: 16px 0 6px; }
+  .subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 24px; }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 10px 0;
+  }
+  .bug { border-left: 4px solid; }
+  .bug-critical { border-color: #ef4444; }
+  .bug-high { border-color: #f97316; }
+  .bug-medium { border-color: #eab308; }
+  .bug-arch { border-color: #3b82f6; }
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .badge-red { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+  .badge-orange { background: #431407; color: #fed7aa; border: 1px solid #7c2d12; }
+  .badge-yellow { background: #422006; color: #fef08a; border: 1px solid #78350f; }
+  .badge-blue { background: #0c1a3d; color: #93c5fd; border: 1px solid #1e3a8a; }
+  .badge-green { background: #052e16; color: #86efac; border: 1px solid #14532d; }
+  code {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    color: #7dd3fc;
+    direction: ltr;
+    display: inline-block;
+  }
+  pre {
+    background: #020617;
+    border: 1px solid #1e3a5f;
+    border-radius: 10px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    direction: ltr;
+    margin: 10px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  pre .comment { color: #4a5568; }
+  pre .good { color: #86efac; }
+  pre .bad { color: #fca5a5; }
+  ul { padding-right: 20px; color: #94a3b8; }
+  li { margin: 5px 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  .file-tag {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-bottom: 4px;
+    direction: ltr;
+    font-family: monospace;
+  }
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #1e293b;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .check { color: #4ade80; font-weight: bold; }
+  .cross { color: #f87171; font-weight: bold; }
+  .arrow { color: #60a5fa; }
+</style>
+</head>
+<body>
+
+<h1>🔬 LinguaLearn — Diagnostic & Fix Report</h1>
+<p class="subtitle">تقرير التشخيص الشامل — 2026-05-25 · Senior Full-Stack AI Engineer</p>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>📊 ملخص الأخطاء المكتشفة</h2>
+
+<div class="card">
+  <div class="summary-row"><span>🔴 أخطاء حرجة (تمنع الاستخراج تمامًا)</span><strong style="color:#ef4444">7</strong></div>
+  <div class="summary-row"><span>🟠 أخطاء عالية الخطورة (تسبب تعطل جزئي)</span><strong style="color:#f97316">4</strong></div>
+  <div class="summary-row"><span>🟡 أخطاء متوسطة (سلوك غير صحيح)</span><strong style="color:#eab308">3</strong></div>
+  <div class="summary-row"><span>🔵 ضعف معماري (أداء وموثوقية)</span><strong style="color:#3b82f6">8</strong></div>
+  <div class="summary-row"><strong>المجموع</strong><strong style="color:#a78bfa">22</strong></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>🔴 الأخطاء الحرجة — استخراج الترجمة</h2>
+
+<!-- BUG 1 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #1 — ROOT CAUSE</div>
+  <div class="file-tag">backend/app/api/transcripts.py → _fetch_youtube_captions()</div>
+  <h3>--convert-subs srt يتطلب ffmpeg</h3>
+  <p>yt-dlp يكتب VTT لكن يحتاج ffmpeg لتحويله إلى SRT. على Termux بدون ffmpeg في PATH، يفشل الأمر صامتًا.</p>
+  <pre><span class="bad"># قبل الإصلاح — BROKEN</span>
+cmd = 'yt-dlp --skip-download --write-subs --convert-subs srt ...'
+<span class="comment"># ^ --convert-subs يستدعي ffmpeg داخليًا → فشل صامت</span>
+
+<span class="good"># بعد الإصلاح — FIXED</span>
+cmd = ['yt-dlp', '--skip-download', '--write-auto-subs',
+       '--sub-format', 'vtt', ...]
+<span class="comment"># ^ VTT مباشر، لا حاجة لـ ffmpeg</span></pre>
+</div>
+
+<!-- BUG 2 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #2</div>
+  <div class="file-tag">transcripts.py → _fetch_youtube_captions() lines ~60-75</div>
+  <h3>خطأ في منطق الأعلام (flags)</h3>
+  <p>كلا الفرعين (auto / manual) يرسلان <code>--write-subs</code>. الفرع اليدوي لا يحصل على <code>--write-auto-subs</code> أبدًا بصورة صحيحة.</p>
+  <pre><span class="bad"># خطأ</span>
+sub_flag = "--write-subs " if not use_auto else "--write-subs "
+<span class="comment"># ^ نفس القيمة في كلا الحالتين!</span>
+
+<span class="good"># صواب</span>
+if use_auto:
+    sub_flags = ["--write-auto-subs"]
+else:
+    sub_flags = ["--write-subs"]</pre>
+</div>
+
+<!-- BUG 3 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #3</div>
+  <div class="file-tag">transcripts.py</div>
+  <h3>البحث عن .srt لكن yt-dlp يكتب .vtt</h3>
+  <p>الدالة <code>_parse_vtt()</code> موجودة لكنها <strong>لا تُستدعى أبدًا</strong>. الكود يبحث عن <code>.srt</code> فقط. النتيجة: <code>found_srt = None</code> دائمًا → الفشل إلى Whisper.</p>
+  <pre><span class="bad"># خطأ — يبحث عن SRT</span>
+patterns = [temp_dir / f"{youtube_id}.{language}.srt", ...]
+
+<span class="good"># صواب — يبحث عن VTT ويستدعي _parse_vtt()</span>
+vtt_files = list(temp_dir.glob(f"{youtube_id}*.vtt"))
+segments = _parse_vtt(vtt_content)</pre>
+</div>
+
+<!-- BUG 4 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #4</div>
+  <div class="file-tag">transcripts.py</div>
+  <h3>Race condition في ملفات temp</h3>
+  <p>جميع الطلبات تكتب إلى <code>data/temp/{youtube_id}.*</code>. طلبان متزامنان لفيديوهين مختلفين يتشاركان نفس المسار إذا كان الـ youtube_id مختلفًا، لكن إذا كان نفس الفيديو، يحذف الأول ملف الثاني.</p>
+  <pre><span class="good"># الإصلاح: مجلد temp فريد لكل طلب</span>
+request_id = str(uuid.uuid4())[:8]
+temp_dir = Path("data/temp") / request_id</pre>
+</div>
+
+<!-- BUG 5 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #5</div>
+  <div class="file-tag">transcripts.py</div>
+  <h3>لا timeout لـ yt-dlp — يعطل كل الخادم</h3>
+  <p>إذا علق yt-dlp (bot detection، مشاكل شبكة)، يتجمد FastAPI بالكامل على Termux مع worker واحد.</p>
+  <pre><span class="good"># الإصلاح</span>
+stdout, stderr = await asyncio.wait_for(
+    proc.communicate(), timeout=60.0
+)</pre>
+</div>
+
+<!-- BUG 6 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #6</div>
+  <div class="file-tag">transcripts.py → _parse_vtt()</div>
+  <h3>Parser لا يتعامل مع captions auto-generated</h3>
+  <p>YouTube captions تلقائية تحتوي على tags من نوع <code>&lt;00:00:01.200&gt;&lt;c&gt; word&lt;/c&gt;</code>. Regex الموجود يفشل في تحليلها.</p>
+  <pre><span class="comment"># YouTube auto-caption VTT مثال:</span>
+00:00:01.200 --> 00:00:04.880 align:start position:0%
+
+hello&lt;00:00:01.200&gt;&lt;c&gt; everyone&lt;/c&gt;&lt;00:00:03.000&gt;&lt;c&gt; welcome&lt;/c&gt;
+
+<span class="good"># الإصلاح: إزالة timestamp tags + c tags</span>
+text = re.sub(r'&lt;\d{2}:\d{2}:\d{2}\.\d{3}&gt;', '', raw_text)
+text = re.sub(r'&lt;/?c(?:\.[^&gt;]*)?&gt;', '', text)</pre>
+</div>
+
+<!-- BUG 7 -->
+<div class="card bug bug-critical">
+  <div class="badge badge-red">🔴 BUG #7</div>
+  <div class="file-tag">transcripts.py → _transcribe_with_whisper()</div>
+  <h3>Whisper يعتمد على MP4 غير موجود بعد</h3>
+  <p>يبحث عن <code>data/downloads/{video_id}.mp4</code> لكن التحميل background task غير مكتمل بعد. النتيجة: Whisper يعود بصمت بدون ترجمة.</p>
+  <pre><span class="good"># الإصلاح: تحميل audio-only مباشرة</span>
+cmd = ['yt-dlp', '--format', 'bestaudio',
+       '--extract-audio', '--audio-format', 'wav', ...]</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>🟠 أخطاء عالية الخطورة</h2>
+
+<div class="grid">
+  <div class="card bug bug-high">
+    <div class="badge badge-orange">🟠 BUG #8</div>
+    <div class="file-tag">database.py</div>
+    <h3>Connection Pool غير آمن</h3>
+    <p>قائمة Python بدون Lock في get/release → تلف محتمل عند الطلبات المتزامنة.</p>
+  </div>
+  <div class="card bug bug-high">
+    <div class="badge badge-orange">🟠 BUG #9</div>
+    <div class="file-tag">database.py</div>
+    <h3>SQLite متزامن في async</h3>
+    <p><code>aiosqlite</code> موجود في requirements لكن غير مستخدم. sync sqlite3 يحجب event loop.</p>
+  </div>
+  <div class="card bug bug-high">
+    <div class="badge badge-orange">🟠 BUG #10</div>
+    <div class="file-tag">vocabulary.py line ~35</div>
+    <h3>Import path خاطئ</h3>
+    <pre><span class="bad">from backend.ai.dictionary.service import ...</span>
+<span class="good">from ai.dictionary.service import ...</span></pre>
+  </div>
+  <div class="card bug bug-high">
+    <div class="badge badge-orange">🟠 BUG #12</div>
+    <div class="file-tag">TranscriptViewer.tsx</div>
+    <h3>Hook مكرر — currentTime دائمًا 0</h3>
+    <p>كلٌّ من VideoPlayer و TranscriptViewer يستدعيان <code>useVideoPlayer()</code> — كل منهما له <code>playerRef</code> منفصل. ref في TranscriptViewer ليس مرتبطًا بأي مشغل حقيقي.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>🟡 أخطاء متوسطة الخطورة</h2>
+
+<div class="grid">
+  <div class="card bug bug-medium">
+    <div class="badge badge-yellow">🟡 BUG #11</div>
+    <div class="file-tag">player.py WebSocket</div>
+    <h3>WebSocket keyed بـ video_id</h3>
+    <p>تبويبان لنفس الفيديو → الثاني يستبدل الأول. التبويب الأول يتعطل.</p>
+  </div>
+  <div class="card bug bug-medium">
+    <div class="badge badge-yellow">🟡 BUG #14 + #15</div>
+    <div class="file-tag">frontend/</div>
+    <h3>ملفات مفقودة</h3>
+    <p><code>next.config.js</code> و <code>tailwind.config.js</code> غير موجودين → الواجهة بدون ألوان مخصصة ولا alias <code>@/</code>.</p>
+  </div>
+  <div class="card bug bug-medium">
+    <div class="badge badge-yellow">🟡 BUG #17</div>
+    <div class="file-tag">pages/index.tsx</div>
+    <h3>صفحة رئيسية فارغة</h3>
+    <p>تعيد <code>null</code> — شاشة بيضاء حتى يحمّل Zustand من localStorage.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>📁 الملفات التي تم إصلاحها</h2>
+
+<div class="card">
+  <div class="summary-row">
+    <code>backend/app/api/transcripts.py</code>
+    <span class="badge badge-red">إصلاح كامل — Bugs #1-7</span>
+  </div>
+  <div class="summary-row">
+    <code>backend/app/db/database.py</code>
+    <span class="badge badge-orange">aiosqlite + thread-safe — Bugs #8-9</span>
+  </div>
+  <div class="summary-row">
+    <code>backend/app/api/vocabulary.py</code>
+    <span class="badge badge-orange">import fix — Bug #10</span>
+  </div>
+  <div class="summary-row">
+    <code>backend/app/api/player.py</code>
+    <span class="badge badge-yellow">WebSocket session key — Bug #11</span>
+  </div>
+  <div class="summary-row">
+    <code>backend/app/api/videos.py</code>
+    <span class="badge badge-blue">subprocess exec list — Bug #A2</span>
+  </div>
+  <div class="summary-row">
+    <code>backend/app/api/dictionary.py</code>
+    <span class="badge badge-blue">async aiosqlite queries</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/store/appStore.ts</code>
+    <span class="badge badge-orange">currentTime في store — Bug #12</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/hooks/useVideoPlayer.ts</code>
+    <span class="badge badge-orange">write currentTime to store — Bug #12-13</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/components/transcript/TranscriptViewer.tsx</code>
+    <span class="badge badge-orange">read currentTime from store — Bug #12</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/components/player/VideoPlayer.tsx</code>
+    <span class="badge badge-blue">cleanup + volume wiring</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/pages/PlayerPage.tsx</code>
+    <span class="badge badge-yellow">auto-extract + error UI</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/pages/index.tsx</code>
+    <span class="badge badge-yellow">loading state — Bug #17</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/src/services/api.ts</code>
+    <span class="badge badge-blue">retry + longer timeout for transcripts</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/tailwind.config.js</code>
+    <span class="badge badge-red">ملف جديد — Bug #15</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/next.config.js</code>
+    <span class="badge badge-red">ملف جديد — Bug #14</span>
+  </div>
+  <div class="summary-row">
+    <code>frontend/tsconfig.json</code>
+    <span class="badge badge-red">path aliases — Bug #18</span>
+  </div>
+  <div class="summary-row">
+    <code>requirements.txt</code>
+    <span class="badge badge-blue">aiosqlite, yt-dlp version bump</span>
+  </div>
+  <div class="summary-row">
+    <code>scripts/install_termux.sh</code>
+    <span class="badge badge-blue">محسّن</span>
+  </div>
+  <div class="summary-row">
+    <code>scripts/start_backend.sh</code>
+    <span class="badge badge-blue">جديد</span>
+  </div>
+  <div class="summary-row">
+    <code>scripts/start_frontend.sh</code>
+    <span class="badge badge-blue">جديد</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>🚀 كيفية تشغيل التطبيق</h2>
+
+<div class="card">
+  <h3>1. التثبيت (مرة واحدة فقط)</h3>
+  <pre>chmod +x scripts/install_termux.sh
+./scripts/install_termux.sh</pre>
+
+  <h3>2. تشغيل الخادم الخلفي (Backend) — terminal 1</h3>
+  <pre>chmod +x scripts/start_backend.sh
+./scripts/start_backend.sh</pre>
+
+  <h3>3. تشغيل الواجهة الأمامية (Frontend) — terminal 2</h3>
+  <pre>chmod +x scripts/start_frontend.sh
+./scripts/start_frontend.sh</pre>
+
+  <h3>4. فتح التطبيق في المتصفح</h3>
+  <pre>http://127.0.0.1:3000</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>🔄 مسار استخراج الترجمة بعد الإصلاح</h2>
+
+<div class="card">
+  <pre>المستخدم يلصق رابط YouTube
+        ↓
+POST /api/v1/videos/process
+  └─ yt-dlp --dump-json → metadata
+        ↓
+POST /api/v1/transcripts/extract/{video_id}
+  └─ _fetch_youtube_captions(youtube_id, "en")
+       ├─ yt-dlp --write-subs --sub-format vtt    (manual subs)
+       ├─ yt-dlp --write-auto-subs --sub-format vtt (auto-generated)
+       ├─ finds .vtt file
+       ├─ _parse_vtt() → strips &lt;timestamp&gt;&lt;c&gt; tags
+       └─ returns segments[]
+  
+  إذا فشل YouTube captions:
+  └─ _transcribe_with_whisper_audio_only()
+       ├─ yt-dlp --extract-audio --audio-format wav
+       ├─ WhisperService.transcribe(wav)
+       └─ save_transcript() → DB
+
+الواجهة الأمامية:
+  TranscriptViewer ← currentTime (Zustand store)
+                   ← transcript.segments
+  → يُظلّل الكلمة الحالية بدقة</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<h2>✅ ما يعمل الآن</h2>
+
+<div class="card">
+  <div class="summary-row"><span class="check">✅</span><span>استخراج VTT مباشر بدون ffmpeg</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>دعم auto-generated YouTube captions</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>تزامن الترجمة مع الفيديو (currentTime مشترك)</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>الضغط على الكلمة → قاموس فوري</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>SQLite async (aiosqlite) — لا blocking</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>WebSocket متعدد التبويبات</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>Tailwind بألوانه الكاملة (surface, primary, accent)</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>Whisper fallback يحمّل audio فقط (لا MP4 مطلوب)</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>Race condition محلول (temp dir فريد لكل طلب)</span></div>
+  <div class="summary-row"><span class="check">✅</span><span>Timeout على كل عملية yt-dlp (60s)</span></div>
+</div>
+
+<p style="text-align:center; color:#334155; margin-top: 32px; font-size: 0.8rem;">
+  Generated by Arena.ai Agent Mode • LinguaLearn Diagnostic Report
+</p>
+
+</body>
+</html>

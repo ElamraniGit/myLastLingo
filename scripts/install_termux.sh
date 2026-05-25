@@ -1,167 +1,163 @@
 #!/bin/bash
-"""
-================================================================
-LinguaLearn - Termux Installation Script
-================================================================
-
-يقوم هذا السكريبت بتثبيت جميع المتطلبات لتشغيل تطبيق
-LinguaLearn بالكامل على Termux (أندرويد)
-
-المتطلبات:
-- Termux مثبت من F-Droid (وليس Google Play)
-- اتصال إنترنت قوي (لتحميل الحزم)
-- 2GB مساحة تخزين على الأقل
-- أندرويد 8+ (API 26+)
-
-الاستخدام:
-    chmod +x install_termux.sh
-    ./install_termux.sh
-
-================================================================
-"""
+# ================================================================
+# LinguaLearn — Termux Installation Script
+# ================================================================
+#
+# Installs all requirements to run LinguaLearn fully on Android
+# via Termux (from F-Droid — NOT Google Play).
+#
+# Requirements:
+#   - Termux from F-Droid
+#   - Strong internet connection (first install only)
+#   - 2GB+ free storage
+#   - Android 8+ (API 26+)
+#
+# Usage:
+#   chmod +x scripts/install_termux.sh
+#   ./scripts/install_termux.sh
+# ================================================================
 
 set -e
 
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${PURPLE}"
 echo "╔══════════════════════════════════════════╗"
 echo "║         LinguaLearn Installer            ║"
-echo "║     English Learning App for Termux      ║"
+echo "║    English Learning App for Termux       ║"
 echo "╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Check if running in Termux
+# Verify Termux environment
 if [ -z "$PREFIX" ] || [ ! -d "$PREFIX" ]; then
-    echo -e "${RED}❌ This script must be run in Termux on Android${NC}"
-    exit 1
+  echo -e "${RED}❌ This script must be run inside Termux on Android${NC}"
+  exit 1
 fi
 
-echo -e "${BLUE}📱 Detected Termux environment${NC}"
-echo -e "${BLUE}📦 Starting installation...${NC}"
-echo ""
+echo -e "${BLUE}📱 Termux environment detected${NC}"
 
-# Check storage permission
+# Grant storage permission if not already granted
 if [ ! -d "$HOME/storage" ]; then
-    echo -e "${YELLOW}⚠️  Storage permission not granted${NC}"
-    echo -e "${YELLOW}   Running: termux-setup-storage${NC}"
-    termux-setup-storage || true
+  echo -e "${YELLOW}⚠️  Requesting storage permission...${NC}"
+  termux-setup-storage || true
+  sleep 2
 fi
 
-# Step 1: Update packages
-echo -e "${CYAN}[1/8] تحديث الحزم...${NC}"
+# ──────────────────────────────────────────────────────────
+# STEP 1: Update packages
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[1/8] Updating packages...${NC}"
 pkg update -y && pkg upgrade -y
 
-# Step 2: Install core dependencies
-echo -e "${CYAN}[2/8] تثبيت المتطلبات الأساسية...${NC}"
+# ──────────────────────────────────────────────────────────
+# STEP 2: Core system packages
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[2/8] Installing core packages...${NC}"
 pkg install -y \
-    python \
-    python-pip \
-    nodejs \
-    nodejs-lts \
-    git \
-    wget \
-    curl \
-    ffmpeg \
-    build-essential \
-    cmake \
-    rust \
-    binutils \
-    libxml2 \
-    libxslt \
-    libzmq \
-    openssl \
-    sqlite \
-    which \
-    termux-tools \
-    tur-repo \
-    x11-repo
+  python \
+  python-pip \
+  nodejs \
+  git \
+  wget \
+  curl \
+  ffmpeg \
+  build-essential \
+  cmake \
+  binutils \
+  openssl \
+  sqlite \
+  termux-tools
 
-# Step 3: Install Python packages
-echo -e "${CYAN}[3/8] تثبيت حزم Python...${NC}"
-
-# Core backend
+# ──────────────────────────────────────────────────────────
+# STEP 3: Python packages (core)
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[3/8] Installing Python packages...${NC}"
 pip install --upgrade pip
-pip install fastapi uvicorn[standard] websockets
 
-# Database
-pip install aiosqlite
+pip install \
+  fastapi \
+  "uvicorn[standard]" \
+  websockets \
+  aiosqlite \
+  pyyaml \
+  aiohttp \
+  python-multipart
 
-# Configuration
-pip install pyyaml
+# ──────────────────────────────────────────────────────────
+# STEP 4: yt-dlp (YouTube extraction)
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[4/8] Installing yt-dlp...${NC}"
+pip install "yt-dlp>=2024.1.0"
 
-# HTTP client
-pip install aiohttp
+# Verify yt-dlp works
+if yt-dlp --version > /dev/null 2>&1; then
+  echo -e "${GREEN}✅ yt-dlp installed: $(yt-dlp --version)${NC}"
+else
+  echo -e "${RED}⚠️  yt-dlp may not be in PATH. Try: pip install yt-dlp${NC}"
+fi
 
-# Step 4: Install AI/ML packages
-echo -e "${CYAN}[4/8] تثبيت حزم الذكاء الاصطناعي...${NC}"
-echo -e "${YELLOW}   سيتم تثبيت faster-whisper للنسخ الصوتي المحلي${NC}"
+# ──────────────────────────────────────────────────────────
+# STEP 5: Whisper (optional — ~500MB)
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[5/8] Installing Whisper (optional local STT)...${NC}"
+echo -e "${YELLOW}  This downloads ~500MB. Skip with Ctrl+C if not needed.${NC}"
 
-# faster-whisper for local transcription
-pip install faster-whisper
+pip install numpy || echo -e "${YELLOW}⚠️  numpy install failed (optional)${NC}"
+pip install faster-whisper || echo -e "${YELLOW}⚠️  faster-whisper install failed (optional)${NC}"
 
-# For numpy support
-pip install numpy
-
-# Step 5: Install yt-dlp for YouTube
-echo -e "${CYAN}[5/8] تثبيت أدوات YouTube...${NC}"
-pip install yt-dlp
-
-# Step 6: Install Node.js dependencies
-echo -e "${CYAN}[6/8] تثبيت حزم الواجهة الأمامية...${NC}"
+# ──────────────────────────────────────────────────────────
+# STEP 6: Frontend dependencies
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[6/8] Installing frontend dependencies...${NC}"
 cd frontend
 npm install
 cd ..
 
-# Step 7: Setup directories and models
-echo -e "${CYAN}[7/8] إعداد المجلدات والنماذج...${NC}"
-
-# Create required directories
-mkdir -p data/{downloads,cache/{videos,transcripts,thumbnails},dictionary}
+# ──────────────────────────────────────────────────────────
+# STEP 7: Create directories
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[7/8] Creating directories...${NC}"
+mkdir -p data/{downloads,cache/{videos,transcripts,thumbnails},dictionary,temp}
 mkdir -p models/whisper
 mkdir -p logs
 mkdir -p frontend/public/icons
 
-# Download Whisper model (base - small enough for mobile)
-echo -e "${YELLOW}   تحميل نموذج Whisper (base)...${NC}"
-python -c "
-from faster_whisper import WhisperModel
-model = WhisperModel('base', device='cpu', compute_type='int8', download_root='models/whisper/')
-print('✅ Whisper model loaded successfully')
-" || echo -e "${RED}⚠️  Whisper model download failed, will download on first use${NC}"
+echo -e "${GREEN}✅ Directories created${NC}"
 
-# Step 8: Build frontend
-echo -e "${CYAN}[8/8] بناء الواجهة الأمامية...${NC}"
+# ──────────────────────────────────────────────────────────
+# STEP 8: Build frontend
+# ──────────────────────────────────────────────────────────
+echo -e "\n${CYAN}[8/8] Building frontend...${NC}"
 cd frontend
-npm run build || npm run export
+npm run build || {
+  echo -e "${YELLOW}⚠️  Production build failed. Will use dev mode.${NC}"
+}
 cd ..
 
-# Create start script
-echo -e "${GREEN}"
+# ──────────────────────────────────────────────────────────
+# Done!
+# ──────────────────────────────────────────────────────────
+echo -e "\n${GREEN}"
 echo "╔══════════════════════════════════════════╗"
-echo "║          ✅ التثبيت اكتمل بنجاح           ║"
+echo "║      ✅ Installation Complete!           ║"
 echo "╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 echo ""
-echo -e "${GREEN}📋 لتشغيل التطبيق:${NC}"
+echo -e "${GREEN}To start the app:${NC}"
 echo ""
-echo -e "  ${YELLOW}1. تشغيل الخادم الخلفي:${NC}"
-echo -e "     ${CYAN}./scripts/start_backend.sh${NC}"
+echo -e "  ${YELLOW}Terminal 1 — Backend:${NC}"
+echo -e "  ${CYAN}chmod +x scripts/start_backend.sh && ./scripts/start_backend.sh${NC}"
 echo ""
-echo -e "  ${YELLOW}2. تشغيل الواجهة الأمامية:${NC}"
-echo -e "     ${CYAN}./scripts/start_frontend.sh${NC}"
+echo -e "  ${YELLOW}Terminal 2 — Frontend:${NC}"
+echo -e "  ${CYAN}chmod +x scripts/start_frontend.sh && ./scripts/start_frontend.sh${NC}"
 echo ""
-echo -e "  ${YELLOW}3. فتح التطبيق:${NC}"
-echo -e "     ${CYAN}http://127.0.0.1:3000${NC}"
-echo ""
-echo -e "  ${YELLOW}أو تشغيل الكل مرة واحدة:${NC}"
-echo -e "     ${CYAN}./scripts/start_all.sh${NC}"
+echo -e "  ${YELLOW}Then open in Android browser:${NC}"
+echo -e "  ${CYAN}http://127.0.0.1:3000${NC}"
 echo ""
 echo -e "${PURPLE}Happy Learning! 🎉${NC}"

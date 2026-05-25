@@ -1,5 +1,10 @@
 /**
  * Hook for video player controls and transcript synchronization.
+ *
+ * FIXES APPLIED:
+ *  - Bug #12 fix: currentTime is now written to Zustand store (setCurrentTime),
+ *    so TranscriptViewer reads the same value without creating a second hook instance.
+ *  - Bug #13 fix: save interval uses a ref snapshot of playerState to avoid stale closure.
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -16,39 +21,38 @@ export function useVideoPlayer() {
     setTranscript,
     setLoading,
     setError,
-    setCurrentPage,
+    // Bug #12 fix: use global currentTime
+    currentTime,
+    setCurrentTime,
   } = useAppStore();
 
   const [playerReady, setPlayerReady] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const playerRef = useRef<any>(null);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Bug #13 fix: keep a ref to the latest playerState to avoid stale closures
+  const playerStateRef = useRef(playerState);
+  useEffect(() => {
+    playerStateRef.current = playerState;
+  }, [playerState]);
 
   // Load transcript when video changes
   useEffect(() => {
     if (currentVideo && !transcript) {
       loadTranscript(currentVideo.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentVideo?.id]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (progressInterval.current) {
-        clearInterval(progressInterval.current);
-      }
-    };
-  }, []);
 
   const loadTranscript = async (videoId: string) => {
     try {
       const data = await api.transcripts.get(videoId);
-      setTranscript(data);
+      if (data?.segments?.length) {
+        setTranscript(data);
+      }
     } catch {
-      // Transcript will be extracted on demand
-      console.log('No transcript yet, extract when playing');
+      // Transcript will be extracted on demand via extractTranscript()
     }
   };
 
@@ -64,7 +68,7 @@ export function useVideoPlayer() {
     try {
       const data = await api.transcripts.extract(videoId);
 
-      // Captions found immediately
+      // YouTube captions found immediately
       if (data?.segments?.length) {
         setTranscript(data);
         return;
@@ -72,9 +76,9 @@ export function useVideoPlayer() {
 
       // Whisper background mode: poll until transcript is ready
       if (data?.status === 'processing') {
-        const maxAttempts = 30;
+        const maxAttempts = 40; // 40 × 3s = 2 minutes max
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
           try {
             const transcriptData = await api.transcripts.get(videoId);
             if (transcriptData?.segments?.length) {
@@ -82,10 +86,9 @@ export function useVideoPlayer() {
               return;
             }
           } catch {
-            // 404 while processing is expected, keep polling
+            // 404 while Whisper is still running — keep polling
           }
         }
-
         setError('تم بدء الاستخراج لكن لم يكتمل بعد. حاول بعد قليل.');
       }
     } catch (err: any) {
@@ -95,27 +98,22 @@ export function useVideoPlayer() {
     }
   };
 
-  // Get current segment based on time
+  // Bug #12 fix: getCurrentSegment reads from Zustand currentTime (shared state)
   const getCurrentSegment = useCallback((): TranscriptSegment | null => {
     if (!transcript?.segments) return null;
+    const t = useAppStore.getState().currentTime;
     return (
-      transcript.segments.find(
-        (seg) => currentTime >= seg.start && currentTime <= seg.end
-      ) || null
+      transcript.segments.find((seg) => t >= seg.start && t <= seg.end) || null
     );
-  }, [transcript, currentTime]);
+  }, [transcript]);
 
   // Get current word at timestamp
   const getCurrentWord = useCallback((): { word: string; start: number; end: number } | null => {
     const segment = getCurrentSegment();
     if (!segment?.words) return null;
-
-    return (
-      segment.words.find(
-        (w) => currentTime >= w.start && currentTime <= w.end
-      ) || null
-    );
-  }, [getCurrentSegment, currentTime]);
+    const t = useAppStore.getState().currentTime;
+    return segment.words.find((w) => t >= w.start && t <= w.end) || null;
+  }, [getCurrentSegment]);
 
   // Player controls
   const play = useCallback(() => {
@@ -133,9 +131,9 @@ export function useVideoPlayer() {
   }, [updatePlayerState]);
 
   const togglePlay = useCallback(() => {
-    if (playerState.playing) pause();
+    if (playerStateRef.current.playing) pause();
     else play();
-  }, [playerState.playing, play, pause]);
+  }, [play, pause]);
 
   const seekTo = useCallback(
     (time: number) => {
@@ -145,7 +143,7 @@ export function useVideoPlayer() {
         setCurrentTime(time);
       }
     },
-    [updatePlayerState]
+    [updatePlayerState, setCurrentTime]
   );
 
   const setSpeed = useCallback(
@@ -157,16 +155,18 @@ export function useVideoPlayer() {
 
   const skipForward = useCallback(
     (seconds = 5) => {
-      seekTo(Math.min(currentTime + seconds, duration));
+      const t = useAppStore.getState().currentTime;
+      seekTo(Math.min(t + seconds, duration));
     },
-    [currentTime, duration, seekTo]
+    [duration, seekTo]
   );
 
   const skipBackward = useCallback(
     (seconds = 5) => {
-      seekTo(Math.max(currentTime - seconds, 0));
+      const t = useAppStore.getState().currentTime;
+      seekTo(Math.max(t - seconds, 0));
     },
-    [currentTime, seekTo]
+    [seekTo]
   );
 
   // Navigate to specific segment
@@ -181,45 +181,45 @@ export function useVideoPlayer() {
   // Loop segment
   const toggleLoop = useCallback(
     (start?: number, end?: number) => {
-      if (playerState.loop_enabled) {
-        updatePlayerState({
-          loop_enabled: false,
-          loop_start: undefined,
-          loop_end: undefined,
-        });
+      const ps = playerStateRef.current;
+      if (ps.loop_enabled) {
+        updatePlayerState({ loop_enabled: false, loop_start: undefined, loop_end: undefined });
       } else {
         const seg = getCurrentSegment();
+        const t = useAppStore.getState().currentTime;
         updatePlayerState({
           loop_enabled: true,
-          loop_start: start || seg?.start || currentTime,
-          loop_end: end || seg?.end || currentTime + 5,
+          loop_start: start ?? seg?.start ?? t,
+          loop_end: end ?? seg?.end ?? t + 5,
         });
       }
     },
-    [playerState.loop_enabled, getCurrentSegment, currentTime, updatePlayerState]
+    [getCurrentSegment, updatePlayerState]
   );
 
-  // Progress tracking
+  // Progress tracking — called by ReactPlayer's onProgress event
   const onProgress = useCallback(
     (state: { played: number; playedSeconds: number; loaded: number }) => {
+      // Bug #12 fix: write to global store so TranscriptViewer can read it
       setCurrentTime(state.playedSeconds);
       setBuffered(state.loaded);
       updatePlayerState({ position: state.playedSeconds });
 
-      // Update current segment
+      // Update current segment index
       const seg = getCurrentSegment();
-      if (seg && seg.index !== playerState.current_segment) {
+      if (seg && seg.index !== playerStateRef.current.current_segment) {
         updatePlayerState({ current_segment: seg.index });
       }
 
       // Handle loop
-      if (playerState.loop_enabled && playerState.loop_end) {
-        if (state.playedSeconds >= playerState.loop_end) {
-          seekTo(playerState.loop_start || 0);
+      const ps = playerStateRef.current;
+      if (ps.loop_enabled && ps.loop_end != null) {
+        if (state.playedSeconds >= ps.loop_end) {
+          seekTo(ps.loop_start ?? 0);
         }
       }
     },
-    [getCurrentSegment, playerState.current_segment, playerState.loop_enabled, playerState.loop_start, playerState.loop_end, updatePlayerState, seekTo]
+    [getCurrentSegment, updatePlayerState, setCurrentTime, seekTo]
   );
 
   const onDuration = useCallback((dur: number) => {
@@ -234,15 +234,16 @@ export function useVideoPlayer() {
     updatePlayerState({ playing: false });
   }, [updatePlayerState]);
 
-  // Save player state periodically
+  // Bug #13 fix: save player state periodically using a ref for latest state
   useEffect(() => {
     if (!currentVideo || !playerState.playing) return;
 
     const saveInterval = setInterval(async () => {
       try {
-        await api.player.updateState(playerState);
+        // Read latest state from ref, not from closure
+        await api.player.updateState(playerStateRef.current);
       } catch {
-        // Silent fail
+        // Silent fail — local save isn't critical
       }
     }, 10000);
 
