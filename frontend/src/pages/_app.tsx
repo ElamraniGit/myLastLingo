@@ -1,49 +1,87 @@
+/**
+ * LinguaLearn v2 — App root.
+ * Handles auth routing, theme, page switching.
+ */
+
 import '@/styles/globals.css';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import { useAppStore } from '@/store/appStore';
+import { useStore } from '@/store/appStore';
 import Layout from '@/components/common/Layout';
-import PlayerPage from './PlayerPage';
-import VocabularyPage from './VocabularyPage';
-import FlashcardsPage from './FlashcardsPage';
-import StatsPage from './StatsPage';
-import SettingsPage from './SettingsPage';
+import LoginPage from '@/components/auth/LoginPage';
+import RegisterPage from '@/components/auth/RegisterPage';
+
+// Views (not Next.js pages — rendered via store.currentPage)
+import PlayerView    from '@/views/PlayerView';
+import VocabularyView from '@/views/VocabularyView';
+import FlashcardsView from '@/views/FlashcardsView';
+import StatsView     from '@/views/StatsView';
+import SettingsView  from '@/views/SettingsView';
+import ProfileView   from '@/views/ProfileView';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const { currentPage, theme } = useAppStore();
+  const { currentPage, isAuthenticated, theme } = useStore();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Apply theme class
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   useEffect(() => {
+    // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
+    setHydrated(true);
   }, []);
 
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+            <span className="text-white text-xl font-black">L</span>
+          </div>
+          <div className="w-6 h-6 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Auth gate ──────────────────────────────────────────────────────────────
+  if (!isAuthenticated) {
+    if (currentPage === 'register') return <RegisterPage />;
+    return <LoginPage />;
+  }
+
+  // ── Authenticated page routing ─────────────────────────────────────────────
   const renderPage = () => {
     switch (currentPage) {
-      case 'player': return <PlayerPage />;
-      case 'vocabulary': return <VocabularyPage />;
-      case 'flashcards': return <FlashcardsPage />;
-      case 'stats': return <StatsPage />;
-      case 'settings': return <SettingsPage />;
-      default: return <PlayerPage />;
+      case 'player':
+      case 'home':     return <PlayerView />;
+      case 'vocabulary': return <VocabularyView />;
+      case 'flashcards': return <FlashcardsView />;
+      case 'stats':    return <StatsView />;
+      case 'settings': return <SettingsView />;
+      case 'profile':  return <ProfileView />;
+      default:         return <PlayerView />;
     }
   };
 
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
         <meta name="theme-color" content="#0f172a" />
-        <title>LinguaLearn - تعلم الإنجليزية</title>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <title>LinguaLearn — English Learning</title>
+        <link rel="manifest" href="/manifest.json" />
       </Head>
-      <Layout>
-        {renderPage()}
-      </Layout>
+      <Layout>{renderPage()}</Layout>
     </>
   );
 }

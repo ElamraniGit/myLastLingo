@@ -1,246 +1,89 @@
-/**
- * YouTube URL input component with validation and processing.
- */
-
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HiLink, HiPlay, HiArrowRight, HiCheck, HiX, HiExclamation } from 'react-icons/hi';
-import { useAppStore } from '@/store/appStore';
-import api from '@/services/api';
+import { useStore } from '@/store/appStore';
+import { videosApi, ApiError } from '@/lib/api';
+import { Button } from '@/components/ui/Button';
 
 export default function VideoInput() {
   const [url, setUrl] = useState('');
-  const [status, setStatus] = useState<'idle' | 'validating' | 'processing' | 'ready' | 'error'>('idle');
-  const [error, setError] = useState('');
-  const [recentVideos, setRecentVideos] = useState<any[]>([]);
-  const { setCurrentVideo, setCurrentPage, addVideo } = useAppStore();
+  const [status, setStatus] = useState<'idle'|'loading'|'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const { setCurrentVideo, setPage, recentVideos, addRecentVideo } = useStore();
 
-  // Load recent videos
-  React.useEffect(() => {
-    api.videos.list(1, 5).then((data) => {
-      if (data?.videos) setRecentVideos(data.videos);
-    }).catch(() => {});
-  }, []);
+  const isYT = (s: string) =>
+    /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(s.trim()) ||
+    /^[a-zA-Z0-9_-]{11}$/.test(s.trim());
 
-  const validateYouTubeUrl = (url: string): boolean => {
-    const patterns = [
-      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/,
-      /^[a-zA-Z0-9_-]{11}$/,
-    ];
-    return patterns.some((p) => p.test(url.trim()));
-  };
-
-  const handleSubmit = useCallback(async () => {
-    if (!url.trim()) return;
-
-    if (!validateYouTubeUrl(url)) {
-      setStatus('error');
-      setError('رابط YouTube غير صالح. الرجاء إدخال رابط صحيح.');
-      return;
-    }
-
-    setStatus('validating');
-    setError('');
-
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const v = url.trim();
+    if (!v) return;
+    if (!isYT(v)) { setStatus('error'); setErrorMsg('Please enter a valid YouTube URL or video ID'); return; }
+    setStatus('loading'); setErrorMsg('');
     try {
-      const video = await api.videos.process(url.trim());
-      if (video) {
-        setStatus('ready');
-        addVideo(video);
-        setCurrentVideo(video);
-        
-        // Navigate to player after brief delay
-        setTimeout(() => {
-          setCurrentPage('player');
-        }, 500);
-      }
-    } catch (err: any) {
+      const video = await videosApi.process(v);
+      addRecentVideo(video);
+      setCurrentVideo(video);
+      setPage('player');
+    } catch (e) {
       setStatus('error');
-      setError(err.message || 'فشل في معالجة الفيديو. تحقق من الاتصال بالخادم المحلي.');
-    }
-  }, [url, addVideo, setCurrentVideo, setCurrentPage]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit();
-  };
+      setErrorMsg(e instanceof ApiError ? e.message : 'Failed to load video');
+    } finally { setStatus('idle'); }
+  }, [url, addRecentVideo, setCurrentVideo, setPage]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl md:text-4xl font-bold gradient-text mb-3"
-        >
-          ابدأ رحلة تعلم الإنجليزية
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-surface-400 text-lg"
-        >
-          الصق رابط فيديو YouTube لبدء التعلم بالترجمة والكلمات التفاعلية
-        </motion.p>
-      </div>
-
-      {/* URL Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="glass rounded-2xl p-1"
-      >
-        <div className="flex items-center gap-2 bg-surface-800/50 rounded-xl">
-          <div className="flex items-center gap-2 px-4">
-            <HiLink className="w-5 h-5 text-surface-400" />
-          </div>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => {
-              setUrl(e.target.value);
-              if (status === 'error') setStatus('idle');
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="الصق رابط YouTube هنا..."
-            className="flex-1 bg-transparent py-4 text-surface-100 placeholder-surface-500 focus:outline-none text-lg"
-            dir="ltr"
-            disabled={status === 'processing'}
-          />
-          <div className="px-2">
-            <AnimatePresence mode="wait">
-              {status === 'idle' && (
-                <motion.button
-                  key="submit"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  onClick={handleSubmit}
-                  disabled={!url.trim()}
-                  className="btn-primary px-6"
-                >
-                  <span>بدء</span>
-                  <HiArrowRight className="w-4 h-4" />
-                </motion.button>
-              )}
-
-              {status === 'validating' && (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-primary-500/20 text-primary-400 rounded-xl"
-                >
-                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  <span>جاري المعالجة...</span>
-                </motion.div>
-              )}
-
-              {status === 'ready' && (
-                <motion.div
-                  key="ready"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-green-500/20 text-green-400 rounded-xl"
-                >
-                  <HiCheck className="w-5 h-5" />
-                  <span>تم!</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-10 max-w-xl mx-auto w-full">
+      <div className="text-center mb-10">
+        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mx-auto mb-5 flex items-center justify-center shadow-2xl shadow-blue-500/30">
+          <span className="text-4xl">🎬</span>
         </div>
-      </motion.div>
-
-      {/* Error message */}
-      <AnimatePresence>
-        {status === 'error' && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3"
-          >
-            <HiExclamation className="w-5 h-5 text-red-400 flex-shrink-0" />
-            <span className="text-red-300 text-sm">{error}</span>
-            <button onClick={() => setStatus('idle')} className="mr-auto btn-icon btn-ghost text-red-400">
-              <HiX className="w-4 h-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Quick tips */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        {[
-          { icon: '🎯', title: 'ترجمة ذكية', desc: 'ترجمة لحظية مع تظليل الكلمات' },
-          { icon: '📚', title: 'قاموس مدمج', desc: 'معاني، أمثلة، ومستوى الكلمة' },
-          { icon: '🔄', title: 'تكرار ذكي', desc: 'نظام SRS لحفظ الكلمات' },
-        ].map((tip, i) => (
-          <div
-            key={i}
-            className="glass rounded-xl p-4 text-center hover:bg-surface-700/40 transition-all duration-300"
-          >
-            <div className="text-2xl mb-2">{tip.icon}</div>
-            <h3 className="font-medium text-surface-200 mb-1">{tip.title}</h3>
-            <p className="text-sm text-surface-400">{tip.desc}</p>
+        <h2 className="text-3xl font-bold text-white mb-2">Learn English</h2>
+        <p className="text-slate-400 text-base">Paste a YouTube URL and start learning with interactive subtitles</p>
+      </div>
+      <form onSubmit={handleSubmit} className="w-full space-y-3">
+        <div className="flex gap-2">
+          <input
+            type="text" value={url}
+            onChange={(e) => { setUrl(e.target.value); setErrorMsg(''); setStatus('idle'); }}
+            placeholder="https://youtube.com/watch?v=..."
+            className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
+            dir="ltr"
+          />
+          <Button type="submit" variant="primary" loading={status==='loading'} className="px-6 whitespace-nowrap">
+            Start ▶
+          </Button>
+        </div>
+        {errorMsg && (
+          <div className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <p className="text-sm text-red-400">{errorMsg}</p>
           </div>
+        )}
+      </form>
+      <div className="flex flex-wrap justify-center gap-2 mt-8">
+        {['📝 Synced subtitles','🔍 Click any word','🔊 Pronunciation','💾 Save vocabulary','🔁 Spaced repetition','📵 Works offline'].map((f) => (
+          <span key={f} className="px-3 py-1.5 bg-slate-800/80 border border-slate-700/50 rounded-full text-xs text-slate-400">{f}</span>
         ))}
-      </motion.div>
-
-      {/* Recent videos */}
+      </div>
       {recentVideos.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8"
-        >
-          <h2 className="text-lg font-medium text-surface-300 mb-4">آخر الفيديوهات</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {recentVideos.slice(0, 4).map((video) => (
-              <button
-                key={video.id}
-                onClick={() => {
-                  setCurrentVideo(video);
-                  setCurrentPage('player');
-                }}
-                className="glass rounded-xl p-3 flex items-center gap-3 hover:bg-surface-700/40 transition-all duration-200 group"
-              >
-                <div className="w-16 h-10 rounded-lg bg-surface-700 overflow-hidden flex-shrink-0">
-                  {video.thumbnail_url ? (
-                    <img
-                      src={video.thumbnail_url}
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <HiPlay className="w-5 h-5 text-surface-500" />
-                    </div>
-                  )}
+        <div className="w-full mt-10">
+          <h3 className="text-sm font-semibold text-slate-400 mb-3 px-1">Recent Videos</h3>
+          <div className="space-y-2">
+            {recentVideos.slice(0, 5).map((video) => (
+              <button key={video.id} onClick={() => { setCurrentVideo(video); setPage('player'); }}
+                className="w-full flex items-center gap-3 p-3 bg-slate-800/60 border border-slate-700/50 rounded-xl hover:bg-slate-700/60 transition-all text-left group">
+                {video.thumbnail_url ? (
+                  <img src={video.thumbnail_url} alt="" className="w-16 h-10 rounded-lg object-cover flex-shrink-0 bg-slate-700" />
+                ) : (
+                  <div className="w-16 h-10 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0"><span className="text-slate-500">🎬</span></div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-200 line-clamp-1">{video.title}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{video.channel}</p>
                 </div>
-                <div className="flex-1 min-w-0 text-right">
-                  <p className="text-sm font-medium text-surface-200 truncate">{video.title}</p>
-                  <p className="text-xs text-surface-400">{video.channel}</p>
-                </div>
+                <span className="text-slate-600">▶</span>
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

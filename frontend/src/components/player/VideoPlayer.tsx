@@ -1,207 +1,93 @@
-/**
- * Video player component with YouTube integration and local playback.
- *
- * FIXES:
- *  - Uses the single useVideoPlayer() instance (no duplicate hook in TranscriptViewer).
- *  - Proper volume control wiring.
- *  - Mobile-friendly controls.
- */
-
-import React, { useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
-import { useAppStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import { useStore } from '@/store/appStore';
+
+function fmtTime(s: number) {
+  if (!s || !isFinite(s)) return '0:00';
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+  if (h) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
 
 export default function VideoPlayer() {
-  const { currentVideo } = useAppStore();
+  const { currentVideo } = useStore();
   const {
-    playerRef,
-    playerReady,
-    currentTime,
-    duration,
-    playing,
-    speed,
-    volume,
-    loopEnabled,
-    togglePlay,
-    seekTo,
-    setSpeed,
-    skipForward,
-    skipBackward,
-    toggleLoop,
-    onProgress,
-    onDuration,
-    onReady,
-    onEnded,
+    playerRef, playing, speed, volume, loopEnabled,
+    currentTime, duration,
+    togglePlay, seekTo, setSpeed, setVolume,
+    skipForward, skipBackward, toggleLoop,
+    onProgress, onDuration, onReady, onEnded,
   } = useVideoPlayer();
+
+  const [speedOpen, setSpeedOpen] = useState(false);
+  const [volOpen, setVolOpen] = useState(false);
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    seekTo(((e.clientX - rect.left) / rect.width) * duration);
+  }, [duration, seekTo]);
 
   if (!currentVideo) return null;
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const youtubeUrl = `https://www.youtube.com/watch?v=${currentVideo.youtube_id}`;
-
   return (
-    <div className="relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
-      {/* ReactPlayer */}
-      <div className="relative w-full aspect-video">
+    <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl">
+      <div className="aspect-video w-full">
         <ReactPlayer
           ref={playerRef}
-          url={youtubeUrl}
-          playing={playing}
-          playbackRate={speed}
-          volume={volume}
-          width="100%"
-          height="100%"
-          onProgress={onProgress}
-          onDuration={onDuration}
-          onReady={onReady}
-          onEnded={onEnded}
-          config={{
-            playerVars: {
-              // Disable YouTube logo and related videos for cleaner UX
-              modestbranding: 1,
-              rel: 0,
-              iv_load_policy: 3,
-            },
-          }}
+          url={`https://www.youtube.com/watch?v=${currentVideo.youtube_id}`}
+          playing={playing} playbackRate={speed} volume={volume}
+          width="100%" height="100%"
+          onProgress={onProgress} onDuration={onDuration} onReady={onReady} onEnded={onEnded}
+          config={{ playerVars: { modestbranding: 1, rel: 0, iv_load_policy: 3 } }}
         />
       </div>
-
-      {/* Controls bar */}
-      <div className="bg-surface-900/95 px-3 py-2">
+      <div className="bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3 py-3">
         {/* Progress bar */}
-        <div
-          className="relative h-2 bg-surface-700 rounded-full mb-3 cursor-pointer group"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const pct = x / rect.width;
-            seekTo(pct * duration);
-          }}
-        >
-          <div
-            className="h-full bg-primary-500 rounded-full relative transition-all duration-100"
-            style={{ width: `${progress}%` }}
-          >
-            {/* Scrubber handle */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 group relative" onClick={handleSeek}>
+          <div className="h-full bg-blue-500 rounded-full relative transition-all duration-100" style={{ width: `${progress}%` }}>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
-
-        {/* Buttons row */}
-        <div className="flex items-center gap-2">
-          {/* Skip back 10s */}
-          <button
-            onClick={() => skipBackward(10)}
-            className="text-surface-300 hover:text-white p-1.5 rounded-lg hover:bg-surface-700/50 transition-all text-sm"
-            title="10 ثوان للخلف"
-          >
-            ⏮ 10
-          </button>
-
-          {/* Play / Pause */}
-          <button
-            onClick={togglePlay}
-            className="text-white bg-primary-600 hover:bg-primary-500 p-2.5 rounded-xl transition-all shadow"
-            title={playing ? 'إيقاف' : 'تشغيل'}
-          >
+        {/* Controls */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button onClick={() => skipBackward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">⏮ 10s</button>
+          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
             {playing ? '⏸' : '▶'}
           </button>
-
-          {/* Skip forward 10s */}
-          <button
-            onClick={() => skipForward(10)}
-            className="text-surface-300 hover:text-white p-1.5 rounded-lg hover:bg-surface-700/50 transition-all text-sm"
-            title="10 ثوان للأمام"
-          >
-            10 ⏭
-          </button>
-
-          {/* Time display */}
-          <span className="text-xs text-surface-400 ml-1 tabular-nums">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </span>
-
+          <button onClick={() => skipForward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">10s ⏭</button>
+          <span className="text-white/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
           <div className="flex-1" />
-
-          {/* Speed control */}
-          <SpeedMenu speed={speed} setSpeed={setSpeed} />
-
-          {/* Loop toggle */}
-          <button
-            onClick={() => toggleLoop()}
-            className={`p-1.5 rounded-lg text-sm transition-all ${
-              loopEnabled
-                ? 'text-primary-400 bg-primary-500/20'
-                : 'text-surface-400 hover:text-white hover:bg-surface-700/50'
-            }`}
-            title={loopEnabled ? 'إلغاء التكرار' : 'تكرار الجملة'}
-          >
-            🔁
-          </button>
-        </div>
-      </div>
-
-      {/* Not ready overlay */}
-      {!playerReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface-900/80 rounded-2xl">
-          <div className="text-center">
-            <div className="w-10 h-10 border-2 border-surface-600 border-t-primary-500 rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-surface-400 text-sm">جاري تحميل المشغل...</p>
+          <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>🔁</button>
+          {/* Volume */}
+          <div className="relative">
+            <button onClick={() => setVolOpen(!volOpen)} className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-sm">
+              {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
+            </button>
+            {volOpen && (
+              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-xl z-50 w-32">
+                <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-blue-500" />
+                <p className="text-xs text-slate-400 text-center mt-1">{Math.round(volume * 100)}%</p>
+              </div>
+            )}
+          </div>
+          {/* Speed */}
+          <div className="relative">
+            <button onClick={() => setSpeedOpen(!speedOpen)} className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
+            {speedOpen && (
+              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[80px]">
+                {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((s) => (
+                  <button key={s} onClick={() => { setSpeed(s); setSpeedOpen(false); }}
+                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${speed === s ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}>
+                    {s}×
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
-}
-
-function SpeedMenu({
-  speed,
-  setSpeed,
-}: {
-  speed: number;
-  setSpeed: (s: number) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="text-surface-300 hover:text-white px-2 py-1 rounded-lg hover:bg-surface-700/50 text-xs font-mono transition-all"
-      >
-        {speed}x
-      </button>
-      {open && (
-        <div className="absolute bottom-full right-0 mb-1 bg-surface-800 border border-surface-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[80px]">
-          {speeds.map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                setSpeed(s);
-                setOpen(false);
-              }}
-              className={`block w-full text-right px-3 py-2 text-sm transition-colors ${
-                speed === s
-                  ? 'text-primary-400 bg-primary-500/10 font-semibold'
-                  : 'text-surface-300 hover:text-white hover:bg-surface-700'
-              }`}
-            >
-              {s}x
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function formatTime(seconds: number): string {
-  if (!seconds || !isFinite(seconds)) return '0:00';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }

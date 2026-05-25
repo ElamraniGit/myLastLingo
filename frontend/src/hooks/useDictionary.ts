@@ -1,187 +1,65 @@
-/**
- * Hook for dictionary lookups and vocabulary management.
- */
-
-import { useState, useCallback } from 'react';
-import { useAppStore } from '@/store/appStore';
-import api from '@/services/api';
-import type { Word, SavedWord } from '@/types';
+import { useCallback } from 'react';
+import { useStore } from '@/store/appStore';
+import { dictionaryApi, vocabularyApi } from '@/lib/api';
 
 export function useDictionary() {
   const {
-    selectedWord,
-    setSelectedWord,
-    wordModalOpen,
-    setWordModalOpen,
-    setLoading,
-    setError,
-    savedWords,
-    addSavedWord,
-    dueWords,
-    setDueWords,
-    progress,
-    setProgress,
-  } = useAppStore();
+    setSelectedWord, setWordPopupOpen, setWordPopupSentence,
+    setSavedWords, setDueWords, setProgress,
+    autoPauseOnWord, updatePlayerState,
+  } = useStore();
 
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-
-  // Look up a word
-  const lookupWord = useCallback(
-    async (word: string) => {
-      setLoading(true);
-      try {
-        const data = await api.dictionary.lookup(word);
-        setSelectedWord(data);
-        setWordModalOpen(true);
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Word lookup failed');
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [setSelectedWord, setWordModalOpen, setLoading, setError]
-  );
-
-  // Search dictionary
-  const searchDictionary = useCallback(async (query: string) => {
+  const lookupWord = useCallback(async (word: string, sentence = '') => {
+    const clean = word.replace(/[.,!?;:'"()[\]{}]/g, '').trim().toLowerCase();
+    if (!clean || clean.length < 2) return;
+    if (autoPauseOnWord) updatePlayerState({ playing: false });
+    setWordPopupSentence(sentence);
     try {
-      const data = await api.dictionary.search(query);
-      setSearchResults(data.results || []);
-      return data;
-    } catch {
-      setSearchResults([]);
-      return null;
-    }
-  }, []);
+      const data = await dictionaryApi.lookup(clean);
+      setSelectedWord(data);
+      setWordPopupOpen(true);
+    } catch {}
+  }, [autoPauseOnWord, updatePlayerState, setSelectedWord, setWordPopupOpen, setWordPopupSentence]);
 
-  // Get suggestions
-  const getSuggestions = useCallback(async (prefix: string) => {
-    if (prefix.length < 2) {
-      setSuggestions([]);
-      return;
-    }
+  const closeWordPopup = useCallback(() => {
+    setWordPopupOpen(false);
+    setSelectedWord(null);
+  }, [setWordPopupOpen, setSelectedWord]);
+
+  const saveWord = useCallback(async (word: string, videoId?: string, sentence?: string, context?: string) => {
     try {
-      const data = await api.dictionary.suggest(prefix);
-      setSuggestions(data.suggestions || []);
-    } catch {
-      setSuggestions([]);
-    }
-  }, []);
+      await vocabularyApi.save(word, videoId, sentence, context);
+      const data = await vocabularyApi.list();
+      if (data?.words) setSavedWords(data.words);
+      return true;
+    } catch { return false; }
+  }, [setSavedWords]);
 
-  // Save word to vocabulary
-  const saveWord = useCallback(
-    async (
-      word: string,
-      videoId?: string,
-      sentence?: string,
-      context?: string
-    ) => {
-      try {
-        const data = await api.vocabulary.save(word, videoId, sentence, context);
-        // Refresh saved words
-        const wordsData = await api.vocabulary.list();
-        if (wordsData?.words) {
-          useAppStore.getState().setSavedWords(wordsData.words);
-        }
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Failed to save word');
-        return null;
-      }
-    },
-    [setError]
-  );
+  const loadVocabulary = useCallback(async (status?: string, page = 1) => {
+    const data = await vocabularyApi.list(status, page);
+    if (data?.words) setSavedWords(data.words);
+    return data;
+  }, [setSavedWords]);
 
-  // Review a word
-  const reviewWord = useCallback(
-    async (savedWordId: string, quality: number) => {
-      try {
-        await api.vocabulary.review(savedWordId, quality);
-        // Refresh due words
-        const dueData = await api.vocabulary.due();
-        if (dueData?.words) {
-          setDueWords(dueData.words);
-        }
-        // Refresh stats
-        const statsData = await api.vocabulary.stats();
-        if (statsData) {
-          setProgress(statsData);
-        }
-      } catch (err: any) {
-        setError(err.message || 'Failed to record review');
-      }
-    },
-    [setDueWords, setProgress, setError]
-  );
-
-  // Load due words
   const loadDueWords = useCallback(async () => {
-    try {
-      const data = await api.vocabulary.due();
-      if (data?.words) {
-        setDueWords(data.words);
-      }
-    } catch {
-      // Silent fail
-    }
+    try { const data = await vocabularyApi.due(); if (data?.words) setDueWords(data.words); } catch {}
   }, [setDueWords]);
 
-  // Load vocabulary list
-  const loadVocabulary = useCallback(
-    async (status?: string, page = 1) => {
-      try {
-        const data = await api.vocabulary.list(status, page);
-        if (data?.words) {
-          useAppStore.getState().setSavedWords(data.words);
-        }
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    []
-  );
+  const reviewWord = useCallback(async (savedWordId: string, quality: number) => {
+    await vocabularyApi.review(savedWordId, quality);
+    try { const data = await vocabularyApi.due(); if (data?.words) setDueWords(data.words); } catch {}
+    try { const data = await vocabularyApi.stats(); if (data) setProgress(data); } catch {}
+  }, [setDueWords, setProgress]);
 
-  // Load stats
   const loadStats = useCallback(async () => {
-    try {
-      const data = await api.vocabulary.stats();
-      if (data) {
-        setProgress(data);
-      }
-      return data;
-    } catch {
-      return null;
-    }
+    try { const data = await vocabularyApi.stats(); if (data) setProgress(data); } catch {}
   }, [setProgress]);
 
-  // Close word modal
-  const closeWordModal = useCallback(() => {
-    setWordModalOpen(false);
-    setSelectedWord(null);
-  }, [setWordModalOpen, setSelectedWord]);
+  const deleteWord = useCallback(async (savedId: string) => {
+    await vocabularyApi.delete(savedId);
+    const data = await vocabularyApi.list();
+    if (data?.words) setSavedWords(data.words);
+  }, [setSavedWords]);
 
-  return {
-    // State
-    selectedWord,
-    wordModalOpen,
-    searchResults,
-    suggestions,
-    savedWords,
-    dueWords,
-    progress,
-    // Actions
-    lookupWord,
-    searchDictionary,
-    getSuggestions,
-    saveWord,
-    reviewWord,
-    loadDueWords,
-    loadVocabulary,
-    loadStats,
-    closeWordModal,
-  };
+  return { lookupWord, closeWordPopup, saveWord, loadVocabulary, loadDueWords, reviewWord, loadStats, deleteWord };
 }
