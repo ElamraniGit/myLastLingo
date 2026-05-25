@@ -91,6 +91,7 @@ async def lifespan(app: FastAPI):
         PROJECT_ROOT / config.cache.video_cache,
         PROJECT_ROOT / config.cache.transcript_cache,
         PROJECT_ROOT / config.ai.whisper.model_path,
+        PROJECT_ROOT / "data/temp",
         PROJECT_ROOT / "logs"
     ]
     for d in dirs:

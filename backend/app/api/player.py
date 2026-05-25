@@ -6,6 +6,7 @@ Handles playback state, synchronization, and WebSocket connections.
 import json
 import uuid
 import logging
+from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 

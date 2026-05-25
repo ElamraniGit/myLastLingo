@@ -14,7 +14,6 @@
     "@babel/preset-env": "^7.29.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/runtime": "^7.29.2",
-    "@next/swc-android-arm64": "^13.2.4",
     "axios": "^1.6.2",
     "date-fns": "^3.0.0",
     "framer-motion": "^10.16.16",

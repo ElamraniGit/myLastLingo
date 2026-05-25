@@ -35,8 +35,9 @@ def _ensure_whisper_dependencies() -> None:
             status_code=503,
             detail=(
                 f"Whisper dependency missing: {missing}. "
-                "Install optional offline STT dependencies: "
-                "pip install numpy faster-whisper"
+                "Install optional offline STT dependencies:\n"
+                "    pip install numpy faster-whisper\n\n"
+                "Or try a video that has YouTube captions instead."
             )
         )
 
@@ -115,38 +116,91 @@ async def extract_transcript(
     }
 
 async def _fetch_youtube_captions(youtube_id: str, language: str) -> List[Dict]:
-    """Fetch captions from YouTube using yt-dlp."""
+    """Fetch captions from YouTube using yt-dlp.
     
-    # Use yt-dlp to get subtitles
-    cmd = (
-        f'yt-dlp --skip-download '
-        f'--write-subs --sub-langs {language} '
-        f'--convert-subs srt '
-        f'--output "data/temp/%(id)s" '
-        f'"https://www.youtube.com/watch?v={youtube_id}"'
-    )
+    Tries both regular and auto-generated subtitles with multiple language codes.
+    Falls back gracefully with clear error messages.
+    """
+    from pathlib import Path as _P
     
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    await proc.communicate()
+    # Ensure temp directory exists
+    temp_dir = _P("data/temp")
+    temp_dir.mkdir(parents=True, exist_ok=True)
     
-    # Try to read the SRT file
-    srt_path = Path(f"data/temp/{youtube_id}.{language}.srt")
-    if not srt_path.exists():
-        # Try alternative naming
-        srt_path = Path(f"data/temp/{youtube_id}.srt")
+    # Try multiple language codes
+    lang_variants = [language, f"{language}-US", f"{language}-GB", f"{language}.*"]
+    last_error = None
+    found_srt = None
     
-    if not srt_path.exists():
-        raise FileNotFoundError("Captions not found")
+    for lang in lang_variants:
+        # Try both regular subs and auto-generated subs
+        for use_auto in [False, True]:
+            auto_flag = "--write-auto-subs " if use_auto else ""
+            sub_flag = "--write-subs " if not use_auto else "--write-subs "
+            
+            cmd = (
+                f'yt-dlp --skip-download '
+                f'{sub_flag}{auto_flag}'
+                f'--sub-langs "{lang}" '
+                f'--convert-subs srt '
+                f'--output "data/temp/%(id)s.%(ext)s" '
+                f'"https://www.youtube.com/watch?v={youtube_id}"'
+            )
+            
+            try:
+                proc = await asyncio.create_subprocess_shell(
+                    cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await proc.communicate()
+                
+                if proc.returncode != 0:
+                    err_msg = stderr.decode() if stderr else ""
+                    last_error = f"yt-dlp exited with code {proc.returncode}"
+                    continue
+                
+                # Try various subtitle file patterns
+                patterns = [
+                    temp_dir / f"{youtube_id}.{language}.srt",
+                    temp_dir / f"{youtube_id}.{language.replace('.*', '')}.srt",
+                    temp_dir / f"{youtube_id}.srt",
+                    temp_dir / f"{youtube_id}.{language}.en.srt",
+                    temp_dir / f"{youtube_id}-{language}.srt",
+                ]
+                # Also add patterns for the exact lang used
+                lang_clean = lang.replace('.*', '')
+                patterns.insert(0, temp_dir / f"{youtube_id}.{lang_clean}.srt")
+                
+                for srt_path in patterns:
+                    if srt_path.exists() and srt_path.stat().st_size > 0:
+                        found_srt = srt_path
+                        break
+                
+                if found_srt:
+                    break
+                    
+            except Exception as e:
+                last_error = str(e)
+                continue
+        
+        if found_srt:
+            break
     
-    segments = _parse_srt(srt_path.read_text(encoding='utf-8'))
+    if not found_srt:
+        raise FileNotFoundError(
+            f"Captions not found for video {youtube_id}. "
+            f"Last error: {last_error}. "
+            f"The video may not have captions available."
+        )
     
-    # Cleanup
-    if srt_path.exists():
-        srt_path.unlink()
+    segments = _parse_srt(found_srt.read_text(encoding='utf-8'))
+    
+    # Cleanup subtitle file
+    try:
+        found_srt.unlink()
+    except Exception:
+        pass
     
     return segments
 
@@ -155,7 +209,7 @@ def _parse_srt(srt_content: str) -> List[Dict]:
     segments = []
     
     # SRT pattern: index -> timestamp -> text -> blank line
-    pattern = r'(\d+)\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})\n((?:.+\n?)*?)(?:\n\n|\Z)'
+    pattern = r'(\d+)\n(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})\n((?:(?!\n\n).+\n?)*)'
     
     for match in re.finditer(pattern, srt_content, re.MULTILINE):
         start_time = _srt_time_to_seconds(match.group(2))
