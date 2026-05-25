@@ -242,6 +242,51 @@ def _parse_srt(srt_content: str) -> List[Dict]:
     
     return segments
 
+
+def _parse_vtt(vtt_content: str) -> List[Dict]:
+    """Parse WebVTT subtitle format to structured segments."""
+    segments = []
+    content = vtt_content.lstrip('\ufeff').strip()
+    
+    if content.startswith('WEBVTT'):
+        idx = content.find('\n\n')
+        if idx != -1:
+            content = content[idx+2:]
+        else:
+            return segments
+    
+    cue_pattern = r'(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})(?:[^\n]*)\n((?:(?!\n\n|\n\d{2}:\d{2}:).*(?:\n|$))*)'
+    
+    for i, match in enumerate(re.finditer(cue_pattern, content, re.MULTILINE)):
+        start = _vtt_time_to_seconds(match.group(1))
+        end = _vtt_time_to_seconds(match.group(2))
+        raw_text = match.group(3).strip()
+        
+        text = re.sub(r'<[^>]+>', '', raw_text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        if not text:
+            continue
+        
+        words = text.split()
+        word_duration = (end - start) / max(len(words), 1)
+        word_timings = []
+        for j, w in enumerate(words):
+            word_timings.append({'word': w, 'start': round(start + j*word_duration, 3), 'end': round(start + (j+1)*word_duration, 3)})
+        
+        segments.append({
+            'index': i, 'start': round(start, 3), 'end': round(end, 3),
+            'text': text, 'words': word_timings, 'duration': round(end - start, 3)
+        })
+    
+    return segments
+
+
+def _vtt_time_to_seconds(vtt_time: str) -> float:
+    """Convert VTT timestamp (HH:MM:SS.mmm) to seconds."""
+    parts = vtt_time.split(':')
+    return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+
+
 def _srt_time_to_seconds(srt_time: str) -> float:
     """Convert SRT timestamp to seconds."""
     parts = srt_time.replace(',', '.').split(':')
