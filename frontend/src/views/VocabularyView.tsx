@@ -166,7 +166,7 @@ function WordCard({ word, onDelete }: { word: SavedWord; onDelete: () => void })
             )}
           </div>
           {word.meaning_ar && (
-            <p className="text-sm text-slate-400 mt-0.5" dir="rtl">{word.meaning_ar}</p>
+            <p className="text-sm text-slate-400 mt-0.5" style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate' }}>{word.meaning_ar}</p>
           )}
           {word.meaning_en && (
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{word.meaning_en}</p>

@@ -119,7 +119,7 @@ export default function FlashcardsView() {
           <div className="bg-slate-800/80 border border-blue-500/20 rounded-3xl p-8 flex flex-col items-center justify-center h-full min-h-[260px] shadow-2xl">
             <p className="text-xs text-slate-500 mb-2">Arabic meaning</p>
             {current?.meaning_ar ? (
-              <p className="text-3xl font-bold text-white mb-3" dir="rtl">{current.meaning_ar}</p>
+              <p className="text-3xl font-bold text-white mb-3" style={{ direction: 'rtl', textAlign: 'center', unicodeBidi: 'isolate', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>{current.meaning_ar}</p>
             ) : (
               <p className="text-slate-500 mb-3">No Arabic translation</p>
             )}

@@ -119,7 +119,7 @@ export default function WordPopup() {
             {selectedWord.meaning_ar && (
               <div className="bg-slate-800/60 rounded-xl px-4 py-3">
                 <p className="text-xs text-slate-500 mb-1">Arabic Translation</p>
-                <p className="text-lg font-semibold text-slate-100" dir="rtl">
+                <p className="text-lg font-semibold text-slate-100" style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
                   {selectedWord.meaning_ar}
                 </p>
               </div>
