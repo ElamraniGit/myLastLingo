@@ -256,29 +256,25 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
     """
     Parse WebVTT subtitle format to structured segments.
 
-    Handles:
-      - Manual subtitles
-      - Auto-generated YouTube captions with <TIMESTAMP> and <c> tags
-      - BOM characters
-      - align:start position:0% cue settings
-      - Duplicate/overlapping segments from auto-generated tracks
+    YouTube auto-generated captions use a "rolling window" format where each cue
+    overlaps with the next, producing duplicates like:
+        Cue A: "hello and welcome"         00:00 --> 00:03
+        Cue B: "hello and welcome"         00:03 --> 00:03  (zero-dur — skipped)
+        Cue C: "hello and welcome to the"  00:03 --> 00:06
+
+    Fix: collect all cues, skip zero-duration ones, then remove any cue whose
+    text is an exact duplicate or leading prefix of the following cue.
     """
     segments = []
 
-    # Strip BOM
     content = vtt_content.lstrip("\ufeff").strip()
-
     if not content.startswith("WEBVTT"):
         logger.warning("VTT file does not start with WEBVTT header")
         return segments
 
-    # Split into blocks on double newlines
-    blocks = re.split(r"\n\n+", content)
-
-    seen_texts = set()  # de-duplicate consecutive identical lines (auto-gen issue)
-    seg_index = 0
-
-    for block in blocks:
+    # ── Step 1: collect all raw valid cues ───────────────────────────────────
+    raw_cues = []
+    for block in re.split(r"\n\n+", content):
         block = block.strip()
         if not block or block.startswith("WEBVTT") or block.startswith("NOTE"):
             continue
@@ -287,7 +283,6 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
         if len(lines) < 2:
             continue
 
-        # Find the timestamp line (may be preceded by an optional cue id)
         timestamp_line = None
         text_lines = []
         for i, line in enumerate(lines):
@@ -296,10 +291,9 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
                 text_lines = lines[i + 1:]
                 break
 
-        if not timestamp_line:
+        if not timestamp_line or not text_lines:
             continue
 
-        # Parse timestamps — handle both HH:MM:SS.mmm and MM:SS.mmm
         ts_match = re.match(
             r"(\d{1,2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[.,]\d{3})",
             timestamp_line,
@@ -308,63 +302,72 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
             continue
 
         start = _vtt_time_to_seconds(ts_match.group(1))
-        end = _vtt_time_to_seconds(ts_match.group(2))
+        end   = _vtt_time_to_seconds(ts_match.group(2))
 
+        # Skip zero-duration cues (transition frames in auto-generated tracks)
         if end <= start:
             continue
 
-        # Join text lines and clean
         raw_text = " ".join(text_lines).strip()
-
-        # Bug #6 fix: remove <HH:MM:SS.mmm> timestamp tags from auto-generated captions
-        text = re.sub(r"<\d{2}:\d{2}:\d{2}\.\d{3}>", "", raw_text)
-        # Remove <c> and </c> tags (karaoke-style markup from auto-captions)
+        # Strip <00:00:01.200> timestamp tags
+        text = re.sub(r"<\d{1,2}:\d{2}:\d{2}\.\d{3}>", "", raw_text)
+        # Strip <c> karaoke markup
         text = re.sub(r"</?c(?:\.[^>]*)?>", "", text)
-        # Remove any remaining HTML/XML tags
+        # Strip remaining HTML tags
         text = re.sub(r"<[^>]+>", "", text)
         # Normalize whitespace
         text = re.sub(r"\s+", " ", text).strip()
 
-        if not text:
-            continue
+        if text:
+            raw_cues.append({"start": start, "end": end, "text": text})
 
-        # De-duplicate: auto-generated captions often repeat the same line
-        # slightly shifted. Skip if identical to last added segment.
-        if text in seen_texts:
-            continue
-        # Only clear dedup set when text changes significantly
-        if not any(text in prev for prev in seen_texts):
-            seen_texts = {text}
-        else:
-            seen_texts.add(text)
+    if not raw_cues:
+        return segments
 
-        # Build word-level timings (approximated, equal spacing)
-        words = text.split()
-        word_duration = (end - start) / max(len(words), 1)
+    # ── Step 2: rolling-window deduplication ─────────────────────────────────
+    # If cue[i].text is an exact match or prefix of cue[i+1].text → drop cue[i].
+    deduped = []
+    i = 0
+    while i < len(raw_cues):
+        current = raw_cues[i]
+        if i + 1 < len(raw_cues):
+            nxt = raw_cues[i + 1]
+            c = current["text"].lower().strip()
+            n = nxt["text"].lower().strip()
+            if c == n or n.startswith(c):
+                i += 1
+                continue
+        deduped.append(current)
+        i += 1
+
+    # ── Step 3: build final segments with word-level timings ──────────────────
+    for idx, cue in enumerate(deduped):
+        text  = cue["text"]
+        start = cue["start"]
+        end   = cue["end"]
+
+        words    = text.split()
+        word_dur = (end - start) / max(len(words), 1)
         word_timings = [
             {
-                "word": w,
-                "start": round(start + j * word_duration, 3),
-                "end": round(start + (j + 1) * word_duration, 3),
+                "word":  w,
+                "start": round(start + j * word_dur, 3),
+                "end":   round(start + (j + 1) * word_dur, 3),
             }
             for j, w in enumerate(words)
         ]
 
-        segments.append(
-            {
-                "index": seg_index,
-                "start": round(start, 3),
-                "end": round(end, 3),
-                "text": text,
-                "words": word_timings,
-                "duration": round(end - start, 3),
-            }
-        )
-        seg_index += 1
+        segments.append({
+            "index":    idx,
+            "start":    round(start, 3),
+            "end":      round(end, 3),
+            "text":     text,
+            "words":    word_timings,
+            "duration": round(end - start, 3),
+        })
 
-    logger.debug(f"Parsed {len(segments)} VTT segments")
+    logger.debug(f"VTT parser: {len(raw_cues)} raw cues → {len(segments)} after dedup")
     return segments
-
 
 def _vtt_time_to_seconds(vtt_time: str) -> float:
     """Convert VTT timestamp (HH:MM:SS.mmm or MM:SS.mmm) to seconds."""
