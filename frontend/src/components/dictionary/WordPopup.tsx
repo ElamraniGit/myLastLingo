@@ -148,7 +148,7 @@ export default function WordPopup() {
           )}
 
           {/* Examples */}
-          {selectedWord.examples?.length > 0 && (
+          {selectedWord.examples && selectedWord.examples.length > 0 && (
             <div className="mt-4">
               <p className="text-xs text-slate-500 mb-2">Examples</p>
               <div className="space-y-2">
@@ -169,9 +169,9 @@ export default function WordPopup() {
           )}
 
           {/* Synonyms / Antonyms */}
-          {(selectedWord.synonyms?.length > 0 || selectedWord.antonyms?.length > 0) && (
+          {((selectedWord.synonyms && selectedWord.synonyms.length > 0) || (selectedWord.antonyms && selectedWord.antonyms.length > 0)) && (
             <div className="mt-4 grid grid-cols-2 gap-3">
-              {selectedWord.synonyms?.length > 0 && (
+              {selectedWord.synonyms && selectedWord.synonyms.length > 0 && (
                 <div>
                   <p className="text-xs text-slate-500 mb-2">Synonyms</p>
                   <div className="flex flex-wrap gap-1">
@@ -183,7 +183,7 @@ export default function WordPopup() {
                   </div>
                 </div>
               )}
-              {selectedWord.antonyms?.length > 0 && (
+              {selectedWord.antonyms && selectedWord.antonyms.length > 0 && (
                 <div>
                   <p className="text-xs text-slate-500 mb-2">Antonyms</p>
                   <div className="flex flex-wrap gap-1">

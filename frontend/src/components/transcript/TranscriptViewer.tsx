@@ -158,7 +158,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
         className="flex flex-wrap gap-x-1 gap-y-1 leading-relaxed pl-1"
         style={{ direction: 'ltr', textAlign: 'left' }}
       >
-        {segment.words?.length > 0
+        {segment.words && segment.words.length > 0
           ? segment.words.map((word, wi) => (
               <WordToken
                 key={wi}
