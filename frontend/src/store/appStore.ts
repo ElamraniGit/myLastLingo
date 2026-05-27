@@ -1,82 +1,118 @@
 /**
- * Global state management using Zustand.
- *
- * FIXES APPLIED:
- *  - Bug #12 fix: Added `currentTime` to global store so both VideoPlayer
- *    and TranscriptViewer share the same time reference without duplicate hooks.
- *  - Bug #13 fix: `playerState` updates no longer cause stale closures in
- *    the save interval because `currentTime` is now in the store.
+ * Global Zustand store — single source of truth.
+ * Exported as both `useStore` (new name used by all components)
+ * and `useAppStore` (alias for backward compat with useVideoPlayer.ts).
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
+  User,
   Video,
   Transcript,
   PlayerState,
   SavedWord,
-  UserProgress,
   Word,
   AppPage,
   Theme,
+  UserProgress,
 } from '@/types';
 
 interface AppState {
-  // Navigation
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  user: User | null;
+  isAuthenticated: boolean;
+  setUser: (user: User | null) => void;
+  logout: () => void;
+
+  // ── Navigation ────────────────────────────────────────────────────────────
   currentPage: AppPage;
+  setPage: (page: AppPage) => void;
+  /** @deprecated use setPage */
   setCurrentPage: (page: AppPage) => void;
 
-  // Theme
+  // ── Theme ─────────────────────────────────────────────────────────────────
   theme: Theme;
   toggleTheme: () => void;
 
-  // Video & Player
+  // ── Video / Player ────────────────────────────────────────────────────────
   currentVideo: Video | null;
   setCurrentVideo: (video: Video | null) => void;
-  playerState: PlayerState;
-  updatePlayerState: (state: Partial<PlayerState>) => void;
 
-  // Bug #12 fix: shared currentTime in global store
-  currentTime: number;
-  setCurrentTime: (time: number) => void;
+  recentVideos: Video[];
+  addRecentVideo: (video: Video) => void;
 
-  transcript: Transcript | null;
-  setTranscript: (transcript: Transcript | null) => void;
-
-  // Current word lookup
-  selectedWord: Word | null;
-  setSelectedWord: (word: Word | null) => void;
-  wordModalOpen: boolean;
-  setWordModalOpen: (open: boolean) => void;
-
-  // Video list
+  /** @deprecated use recentVideos */
   videos: Video[];
   setVideos: (videos: Video[]) => void;
   addVideo: (video: Video) => void;
 
-  // Vocabulary
+  playerState: PlayerState;
+  updatePlayerState: (patch: Partial<PlayerState>) => void;
+
+  /** Shared playback time — written by player, read by TranscriptViewer */
+  currentTime: number;
+  setCurrentTime: (t: number) => void;
+
+  transcript: Transcript | null;
+  setTranscript: (t: Transcript | null) => void;
+
+  transcriptLoading: boolean;
+  setTranscriptLoading: (v: boolean) => void;
+
+  transcriptStatus: 'idle' | 'loading' | 'processing' | 'ready' | 'error';
+  setTranscriptStatus: (s: AppState['transcriptStatus']) => void;
+
+  // ── Word popup ────────────────────────────────────────────────────────────
+  selectedWord: Word | null;
+  setSelectedWord: (w: Word | null) => void;
+
+  wordPopupOpen: boolean;
+  setWordPopupOpen: (v: boolean) => void;
+
+  /** @deprecated use wordPopupOpen */
+  wordModalOpen: boolean;
+  setWordModalOpen: (v: boolean) => void;
+
+  wordPopupSentence: string;
+  setWordPopupSentence: (s: string) => void;
+
+  // ── Vocabulary ────────────────────────────────────────────────────────────
   savedWords: SavedWord[];
   setSavedWords: (words: SavedWord[]) => void;
   addSavedWord: (word: SavedWord) => void;
+
   dueWords: SavedWord[];
   setDueWords: (words: SavedWord[]) => void;
 
-  // Progress
   progress: UserProgress | null;
-  setProgress: (progress: UserProgress | null) => void;
+  setProgress: (p: UserProgress | null) => void;
 
-  // UI state
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
-  playerFloating: boolean;
-  setPlayerFloating: (floating: boolean) => void;
+  // ── UI ────────────────────────────────────────────────────────────────────
   loading: boolean;
-  setLoading: (loading: boolean) => void;
-  error: string | null;
-  setError: (error: string | null) => void;
+  setLoading: (v: boolean) => void;
 
-  // Actions
+  error: string | null;
+  setError: (e: string | null) => void;
   clearError: () => void;
+
+  sidebarOpen: boolean;
+  setSidebarOpen: (v: boolean) => void;
+
+  navOpen: boolean;
+  setNavOpen: (v: boolean) => void;
+
+  playerFloating: boolean;
+  setPlayerFloating: (v: boolean) => void;
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  defaultSpeed: number;
+  setDefaultSpeed: (s: number) => void;
+
+  autoPauseOnWord: boolean;
+  setAutoPauseOnWord: (v: boolean) => void;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   resetPlayer: () => void;
 }
 
@@ -90,94 +126,141 @@ const initialPlayerState: PlayerState = {
   loop_enabled: false,
 };
 
-export const useAppStore = create<AppState>()(
+export const useStore = create<AppState>()(
   persist(
     (set) => ({
-      // Navigation
-      currentPage: 'player',
+      // ── Auth ────────────────────────────────────────────────────────────
+      user: null,
+      isAuthenticated: false,
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      logout: () => {
+        if (typeof window !== 'undefined') localStorage.removeItem('ll_token');
+        set({ user: null, isAuthenticated: false, currentPage: 'login' });
+      },
+
+      // ── Navigation ──────────────────────────────────────────────────────
+      currentPage: 'login',
+      setPage: (page) => set({ currentPage: page }),
       setCurrentPage: (page) => set({ currentPage: page }),
 
-      // Theme
+      // ── Theme ────────────────────────────────────────────────────────────
       theme: 'dark',
       toggleTheme: () =>
-        set((state) => ({
-          theme: state.theme === 'dark' ? 'light' : 'dark',
-        })),
+        set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
 
-      // Video & Player
+      // ── Video / Player ───────────────────────────────────────────────────
       currentVideo: null,
       setCurrentVideo: (video) => set({ currentVideo: video }),
-      playerState: initialPlayerState,
-      updatePlayerState: (state) =>
-        set((prev) => ({
-          playerState: { ...prev.playerState, ...state },
+
+      recentVideos: [],
+      addRecentVideo: (video) =>
+        set((s) => ({
+          recentVideos: [
+            video,
+            ...s.recentVideos.filter((v) => v.id !== video.id),
+          ].slice(0, 20),
         })),
 
-      // Bug #12 fix: currentTime is global
-      currentTime: 0,
-      setCurrentTime: (time) => set({ currentTime: time }),
-
-      transcript: null,
-      setTranscript: (transcript) => set({ transcript }),
-
-      // Current word lookup
-      selectedWord: null,
-      setSelectedWord: (word) => set({ selectedWord: word }),
-      wordModalOpen: false,
-      setWordModalOpen: (open) => set({ wordModalOpen: open }),
-
-      // Video list
       videos: [],
       setVideos: (videos) => set({ videos }),
       addVideo: (video) =>
-        set((state) => ({
-          videos: [video, ...state.videos.filter((v) => v.id !== video.id)],
+        set((s) => ({
+          videos: [video, ...s.videos.filter((v) => v.id !== video.id)],
         })),
 
-      // Vocabulary
+      playerState: initialPlayerState,
+      updatePlayerState: (patch) =>
+        set((s) => ({ playerState: { ...s.playerState, ...patch } })),
+
+      currentTime: 0,
+      setCurrentTime: (t) => set({ currentTime: t }),
+
+      transcript: null,
+      setTranscript: (t) => set({ transcript: t }),
+
+      transcriptLoading: false,
+      setTranscriptLoading: (v) => set({ transcriptLoading: v }),
+
+      transcriptStatus: 'idle',
+      setTranscriptStatus: (s) => set({ transcriptStatus: s }),
+
+      // ── Word popup ───────────────────────────────────────────────────────
+      selectedWord: null,
+      setSelectedWord: (w) => set({ selectedWord: w }),
+
+      wordPopupOpen: false,
+      setWordPopupOpen: (v) => set({ wordPopupOpen: v, wordModalOpen: v }),
+
+      wordModalOpen: false,
+      setWordModalOpen: (v) => set({ wordModalOpen: v, wordPopupOpen: v }),
+
+      wordPopupSentence: '',
+      setWordPopupSentence: (s) => set({ wordPopupSentence: s }),
+
+      // ── Vocabulary ───────────────────────────────────────────────────────
       savedWords: [],
       setSavedWords: (words) => set({ savedWords: words }),
       addSavedWord: (word) =>
-        set((state) => ({
-          savedWords: [word, ...state.savedWords],
-        })),
+        set((s) => ({ savedWords: [word, ...s.savedWords] })),
+
       dueWords: [],
       setDueWords: (words) => set({ dueWords: words }),
 
-      // Progress
       progress: null,
-      setProgress: (progress) => set({ progress }),
+      setProgress: (p) => set({ progress: p }),
 
-      // UI state
-      sidebarOpen: false,
-      setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      playerFloating: false,
-      setPlayerFloating: (floating) => set({ playerFloating: floating }),
+      // ── UI ───────────────────────────────────────────────────────────────
       loading: false,
-      setLoading: (loading) => set({ loading }),
-      error: null,
-      setError: (error) => set({ error }),
+      setLoading: (v) => set({ loading: v }),
 
-      // Actions
+      error: null,
+      setError: (e) => set({ error: e }),
       clearError: () => set({ error: null }),
+
+      sidebarOpen: false,
+      setSidebarOpen: (v) => set({ sidebarOpen: v }),
+
+      navOpen: false,
+      setNavOpen: (v) => set({ navOpen: v }),
+
+      playerFloating: false,
+      setPlayerFloating: (v) => set({ playerFloating: v }),
+
+      // ── Settings ─────────────────────────────────────────────────────────
+      defaultSpeed: 1.0,
+      setDefaultSpeed: (s) => set({ defaultSpeed: s }),
+
+      autoPauseOnWord: true,
+      setAutoPauseOnWord: (v) => set({ autoPauseOnWord: v }),
+
+      // ── Actions ──────────────────────────────────────────────────────────
       resetPlayer: () =>
         set({
           currentVideo: null,
           playerState: initialPlayerState,
           transcript: null,
           currentTime: 0,
+          transcriptStatus: 'idle',
         }),
     }),
     {
-      name: 'lingualearn-storage',
-      // Only persist settings and vocabulary — NOT player state or video list
-      // (avoids stale data on reload)
-      partialize: (state) => ({
-        theme: state.theme,
-        savedWords: state.savedWords,
-        progress: state.progress,
-        videos: state.videos,
+      name: 'll-store-v2',
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined' ? localStorage : ({} as Storage)
+      ),
+      partialize: (s) => ({
+        user: s.user,
+        isAuthenticated: s.isAuthenticated,
+        theme: s.theme,
+        recentVideos: s.recentVideos,
+        savedWords: s.savedWords,
+        progress: s.progress,
+        defaultSpeed: s.defaultSpeed,
+        autoPauseOnWord: s.autoPauseOnWord,
       }),
     }
   )
 );
+
+/** Backward-compat alias — useVideoPlayer.ts uses this name */
+export const useAppStore = useStore;
