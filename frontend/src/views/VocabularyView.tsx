@@ -1,6 +1,7 @@
 /**
  * Vocabulary list — saved words with filter, search, expandable details.
  * All UI text is English. Arabic meaning shown in isolated RTL block only.
+ * @version 2.1 — fixed: Array.isArray guard on word.examples
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
