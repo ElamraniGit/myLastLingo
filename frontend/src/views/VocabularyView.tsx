@@ -187,10 +187,10 @@ function WordCard({ word, onDelete }: { word: SavedWord; onDelete: () => void })
 
       {expanded && (
         <div className="border-t border-slate-700/50 px-4 pb-4 pt-3 space-y-3">
-          {word.examples?.length > 0 && (
+          {(word.examples?.length ?? 0) > 0 && (
             <div>
               <p className="text-xs text-slate-500 mb-1.5">Examples</p>
-              {word.examples.slice(0, 2).map((ex, i) => (
+              {(word.examples ?? []).slice(0, 2).map((ex, i) => (
                 <p key={i} className="text-sm text-slate-400 leading-relaxed pl-3 border-l-2 border-slate-700 mb-1.5">{ex}</p>
               ))}
             </div>
