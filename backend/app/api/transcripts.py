@@ -143,7 +143,9 @@ async def _fetch_youtube_captions(youtube_id: str, language: str) -> List[Dict]:
     """
     # Bug #4 fix: per-request temp directory to avoid race conditions
     request_id = str(uuid.uuid4())[:8]
-    temp_dir = Path("data/temp") / request_id
+    # Use absolute path relative to this file — works regardless of CWD
+    _base = Path(__file__).resolve().parent.parent.parent.parent / "data" / "temp"
+    temp_dir = _base / request_id
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     lang_variants = [language, f"{language}-.*"]
@@ -462,7 +464,8 @@ async def _transcribe_with_whisper_audio_only(
     global whisper_service
 
     request_id = str(uuid.uuid4())[:8]
-    temp_dir = Path("data/temp") / f"whisper_{request_id}"
+    _base = Path(__file__).resolve().parent.parent.parent.parent / "data" / "temp"
+    temp_dir = _base / f"whisper_{request_id}"
     temp_dir.mkdir(parents=True, exist_ok=True)
     audio_path = temp_dir / f"{video_id}.wav"
 
