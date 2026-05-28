@@ -9,8 +9,6 @@
 # To stop: Ctrl+C
 # =================================================================
 
-set -e
-
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
@@ -35,131 +33,110 @@ echo "║     LinguaLearn - Starting All           ║"
 echo "╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# ── Helper: find PID occupying a port ────────────────────────────
-get_port_pid() {
-  local port="$1"
-  local pid=""
-  if command -v lsof >/dev/null 2>&1; then
-    pid=$(lsof -ti ":${port}" 2>/dev/null | head -1)
-  elif command -v ss >/dev/null 2>&1; then
-    pid=$(ss -tlnp "sport = :${port}" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1)
-  elif command -v fuser >/dev/null 2>&1; then
-    pid=$(fuser "${port}/tcp" 2>/dev/null | awk '{print $1}')
-  fi
-  echo "$pid"
-}
+# ── Kill ALL old LinguaLearn processes first ─────────────────────
+echo -e "${YELLOW}🧹 Cleaning up old processes...${NC}"
+pkill -f "uvicorn.*backend.main" 2>/dev/null || true
+pkill -f "next.*dev" 2>/dev/null || true
+pkill -f "node.*next" 2>/dev/null || true
+if command -v fuser >/dev/null 2>&1; then
+  fuser -k 8080/tcp 2>/dev/null || true
+  fuser -k 3000/tcp 2>/dev/null || true
+fi
+sleep 2
+echo -e "${GREEN}   ✅ Cleanup done.${NC}"
+echo ""
 
-# ── Kill any process already on a port ───────────────────────────
-free_port() {
-  local port="$1"
-  local name="$2"
-  local pid
-  pid=$(get_port_pid "$port")
-  if [ -n "$pid" ]; then
-    echo -e "${YELLOW}⚠️  Port ${port} is busy (PID ${pid}). Killing old ${name}...${NC}"
-    kill "$pid" 2>/dev/null || true
-    # Wait up to 3 seconds for it to die
-    for i in 1 2 3; do
-      sleep 1
-      if ! kill -0 "$pid" 2>/dev/null; then
-        break
-      fi
-    done
-    # Force-kill if still alive
-    if kill -0 "$pid" 2>/dev/null; then
-      kill -9 "$pid" 2>/dev/null || true
-      sleep 1
-    fi
-    echo -e "${GREEN}   ✅ Port ${port} freed.${NC}"
-  fi
-}
-
-# Free ports before starting
-free_port 8080 "backend"
-free_port 3000 "frontend"
-
-# ── Cleanup on exit ──────────────────────────────────────────────
+# ── Cleanup on Ctrl+C ───────────────────────────────────────────
 cleanup() {
   echo ""
   echo -e "${YELLOW}🛑 Shutting down...${NC}"
 
-  if [ -n "${BACKEND_PID:-}" ]; then
-    kill "$BACKEND_PID" 2>/dev/null || true
-    echo -e "   Backend stopped (PID: $BACKEND_PID)"
-  fi
+  # Kill by PID
+  [ -n "${BACKEND_PID:-}" ]  && kill "$BACKEND_PID"  2>/dev/null && echo "   Backend stopped"
+  [ -n "${FRONTEND_PID:-}" ] && kill "$FRONTEND_PID" 2>/dev/null && echo "   Frontend stopped"
 
-  if [ -n "${FRONTEND_PID:-}" ]; then
-    kill "$FRONTEND_PID" 2>/dev/null || true
-    echo -e "   Frontend stopped (PID: $FRONTEND_PID)"
-  fi
+  # Also kill any children
+  pkill -f "uvicorn.*backend.main" 2>/dev/null || true
+  pkill -f "next.*dev" 2>/dev/null || true
 
   wait 2>/dev/null || true
   echo -e "${GREEN}✅ All services stopped. Goodbye!${NC}"
   exit 0
 }
 
-trap cleanup SIGINT SIGTERM
+trap cleanup SIGINT SIGTERM EXIT
 
 # ── Start backend ────────────────────────────────────────────────
-echo -e "${GREEN}🚀 Starting backend server on port 8080...${NC}"
-if [ -n "$DEBUG_FLAG" ]; then
-  bash "$SCRIPT_DIR/start_backend.sh" "$DEBUG_FLAG" &
-else
-  bash "$SCRIPT_DIR/start_backend.sh" &
-fi
+echo -e "${GREEN}🚀 Starting backend...${NC}"
+bash "$SCRIPT_DIR/start_backend.sh" $DEBUG_FLAG &
 BACKEND_PID=$!
-echo -e "   PID: $BACKEND_PID"
 
-# Wait for backend to be ready (up to 10 seconds)
-echo -e "   Waiting for backend to be ready..."
+# Wait for /health to respond (up to 15 seconds)
+echo -n "   Waiting for backend"
 READY=0
-for i in $(seq 1 10); do
+for i in $(seq 1 15); do
   sleep 1
+  echo -n "."
+
+  # Check if process died
   if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-    echo -e "${RED}❌ Backend process died unexpectedly${NC}"
-    cleanup
+    echo ""
+    echo -e "${RED}❌ Backend process died. Check logs: logs/app.log${NC}"
+    exit 1
   fi
-  # Check if /health responds
+
+  # Check /health
   if command -v curl >/dev/null 2>&1; then
-    if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/health 2>/dev/null | grep -q "200"; then
+    HTTP=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/health 2>/dev/null || echo "000")
+    if [ "$HTTP" = "200" ]; then
       READY=1
       break
     fi
   else
-    # No curl — just check if port is bound
-    if get_port_pid 8080 | grep -q .; then
+    # No curl — try Python
+    if python3 -c "
+import urllib.request
+try:
+    r = urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)
+    exit(0 if r.status == 200 else 1)
+except: exit(1)
+" 2>/dev/null; then
       READY=1
       break
     fi
   fi
 done
 
-if [ "$READY" -eq 0 ]; then
-  echo -e "${YELLOW}⚠️  Backend may still be starting (no /health response yet). Continuing...${NC}"
+echo ""
+if [ "$READY" -eq 1 ]; then
+  echo -e "${GREEN}   ✅ Backend is ready on http://127.0.0.1:8080${NC}"
 else
-  echo -e "${GREEN}   ✅ Backend is ready!${NC}"
-fi
-
-# ── Start frontend ───────────────────────────────────────────────
-echo -e "${GREEN}🚀 Starting frontend server on port 3000...${NC}"
-bash "$SCRIPT_DIR/start_frontend.sh" &
-FRONTEND_PID=$!
-echo -e "   PID: $FRONTEND_PID"
-
-sleep 3
-if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
-  echo -e "${RED}❌ Frontend failed to start${NC}"
-  cleanup
+  echo -e "${YELLOW}   ⚠️  Backend may still be starting...${NC}"
 fi
 
 echo ""
-echo -e "${GREEN}✅ All services running!${NC}"
+
+# ── Start frontend ───────────────────────────────────────────────
+echo -e "${GREEN}🚀 Starting frontend...${NC}"
+bash "$SCRIPT_DIR/start_frontend.sh" &
+FRONTEND_PID=$!
+
+sleep 4
+if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
+  echo -e "${RED}❌ Frontend failed to start${NC}"
+  exit 1
+fi
+
+echo ""
+echo -e "${GREEN}════════════════════════════════════════════${NC}"
+echo -e "${GREEN}   ✅ All services running!${NC}"
 echo ""
 echo -e "   📱 ${YELLOW}Frontend:${NC}  http://127.0.0.1:3000"
 echo -e "   🔧 ${YELLOW}Backend:${NC}   http://127.0.0.1:8080"
 echo -e "   ❤️  ${YELLOW}Health:${NC}    http://127.0.0.1:8080/health"
 echo ""
-echo -e "${YELLOW}   Press Ctrl+C to stop all services${NC}"
+echo -e "   ${YELLOW}Press Ctrl+C to stop all services${NC}"
+echo -e "${GREEN}════════════════════════════════════════════${NC}"
 echo ""
 
 wait

@@ -2,14 +2,14 @@
 """
 LinguaLearn - Simple Runner
 ---------------------------
-قم بتشغيل هذا الملف من مجلد المشروع الرئيسي:
+Run from the project root:
     python3 run.py
 
-أو فقط:
-    cd english-learning-app && python3 run.py
+To stop: Ctrl+C
 """
 
 import os
+import signal
 import socket
 import sys
 from pathlib import Path
@@ -19,6 +19,49 @@ _PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "backend"))
 os.chdir(str(_PROJECT_ROOT))
+
+
+def _kill_old_backend(host: str, port: int) -> None:
+    """Kill any existing process on the port before starting."""
+    import subprocess
+
+    # Method 1: pkill
+    try:
+        subprocess.run(
+            ["pkill", "-f", "uvicorn.*backend.main"],
+            capture_output=True, timeout=5
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # Method 2: fuser
+    try:
+        subprocess.run(
+            ["fuser", "-k", f"{port}/tcp"],
+            capture_output=True, timeout=5
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # Method 3: scan /proc for uvicorn processes (works on Termux/Linux)
+    my_pid = os.getpid()
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        pid = int(entry.name)
+        if pid == my_pid:
+            continue
+        try:
+            cmdline = (entry / "cmdline").read_text()
+            if "uvicorn" in cmdline and "backend" in cmdline:
+                os.kill(pid, signal.SIGKILL)
+                print(f"  ⚠️  Killed old backend (PID {pid})")
+        except (PermissionError, FileNotFoundError, ProcessLookupError, OSError):
+            pass
+
+    # Wait a moment for port to release
+    import time
+    time.sleep(1)
 
 
 def _is_port_available(host: str, port: int) -> bool:
@@ -32,39 +75,24 @@ def _is_port_available(host: str, port: int) -> bool:
             return False
 
 
-def _pick_port(host: str, requested_port: int) -> int:
-    """Select a runnable port according to env strategy."""
-    if _is_port_available(host, requested_port):
-        return requested_port
-
-    strategy = os.environ.get("LINGUALEARN_PORT_STRATEGY", "fail").strip().lower()
-    if strategy != "auto":
-        print("\n❌ المنفذ مشغول بالفعل")
-        print(f"   - Host: {host}")
-        print(f"   - Port: {requested_port}")
-        print("\n💡 الحلول:")
-        print(f"   1) اغلق العملية: fuser -k {requested_port}/tcp")
-        print(f"   2) غيّر المنفذ مؤقتًا: LINGUALEARN_PORT=8081 python3 run.py")
-        print("   3) اختيار تلقائي لمنفذ متاح:")
-        print("      LINGUALEARN_PORT_STRATEGY=auto python3 run.py")
-        raise SystemExit(1)
-
-    max_tries = int(os.environ.get("LINGUALEARN_PORT_SCAN_MAX", "20"))
-    for candidate in range(requested_port + 1, requested_port + 1 + max_tries):
-        if _is_port_available(host, candidate):
-            print(f"⚠️  Port {requested_port} is busy. Falling back to {candidate}.")
-            return candidate
-
-    print(f"❌ Could not find a free port in range {requested_port + 1}-{requested_port + max_tries}.")
-    raise SystemExit(1)
-
-
 if __name__ == "__main__":
     import uvicorn
 
-    requested_port = int(os.environ.get("LINGUALEARN_PORT", 8080))
+    port = int(os.environ.get("LINGUALEARN_PORT", 8080))
     host = os.environ.get("LINGUALEARN_HOST", "127.0.0.1")
-    port = _pick_port(host, requested_port)
+
+    # Auto-kill old processes if port is busy
+    if not _is_port_available(host, port):
+        print(f"⚠️  Port {port} is busy. Killing old process...")
+        _kill_old_backend(host, port)
+
+        if not _is_port_available(host, port):
+            print(f"\n❌ Port {port} is STILL busy after cleanup.")
+            print(f"\n💡 Try manually:")
+            print(f"   pkill -f uvicorn")
+            print(f"   python3 run.py")
+            raise SystemExit(1)
+        print(f"  ✅ Port {port} is now free.\n")
 
     print("=" * 50)
     print("  🌐 LinguaLearn Backend Server")
@@ -72,7 +100,6 @@ if __name__ == "__main__":
     print(f"  📂 Root: {_PROJECT_ROOT}")
     print("=" * 50)
 
-    # Run the app using uvicorn directly with the module path
     os.environ["LINGUALEARN_ROOT"] = str(_PROJECT_ROOT)
 
     uvicorn.run(
@@ -81,5 +108,5 @@ if __name__ == "__main__":
         port=port,
         reload=False,
         workers=1,
-        log_level="info"
+        log_level="info",
     )
