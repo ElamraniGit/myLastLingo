@@ -2,11 +2,11 @@
 # =================================================================
 # LinguaLearn - Start Everything
 # =================================================================
-# تشغيل الخادم الخلفي والواجهة الأمامية في وقت واحد
-# الاستخدام:
+# Starts backend + frontend together.
+# Usage:
 #   ./scripts/start_all.sh
 #   ./scripts/start_all.sh --debug
-# للإيقاف: Ctrl+C
+# To stop: Ctrl+C
 # =================================================================
 
 set -e
@@ -35,25 +35,50 @@ echo "║     LinguaLearn - Starting All           ║"
 echo "╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 
-check_port() {
+# ── Helper: find PID occupying a port ────────────────────────────
+get_port_pid() {
   local port="$1"
+  local pid=""
   if command -v lsof >/dev/null 2>&1; then
-    lsof -i ":${port}" >/dev/null 2>&1
+    pid=$(lsof -ti ":${port}" 2>/dev/null | head -1)
   elif command -v ss >/dev/null 2>&1; then
-    ss -ltn "sport = :${port}" | grep -q LISTEN
-  else
-    return 1
+    pid=$(ss -tlnp "sport = :${port}" 2>/dev/null | grep -oP 'pid=\K[0-9]+' | head -1)
+  elif command -v fuser >/dev/null 2>&1; then
+    pid=$(fuser "${port}/tcp" 2>/dev/null | awk '{print $1}')
+  fi
+  echo "$pid"
+}
+
+# ── Kill any process already on a port ───────────────────────────
+free_port() {
+  local port="$1"
+  local name="$2"
+  local pid
+  pid=$(get_port_pid "$port")
+  if [ -n "$pid" ]; then
+    echo -e "${YELLOW}⚠️  Port ${port} is busy (PID ${pid}). Killing old ${name}...${NC}"
+    kill "$pid" 2>/dev/null || true
+    # Wait up to 3 seconds for it to die
+    for i in 1 2 3; do
+      sleep 1
+      if ! kill -0 "$pid" 2>/dev/null; then
+        break
+      fi
+    done
+    # Force-kill if still alive
+    if kill -0 "$pid" 2>/dev/null; then
+      kill -9 "$pid" 2>/dev/null || true
+      sleep 1
+    fi
+    echo -e "${GREEN}   ✅ Port ${port} freed.${NC}"
   fi
 }
 
-if check_port 8080; then
-  echo -e "${YELLOW}⚠️  Port 8080 is already in use. Backend may already be running.${NC}"
-fi
+# Free ports before starting
+free_port 8080 "backend"
+free_port 3000 "frontend"
 
-if check_port 3000; then
-  echo -e "${YELLOW}⚠️  Port 3000 is already in use. Frontend may already be running.${NC}"
-fi
-
+# ── Cleanup on exit ──────────────────────────────────────────────
 cleanup() {
   echo ""
   echo -e "${YELLOW}🛑 Shutting down...${NC}"
@@ -75,6 +100,7 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
+# ── Start backend ────────────────────────────────────────────────
 echo -e "${GREEN}🚀 Starting backend server on port 8080...${NC}"
 if [ -n "$DEBUG_FLAG" ]; then
   bash "$SCRIPT_DIR/start_backend.sh" "$DEBUG_FLAG" &
@@ -84,18 +110,43 @@ fi
 BACKEND_PID=$!
 echo -e "   PID: $BACKEND_PID"
 
-sleep 3
-if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-  echo -e "${RED}❌ Backend failed to start${NC}"
-  cleanup
+# Wait for backend to be ready (up to 10 seconds)
+echo -e "   Waiting for backend to be ready..."
+READY=0
+for i in $(seq 1 10); do
+  sleep 1
+  if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+    echo -e "${RED}❌ Backend process died unexpectedly${NC}"
+    cleanup
+  fi
+  # Check if /health responds
+  if command -v curl >/dev/null 2>&1; then
+    if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/health 2>/dev/null | grep -q "200"; then
+      READY=1
+      break
+    fi
+  else
+    # No curl — just check if port is bound
+    if get_port_pid 8080 | grep -q .; then
+      READY=1
+      break
+    fi
+  fi
+done
+
+if [ "$READY" -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Backend may still be starting (no /health response yet). Continuing...${NC}"
+else
+  echo -e "${GREEN}   ✅ Backend is ready!${NC}"
 fi
 
+# ── Start frontend ───────────────────────────────────────────────
 echo -e "${GREEN}🚀 Starting frontend server on port 3000...${NC}"
 bash "$SCRIPT_DIR/start_frontend.sh" &
 FRONTEND_PID=$!
 echo -e "   PID: $FRONTEND_PID"
 
-sleep 2
+sleep 3
 if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
   echo -e "${RED}❌ Frontend failed to start${NC}"
   cleanup
