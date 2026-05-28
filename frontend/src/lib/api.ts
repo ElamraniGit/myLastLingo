@@ -12,7 +12,6 @@ export const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
 
 const BASE = API_BASE;
 
-// ─── Token storage (localStorage, SSR-safe) ───────────────────────────────────
 export const tokenStore = {
   get: (): string | null => {
     if (typeof window === 'undefined') return null;
@@ -28,7 +27,6 @@ export const tokenStore = {
   },
 };
 
-// ─── Error class ─────────────────────────────────────────────────────────────
 export class ApiError extends Error {
   constructor(public message: string, public status: number) {
     super(message);
@@ -36,12 +34,11 @@ export class ApiError extends Error {
   }
 }
 
-// ─── Core fetch ──────────────────────────────────────────────────────────────
 interface Opts {
   method?: string;
   body?: unknown;
   timeout?: number;
-  auth?: boolean; // default true
+  auth?: boolean;
 }
 
 async function req<T>(endpoint: string, opts: Opts = {}): Promise<T> {
@@ -88,7 +85,6 @@ async function req<T>(endpoint: string, opts: Opts = {}): Promise<T> {
   }
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authApi = {
   register: (username: string, email: string, password: string, display_name?: string) =>
     req<any>('/auth/register', { method: 'POST', body: { username, email, password, display_name }, auth: false }),
@@ -105,7 +101,6 @@ export const authApi = {
   logout: () => req<any>('/auth/logout', { method: 'POST' }),
 };
 
-// ─── Videos ───────────────────────────────────────────────────────────────────
 export const videosApi = {
   process: (url: string, quality?: VideoQuality) =>
     req<any>('/videos/process', {
@@ -122,7 +117,6 @@ export const videosApi = {
   delete: (id: string) => req<any>(`/videos/${id}`, { method: 'DELETE' }),
 };
 
-// ─── Transcripts ──────────────────────────────────────────────────────────────
 export const transcriptsApi = {
   extract: (videoId: string, language = 'en') =>
     req<any>(`/transcripts/extract/${videoId}?language=${language}`, {
@@ -134,7 +128,6 @@ export const transcriptsApi = {
     req<any>(`/transcripts/${videoId}?language=${language}`),
 };
 
-// ─── Dictionary ───────────────────────────────────────────────────────────────
 export const dictionaryApi = {
   lookup: (word: string) =>
     req<any>('/dictionary/lookup', { method: 'POST', body: { word } }),
@@ -146,7 +139,6 @@ export const dictionaryApi = {
     req<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=8`),
 };
 
-// ─── Vocabulary ───────────────────────────────────────────────────────────────
 export const vocabularyApi = {
   save: (word: string, videoId?: string, sentence?: string, context?: string) =>
     req<any>('/vocabulary/save', {
@@ -165,12 +157,16 @@ export const vocabularyApi = {
 
   due: (limit = 20) => req<any>(`/vocabulary/due?limit=${limit}`),
 
+  reviewSummary: () => req<any>('/vocabulary/review/summary'),
+
+  reviewHistory: (savedWordId: string, limit = 20) =>
+    req<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),
+
   stats: () => req<any>('/vocabulary/stats'),
 
   delete: (savedId: string) => req<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
 };
 
-// ─── Player ───────────────────────────────────────────────────────────────────
 export const playerApi = {
   saveState: (state: any) =>
     req<any>('/player/state', { method: 'POST', body: state }),
@@ -178,7 +174,6 @@ export const playerApi = {
   getState: (videoId: string) => req<any>(`/player/state/${videoId}`),
 };
 
-// ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: async () => {
     const res = await fetch(`${BACKEND_ORIGIN}/health`);

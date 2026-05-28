@@ -92,6 +92,10 @@ export interface SavedWord {
   meaning_en?: string;
   level?: CEFRLevel;
   examples?: string[];
+  synonyms?: string[];
+  antonyms?: string[];
+  conjugations?: Record<string, string>;
+  related_words?: string[];
   video_id?: string;
   sentence?: string;
   context?: string;
@@ -99,6 +103,10 @@ export interface SavedWord {
   ease_factor?: number;
   interval?: number;
   repetitions?: number;
+  learning_step?: number;
+  lapses?: number;
+  reviewed_count?: number;
+  last_quality?: number;
   next_review?: string;
   last_reviewed?: string;
   created_at?: string;
@@ -120,12 +128,29 @@ export interface PlayerState {
 export interface UserProgress {
   total: number;
   learning: number;
+  reviewing?: number;
   learned: number;
   due: number;
   reviewed_today: number;
   active_days_30: number;
   level_distribution?: Record<string, number>;
   streak_days?: number;
+}
+
+export interface ReviewSummary {
+  total_saved: number;
+  learning: number;
+  reviewing: number;
+  learned: number;
+  never_reviewed: number;
+  due_now: number;
+}
+
+export interface ReviewHistoryItem {
+  id: string;
+  saved_word_id: string;
+  quality: number;
+  reviewed_at: string;
 }
 
 // ─── App Navigation ───────────────────────────────────────────────────────────

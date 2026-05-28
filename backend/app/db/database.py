@@ -2,15 +2,16 @@
 Local SQLite Database Manager for LinguaLearn.
 Handles all data persistence locally on device.
 
-FIXES APPLIED:
-  - Bug #8: Thread-safe connection pool using asyncio.Lock() on every get/release.
-  - Bug #9: Replaced sync sqlite3 with aiosqlite for true async I/O.
-            All heavy queries run in executor to avoid blocking the event loop.
+Improvements in this version:
+  - true async I/O via aiosqlite
+  - lightweight schema migrations for review columns
+  - stronger spaced-repetition / review support
+  - normalized datetime handling for existing rows that may contain either
+    ISO strings with `T` or SQLite-style `YYYY-MM-DD HH:MM:SS`
 """
 
 import json
 import logging
-import asyncio
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
@@ -26,34 +27,28 @@ class DatabaseManager:
 
     def __init__(self, db_path: str):
         self.db_path = db_path
-        # Bug #8 fix: single asyncio.Lock guards connection creation
-        self._lock = asyncio.Lock()
         self._conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
-        """Initialize database and create tables."""
+        """Initialize database, create tables, and run lightweight migrations."""
         logger.info(f"Initializing database at {self.db_path}")
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
-        # Bug #9 fix: use aiosqlite for async I/O
         async with aiosqlite.connect(self.db_path) as conn:
             conn.row_factory = aiosqlite.Row
             await conn.execute("PRAGMA journal_mode=WAL;")
             await conn.execute("PRAGMA foreign_keys=ON;")
             await conn.execute("PRAGMA synchronous=NORMAL;")
-            await conn.execute("PRAGMA cache_size=-8000;")  # 8MB cache
+            await conn.execute("PRAGMA cache_size=-8000;")
             await self._create_tables(conn)
+            await self._run_migrations(conn)
             await conn.commit()
 
         logger.info("Database initialized successfully")
 
     @asynccontextmanager
     async def get_connection(self):
-        """
-        Async context manager yielding an aiosqlite connection.
-        Bug #8 fix: Each call opens a short-lived connection (WAL mode makes
-        this safe for concurrent reads; writes serialize via SQLite's own lock).
-        """
+        """Yield a short-lived aiosqlite connection."""
         conn = await aiosqlite.connect(self.db_path)
         conn.row_factory = aiosqlite.Row
         await conn.execute("PRAGMA foreign_keys=ON;")
@@ -61,15 +56,14 @@ class DatabaseManager:
         try:
             yield conn
             await conn.commit()
-        except Exception as e:
+        except Exception:
             await conn.rollback()
-            raise e
+            raise
         finally:
             await conn.close()
 
     async def _create_tables(self, conn: aiosqlite.Connection):
         """Create all database tables."""
-
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS videos (
                 id TEXT PRIMARY KEY,
@@ -179,7 +173,6 @@ class DatabaseManager:
             )
         """)
 
-        # Indexes
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_videos_youtube ON videos(youtube_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_transcripts_video ON transcripts(video_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_words_word ON words(word)")
@@ -187,12 +180,61 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_video ON sessions(video_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_word_reviews_saved ON word_reviews(saved_word_id)")
 
+    async def _run_migrations(self, conn: aiosqlite.Connection):
+        """Apply lightweight additive migrations for review system fields."""
+        async with conn.execute("PRAGMA table_info(saved_words)") as cursor:
+            rows = await cursor.fetchall()
+            columns = {dict(row)["name"] for row in rows}
+
+        migrations = {
+            "learning_step": "ALTER TABLE saved_words ADD COLUMN learning_step INTEGER DEFAULT 0",
+            "lapses": "ALTER TABLE saved_words ADD COLUMN lapses INTEGER DEFAULT 0",
+            "reviewed_count": "ALTER TABLE saved_words ADD COLUMN reviewed_count INTEGER DEFAULT 0",
+            "last_quality": "ALTER TABLE saved_words ADD COLUMN last_quality INTEGER",
+        }
+
+        for column, sql in migrations.items():
+            if column not in columns:
+                logger.info(f"Applying migration: add saved_words.{column}")
+                await conn.execute(sql)
+
+    def _now_str(self) -> str:
+        return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+    def _dt_plus_minutes(self, minutes: int) -> str:
+        return (datetime.utcnow() + timedelta(minutes=minutes)).strftime("%Y-%m-%d %H:%M:%S")
+
+    def _dt_plus_days(self, days: int) -> str:
+        return (datetime.utcnow() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+
+    def _normalized_datetime_expr(self, field: str) -> str:
+        """SQLite expression that normalizes both ISO and SQLite datetime strings."""
+        return f"datetime(replace(substr({field}, 1, 19), 'T', ' '))"
+
+    def _decode_json_field(self, value: Any, default: Any):
+        try:
+            return json.loads(value) if value else default
+        except (json.JSONDecodeError, TypeError):
+            return default
+
+    def _parse_saved_word_row(self, row: aiosqlite.Row) -> Dict[str, Any]:
+        data = dict(row)
+        data["examples"] = self._decode_json_field(data.get("examples"), [])
+        if "synonyms" in data:
+            data["synonyms"] = self._decode_json_field(data.get("synonyms"), [])
+        if "antonyms" in data:
+            data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
+        if "conjugations" in data:
+            data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
+        if "related_words" in data:
+            data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+        return data
+
     # =========================================================================
     # Video CRUD
     # =========================================================================
 
     async def add_video(self, video_data: Dict[str, Any]) -> str:
-        """Add a new video to the database."""
         async with self.get_connection() as conn:
             await conn.execute(
                 """
@@ -214,20 +256,14 @@ class DatabaseManager:
         return video_data.get("id", "")
 
     async def get_video(self, video_id: str) -> Optional[Dict[str, Any]]:
-        """Get video by ID."""
         async with self.get_connection() as conn:
-            async with conn.execute(
-                "SELECT * FROM videos WHERE id = ?", (video_id,)
-            ) as cursor:
+            async with conn.execute("SELECT * FROM videos WHERE id = ?", (video_id,)) as cursor:
                 row = await cursor.fetchone()
                 return dict(row) if row else None
 
     async def get_video_by_youtube_id(self, youtube_id: str) -> Optional[Dict[str, Any]]:
-        """Get video by YouTube ID."""
         async with self.get_connection() as conn:
-            async with conn.execute(
-                "SELECT * FROM videos WHERE youtube_id = ?", (youtube_id,)
-            ) as cursor:
+            async with conn.execute("SELECT * FROM videos WHERE youtube_id = ?", (youtube_id,)) as cursor:
                 row = await cursor.fetchone()
                 return dict(row) if row else None
 
@@ -236,7 +272,6 @@ class DatabaseManager:
     # =========================================================================
 
     async def save_transcript(self, transcript_data: Dict[str, Any]) -> str:
-        """Save transcript for a video."""
         async with self.get_connection() as conn:
             await conn.execute(
                 """
@@ -257,7 +292,6 @@ class DatabaseManager:
         return transcript_data.get("id", "")
 
     async def get_transcript(self, video_id: str, language: str = "en") -> Optional[Dict[str, Any]]:
-        """Get transcript for a video."""
         async with self.get_connection() as conn:
             async with conn.execute(
                 "SELECT * FROM transcripts WHERE video_id = ? AND language = ?",
@@ -267,15 +301,8 @@ class DatabaseManager:
                 if not row:
                     return None
                 data = dict(row)
-                # Deserialize JSON fields
-                try:
-                    data["segments"] = json.loads(data["segments"])
-                except (json.JSONDecodeError, TypeError):
-                    data["segments"] = []
-                try:
-                    data["word_timings"] = json.loads(data.get("word_timings") or "{}")
-                except (json.JSONDecodeError, TypeError):
-                    data["word_timings"] = {}
+                data["segments"] = self._decode_json_field(data.get("segments"), [])
+                data["word_timings"] = self._decode_json_field(data.get("word_timings"), {})
                 return data
 
     # =========================================================================
@@ -283,7 +310,6 @@ class DatabaseManager:
     # =========================================================================
 
     async def add_word(self, word_data: Dict[str, Any]) -> str:
-        """Add or update a word in the dictionary."""
         async with self.get_connection() as conn:
             await conn.execute(
                 """
@@ -312,24 +338,21 @@ class DatabaseManager:
         return word_data.get("id", "")
 
     async def get_word(self, word: str) -> Optional[Dict[str, Any]]:
-        """Get word from dictionary."""
         async with self.get_connection() as conn:
-            async with conn.execute(
-                "SELECT * FROM words WHERE word = ?", (word.lower(),)
-            ) as cursor:
+            async with conn.execute("SELECT * FROM words WHERE word = ?", (word.lower(),)) as cursor:
                 row = await cursor.fetchone()
                 if not row:
                     return None
                 data = dict(row)
-                for field in ("examples", "synonyms", "antonyms", "conjugations", "related_words"):
-                    try:
-                        data[field] = json.loads(data.get(field) or ("[]" if field != "conjugations" else "{}"))
-                    except (json.JSONDecodeError, TypeError):
-                        data[field] = [] if field != "conjugations" else {}
+                data["examples"] = self._decode_json_field(data.get("examples"), [])
+                data["synonyms"] = self._decode_json_field(data.get("synonyms"), [])
+                data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
+                data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
+                data["related_words"] = self._decode_json_field(data.get("related_words"), [])
                 return data
 
     # =========================================================================
-    # Vocabulary CRUD (Spaced Repetition)
+    # Vocabulary / Review CRUD
     # =========================================================================
 
     async def save_word_to_vocabulary(
@@ -339,131 +362,253 @@ class DatabaseManager:
         sentence: str,
         context: str,
     ) -> str:
-        """Save a word to user vocabulary."""
         import uuid as _uuid
+
         saved_id = str(_uuid.uuid4())
-        # First review in 1 day
-        next_review = (datetime.now() + timedelta(days=1)).isoformat()
+        next_review = self._now_str()  # due immediately so review screen is useful right away
 
         async with self.get_connection() as conn:
             await conn.execute(
                 """
                 INSERT INTO saved_words
-                    (id, word_id, video_id, sentence, context, next_review)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (id, word_id, video_id, sentence, context, status, ease_factor,
+                     interval, repetitions, next_review, learning_step, lapses,
+                     reviewed_count, last_quality)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (saved_id, word_id, video_id, sentence, context, next_review),
+                (
+                    saved_id,
+                    word_id,
+                    video_id,
+                    sentence,
+                    context,
+                    "learning",
+                    2.5,
+                    0,
+                    0,
+                    next_review,
+                    0,
+                    0,
+                    0,
+                    None,
+                ),
             )
         return saved_id
 
-    async def get_saved_words(
-        self, status: Optional[str] = None, limit: int = 100
-    ) -> List[Dict[str, Any]]:
-        """Get saved vocabulary words with full word data."""
+    async def get_saved_word(self, saved_word_id: str) -> Optional[Dict[str, Any]]:
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                """
+                SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
+                       w.meaning_ar, w.meaning_en, w.level, w.examples,
+                       w.synonyms, w.antonyms, w.conjugations, w.related_words
+                FROM saved_words sw
+                JOIN words w ON sw.word_id = w.id
+                WHERE sw.id = ?
+                """,
+                (saved_word_id,),
+            ) as cursor:
+                row = await cursor.fetchone()
+                return self._parse_saved_word_row(row) if row else None
+
+    async def get_saved_words(self, status: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
         query = """
             SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
-                   w.meaning_ar, w.meaning_en, w.level, w.examples
+                   w.meaning_ar, w.meaning_en, w.level, w.examples,
+                   w.synonyms, w.antonyms, w.conjugations, w.related_words
             FROM saved_words sw
             JOIN words w ON sw.word_id = w.id
         """
-        params: list = []
+        params: List[Any] = []
         if status:
             query += " WHERE sw.status = ?"
             params.append(status)
-        query += " ORDER BY sw.created_at DESC LIMIT ?"
+        query += f" ORDER BY {self._normalized_datetime_expr('sw.next_review')} ASC, sw.created_at DESC LIMIT ?"
         params.append(limit)
 
         async with self.get_connection() as conn:
             async with conn.execute(query, params) as cursor:
                 rows = await cursor.fetchall()
-                result = []
-                for row in rows:
-                    d = dict(row)
-                    try:
-                        d["examples"] = json.loads(d.get("examples") or "[]")
-                    except (json.JSONDecodeError, TypeError):
-                        d["examples"] = []
-                    result.append(d)
-                return result
+                return [self._parse_saved_word_row(row) for row in rows]
 
     async def get_due_words(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get words due for review."""
-        now = datetime.now().isoformat()
+        due_expr = self._normalized_datetime_expr("sw.next_review")
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                f"""
+                SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
+                       w.meaning_ar, w.meaning_en, w.level, w.examples,
+                       w.synonyms, w.antonyms, w.conjugations, w.related_words
+                FROM saved_words sw
+                JOIN words w ON sw.word_id = w.id
+                WHERE sw.next_review IS NULL OR {due_expr} <= datetime('now')
+                ORDER BY
+                    CASE sw.status
+                        WHEN 'learning' THEN 0
+                        WHEN 'reviewing' THEN 1
+                        WHEN 'learned' THEN 2
+                        ELSE 3
+                    END,
+                    {due_expr} ASC,
+                    sw.created_at ASC
+                LIMIT ?
+                """,
+                (limit,),
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [self._parse_saved_word_row(row) for row in rows]
+
+    async def get_review_summary(self) -> Dict[str, Any]:
+        due_expr = self._normalized_datetime_expr("next_review")
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                f"""
+                SELECT
+                    COUNT(*) as total_saved,
+                    SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END) as learning,
+                    SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) as reviewing,
+                    SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END) as learned,
+                    SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END) as never_reviewed,
+                    SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END) as due_now
+                FROM saved_words
+                """
+            ) as cursor:
+                row = await cursor.fetchone()
+                data = dict(row) if row else {}
+                for key, value in list(data.items()):
+                    data[key] = int(value or 0)
+                return data
+
+    async def get_review_history(self, saved_word_id: str, limit: int = 20) -> List[Dict[str, Any]]:
         async with self.get_connection() as conn:
             async with conn.execute(
                 """
-                SELECT sw.*, w.word, w.pronunciation, w.meaning_ar, w.meaning_en,
-                       w.level, w.examples
-                FROM saved_words sw
-                JOIN words w ON sw.word_id = w.id
-                WHERE sw.next_review <= ? OR sw.next_review IS NULL
-                ORDER BY sw.next_review ASC
+                SELECT id, saved_word_id, quality, reviewed_at
+                FROM word_reviews
+                WHERE saved_word_id = ?
+                ORDER BY datetime(replace(substr(reviewed_at, 1, 19), 'T', ' ')) DESC
                 LIMIT ?
                 """,
-                (now, limit),
+                (saved_word_id, limit),
             ) as cursor:
                 rows = await cursor.fetchall()
-                result = []
-                for row in rows:
-                    d = dict(row)
-                    try:
-                        d["examples"] = json.loads(d.get("examples") or "[]")
-                    except (json.JSONDecodeError, TypeError):
-                        d["examples"] = []
-                    result.append(d)
-                return result
+                return [dict(row) for row in rows]
 
-    async def update_review(self, saved_word_id: str, quality: int):
-        """Update SM-2 spaced repetition data after a review."""
+    async def update_review(self, saved_word_id: str, quality: int) -> Optional[Dict[str, Any]]:
+        """Update spaced-repetition data after a review and return the updated saved word."""
         import uuid as _uuid
 
         async with self.get_connection() as conn:
-            async with conn.execute(
-                "SELECT * FROM saved_words WHERE id = ?", (saved_word_id,)
-            ) as cursor:
+            async with conn.execute("SELECT * FROM saved_words WHERE id = ?", (saved_word_id,)) as cursor:
                 row = await cursor.fetchone()
                 if not row:
-                    return
+                    return None
 
             sw = dict(row)
-            ease = float(sw.get("ease_factor", 2.5))
-            interval = int(sw.get("interval", 0))
-            repetitions = int(sw.get("repetitions", 0))
+            ease = float(sw.get("ease_factor") or 2.5)
+            interval = int(sw.get("interval") or 0)
+            repetitions = int(sw.get("repetitions") or 0)
+            learning_step = int(sw.get("learning_step") or 0)
+            lapses = int(sw.get("lapses") or 0)
+            reviewed_count = int(sw.get("reviewed_count") or 0)
+            had_reviews_before = reviewed_count > 0 or bool(sw.get("last_reviewed"))
 
-            # SM-2 algorithm
-            if quality >= 3:
-                if repetitions == 0:
-                    interval = 1
-                elif repetitions == 1:
-                    interval = 6
-                else:
-                    interval = round(interval * ease)
-                repetitions += 1
-            else:
+            now_str = self._now_str()
+
+            if quality <= 1:
+                ease = max(1.3, ease - 0.20)
+                interval = 0
                 repetitions = 0
-                interval = 1
+                learning_step = 0
+                status = "learning"
+                next_review = self._dt_plus_minutes(10)
+                if had_reviews_before:
+                    lapses += 1
 
-            ease = ease + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-            ease = max(1.3, ease)
+            elif quality == 2:
+                ease = max(1.3, ease - 0.15)
+                interval = 0
+                repetitions = 0
+                learning_step = min(1, learning_step + 1)
+                status = "learning"
+                next_review = self._dt_plus_minutes(30)
 
-            status = "learned" if interval >= 21 else ("reviewing" if repetitions > 1 else "learning")
-            next_review = (datetime.now() + timedelta(days=interval)).isoformat()
+            elif quality == 3:
+                ease = min(3.0, max(1.3, ease - 0.02))
+                if repetitions < 1:
+                    repetitions = 1
+                    learning_step = 1
+                    interval = 1
+                    status = "learning"
+                    next_review = self._dt_plus_days(1)
+                else:
+                    repetitions += 1
+                    interval = max(2, round(max(1, interval) * ease))
+                    status = "learned" if interval >= 30 else "reviewing"
+                    next_review = self._dt_plus_days(interval)
+
+            elif quality == 4:
+                ease = min(3.0, max(1.3, ease + 0.05))
+                if repetitions < 1:
+                    repetitions = 2
+                    learning_step = 2
+                    interval = 3
+                else:
+                    repetitions += 1
+                    interval = max(interval + 1, round(max(1, interval) * (ease + 0.15)))
+                status = "learned" if interval >= 30 else "reviewing"
+                next_review = self._dt_plus_days(interval)
+
+            else:  # quality == 5
+                ease = min(3.0, max(1.3, ease + 0.10))
+                if repetitions < 1:
+                    repetitions = 2
+                    learning_step = 2
+                    interval = 4
+                else:
+                    repetitions += 1
+                    interval = max(interval + 2, round(max(1, interval) * (ease + 0.30)))
+                status = "learned" if interval >= 30 else "reviewing"
+                next_review = self._dt_plus_days(interval)
+
+            reviewed_count += 1
             review_id = str(_uuid.uuid4())
 
             await conn.execute(
                 """
                 UPDATE saved_words SET
-                    ease_factor = ?, interval = ?, repetitions = ?,
-                    next_review = ?, last_reviewed = CURRENT_TIMESTAMP, status = ?
+                    ease_factor = ?,
+                    interval = ?,
+                    repetitions = ?,
+                    next_review = ?,
+                    last_reviewed = ?,
+                    status = ?,
+                    learning_step = ?,
+                    lapses = ?,
+                    reviewed_count = ?,
+                    last_quality = ?
                 WHERE id = ?
                 """,
-                (ease, interval, repetitions, next_review, status, saved_word_id),
+                (
+                    ease,
+                    interval,
+                    repetitions,
+                    next_review,
+                    now_str,
+                    status,
+                    learning_step,
+                    lapses,
+                    reviewed_count,
+                    quality,
+                    saved_word_id,
+                ),
             )
             await conn.execute(
-                "INSERT INTO word_reviews (id, saved_word_id, quality) VALUES (?, ?, ?)",
-                (review_id, saved_word_id, quality),
+                "INSERT INTO word_reviews (id, saved_word_id, quality, reviewed_at) VALUES (?, ?, ?, ?)",
+                (review_id, saved_word_id, quality, now_str),
             )
 
+        return await self.get_saved_word(saved_word_id)
+
     async def close(self):
-        """Cleanup."""
         logger.info("Database manager closed")

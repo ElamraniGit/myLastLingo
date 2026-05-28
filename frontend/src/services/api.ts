@@ -26,10 +26,7 @@ class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
+async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {}, timeout = 30000, retries = 1 } = options;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -52,9 +49,7 @@ async function request<T>(
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new ApiError(
-          (errorData as any).detail ||
-            (errorData as any).message ||
-            `HTTP ${response.status}`,
+          (errorData as any).detail || (errorData as any).message || `HTTP ${response.status}`,
           response.status
         );
       }
@@ -97,11 +92,9 @@ export const api = {
         method: 'POST',
         body: { url, quality },
       }),
-    list: (page = 1, limit = 20) =>
-      request<any>(`/videos/list?page=${page}&limit=${limit}`),
+    list: (page = 1, limit = 20) => request<any>(`/videos/list?page=${page}&limit=${limit}`),
     get: (id: string) => request<any>(`/videos/${id}`),
-    delete: (id: string) =>
-      request<any>(`/videos/${id}`, { method: 'DELETE' }),
+    delete: (id: string) => request<any>(`/videos/${id}`, { method: 'DELETE' }),
   },
 
   transcripts: {
@@ -110,12 +103,8 @@ export const api = {
         method: 'POST',
         timeout: 90000,
       }),
-    get: (videoId: string, language = 'en') =>
-      request<any>(`/transcripts/${videoId}?language=${language}`),
-    getSegments: (videoId: string, language = 'en') =>
-      request<any>(
-        `/transcripts/${videoId}/segments?language=${language}`
-      ),
+    get: (videoId: string, language = 'en') => request<any>(`/transcripts/${videoId}?language=${language}`),
+    getSegments: (videoId: string, language = 'en') => request<any>(`/transcripts/${videoId}/segments?language=${language}`),
   },
 
   dictionary: {
@@ -124,27 +113,14 @@ export const api = {
         method: 'POST',
         body: { word },
       }),
-    search: (query: string, limit = 10) =>
-      request<any>(
-        `/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`
-      ),
-    suggest: (prefix: string, limit = 10) =>
-      request<any>(
-        `/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=${limit}`
-      ),
-    popular: (limit = 50) =>
-      request<any>(`/dictionary/popular?limit=${limit}`),
-    level: (word: string) =>
-      request<any>(`/dictionary/level/${encodeURIComponent(word)}`),
+    search: (query: string, limit = 10) => request<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
+    suggest: (prefix: string, limit = 10) => request<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=${limit}`),
+    popular: (limit = 50) => request<any>(`/dictionary/popular?limit=${limit}`),
+    level: (word: string) => request<any>(`/dictionary/level/${encodeURIComponent(word)}`),
   },
 
   vocabulary: {
-    save: (
-      word: string,
-      videoId?: string,
-      sentence?: string,
-      context?: string
-    ) =>
+    save: (word: string, videoId?: string, sentence?: string, context?: string) =>
       request<any>('/vocabulary/save', {
         method: 'POST',
         body: { word, video_id: videoId, sentence, context },
@@ -160,17 +136,14 @@ export const api = {
         body: { saved_word_id: savedWordId, quality },
       }),
     due: (limit = 20) => request<any>(`/vocabulary/due?limit=${limit}`),
+    reviewSummary: () => request<any>('/vocabulary/review/summary'),
+    reviewHistory: (savedWordId: string, limit = 20) => request<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),
     stats: () => request<any>('/vocabulary/stats'),
-    delete: (savedId: string) =>
-      request<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
+    delete: (savedId: string) => request<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
   },
 
   player: {
-    updateState: (state: any) =>
-      request<any>('/player/state', {
-        method: 'POST',
-        body: state,
-      }),
+    updateState: (state: any) => request<any>('/player/state', { method: 'POST', body: state }),
     getState: (videoId: string) => request<any>(`/player/state/${videoId}`),
     stream: (videoId: string) => request<any>(`/player/stream/${videoId}`),
   },

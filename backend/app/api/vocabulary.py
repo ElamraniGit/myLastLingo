@@ -1,16 +1,11 @@
 """
 Vocabulary management API.
 Handles saved words, flashcards, and spaced repetition.
-
-FIXES APPLIED:
-  - Bug #10: Fixed import path (was 'backend.ai.dictionary.service', now 'ai.dictionary.service')
 """
 
-import json
 import uuid
 import logging
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -50,11 +45,11 @@ class WordResponse(BaseModel):
 async def save_word(request: SaveWordRequest):
     """Save a word to user's vocabulary."""
     word = request.word.lower().strip()
+    if not word:
+        raise HTTPException(status_code=400, detail="Word cannot be empty")
 
-    # Ensure word exists in dictionary
     word_data = await db_manager.get_word(word)
     if not word_data:
-        # Bug #10 fix: correct import path
         try:
             from ai.dictionary.service import DictionaryService
             svc = DictionaryService()
@@ -70,7 +65,6 @@ async def save_word(request: SaveWordRequest):
             word_data = _make_basic_entry(word)
             await db_manager.add_word(word_data)
 
-    # Check if already saved (avoid duplicates per video)
     async with db_manager.get_connection() as conn:
         async with conn.execute(
             "SELECT * FROM saved_words WHERE word_id = ? AND (video_id = ? OR video_id IS NULL)",
@@ -79,7 +73,15 @@ async def save_word(request: SaveWordRequest):
             existing = await cursor.fetchone()
 
     if existing:
-        return {"message": "Word already saved", "id": dict(existing)["id"]}
+        existing_id = dict(existing)["id"]
+        saved_word = await db_manager.get_saved_word(existing_id)
+        return {
+            "message": "Word already saved",
+            "id": existing_id,
+            "word": word,
+            "status": saved_word.get("status") if saved_word else "learning",
+            "saved_word": saved_word,
+        }
 
     saved_id = await db_manager.save_word_to_vocabulary(
         word_data["id"],
@@ -87,12 +89,14 @@ async def save_word(request: SaveWordRequest):
         request.sentence,
         request.context,
     )
+    saved_word = await db_manager.get_saved_word(saved_id)
 
     return {
         "message": "Word saved successfully",
         "id": saved_id,
         "word": word,
         "status": "learning",
+        "saved_word": saved_word,
     }
 
 
@@ -114,9 +118,7 @@ async def list_vocabulary(
             ) as cur:
                 row = await cur.fetchone()
         else:
-            async with conn.execute(
-                "SELECT COUNT(*) as total FROM saved_words"
-            ) as cur:
+            async with conn.execute("SELECT COUNT(*) as total FROM saved_words") as cur:
                 row = await cur.fetchone()
         total = dict(row)["total"] if row else 0
 
@@ -131,32 +133,68 @@ async def list_vocabulary(
 
 @router.post("/review")
 async def review_word(request: ReviewRequest):
-    """Review a saved word using SM-2 spaced repetition."""
+    """Review a saved word using an improved spaced-repetition flow."""
     if request.quality < 0 or request.quality > 5:
         raise HTTPException(status_code=400, detail="Quality must be between 0 and 5")
 
-    await db_manager.update_review(request.saved_word_id, request.quality)
-    return {"message": "Review recorded", "saved_word_id": request.saved_word_id}
+    updated = await db_manager.update_review(request.saved_word_id, request.quality)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Saved word not found")
+
+    summary = await db_manager.get_review_summary()
+    return {
+        "message": "Review recorded",
+        "saved_word_id": request.saved_word_id,
+        "quality": request.quality,
+        "word": updated,
+        "summary": summary,
+    }
 
 
 @router.get("/due")
-async def get_due_words(limit: int = Query(20, ge=1, le=50)):
+async def get_due_words(limit: int = Query(20, ge=1, le=100)):
     """Get words due for review."""
     words = await db_manager.get_due_words(limit)
-    return {"words": words, "count": len(words)}
+    summary = await db_manager.get_review_summary()
+    return {"words": words, "count": len(words), "summary": summary}
+
+
+@router.get("/review/summary")
+async def get_review_summary():
+    """Get compact review queue summary."""
+    return await db_manager.get_review_summary()
+
+
+@router.get("/review/history/{saved_word_id}")
+async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le=100)):
+    """Get review history for one saved word."""
+    saved_word = await db_manager.get_saved_word(saved_word_id)
+    if not saved_word:
+        raise HTTPException(status_code=404, detail="Saved word not found")
+
+    history = await db_manager.get_review_history(saved_word_id, limit)
+    return {
+        "saved_word_id": saved_word_id,
+        "word": saved_word.get("word"),
+        "history": history,
+        "count": len(history),
+    }
 
 
 @router.get("/stats")
 async def get_vocabulary_stats():
     """Get vocabulary learning statistics."""
     async with db_manager.get_connection() as conn:
+        due_expr = db_manager._normalized_datetime_expr("next_review")
+
         async with conn.execute(
-            """
+            f"""
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END) as learning,
+                SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) as reviewing,
                 SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END) as learned,
-                SUM(CASE WHEN next_review <= datetime('now') THEN 1 ELSE 0 END) as due
+                SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END) as due
             FROM saved_words
             """
         ) as cur:
@@ -167,7 +205,7 @@ async def get_vocabulary_stats():
             """
             SELECT COUNT(*) as today_reviews
             FROM word_reviews
-            WHERE date(reviewed_at) = date('now')
+            WHERE date(replace(substr(reviewed_at, 1, 19), 'T', ' ')) = date('now')
             """
         ) as cur:
             today = await cur.fetchone()
@@ -175,9 +213,9 @@ async def get_vocabulary_stats():
 
         async with conn.execute(
             """
-            SELECT COUNT(DISTINCT date(reviewed_at)) as streak
+            SELECT COUNT(DISTINCT date(replace(substr(reviewed_at, 1, 19), 'T', ' '))) as streak
             FROM word_reviews
-            WHERE reviewed_at >= date('now', '-30 days')
+            WHERE datetime(replace(substr(reviewed_at, 1, 19), 'T', ' ')) >= date('now', '-30 days')
             """
         ) as cur:
             streak_data = await cur.fetchone()
@@ -208,7 +246,6 @@ async def delete_saved_word(saved_id: str):
 
 
 def _make_basic_entry(word: str) -> Dict[str, Any]:
-    """Create a minimal dictionary entry for unknown words."""
     return {
         "id": str(uuid.uuid4()),
         "word": word,
