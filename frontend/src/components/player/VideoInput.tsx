@@ -34,12 +34,12 @@ export default function VideoInput() {
       const video = await videosApi.process(v, defaultVideoQuality);
       addRecentVideo(video);
       setCurrentVideo(video);
+      // Reset status before navigating to avoid stuck loading state
+      setStatus('idle');
       setPage('player');
     } catch (e) {
       setStatus('error');
       setErrorMsg(e instanceof ApiError ? e.message : 'Failed to load video');
-    } finally {
-      setStatus('idle');
     }
   }, [url, defaultVideoQuality, addRecentVideo, setCurrentVideo, setPage]);
 

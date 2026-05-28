@@ -13,7 +13,8 @@ export default function Document() {
         <meta name="msapplication-navbutton-color" content="#0f172a" />
         <meta name="msapplication-starturl" content="/" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {/* Fix: use .svg since that's the actual file format available */}
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon-192x192.svg" />
       </Head>
       <body className="bg-slate-950 text-slate-100 min-h-screen">

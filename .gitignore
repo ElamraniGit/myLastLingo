@@ -13,6 +13,7 @@ venv/
 
 # Node
 node_modules/
+frontend/node_modules/
 .next/
 
 # Database
@@ -29,6 +30,9 @@ data/downloads/*
 data/cache/*
 data/temp/*
 models/
+
+# Secret keys — never commit!
+data/.secret_key
 
 # OS
 .DS_Store

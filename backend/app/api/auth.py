@@ -16,7 +16,7 @@ from typing import Optional
 
 import aiosqlite
 from fastapi import APIRouter, HTTPException, Depends, Header
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
 
 logger = logging.getLogger(__name__)
 

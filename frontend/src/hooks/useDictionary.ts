@@ -16,12 +16,21 @@ export function useDictionary() {
   } = useStore();
 
   const lookupWord = useCallback(async (word: string, sentence = '') => {
-    const clean = word.replace(/[.,!?;:'"()[\]{}]/g, '').trim().toLowerCase();
+    const clean = word.replace(/[.,!?;:'"()\[\]{}]/g, '').trim().toLowerCase();
     if (!clean || clean.length < 2) return;
 
-    const wasPlaying = useStore.getState().playerState.playing;
-    setResumeAfterWordPopup(wasPlaying);
-    if (wasPlaying) updatePlayerState({ playing: false });
+    const state = useStore.getState();
+    const wasPlaying = state.playerState.playing;
+    const shouldAutoPause = state.autoPauseOnWord;
+
+    // Only auto-pause if the setting is enabled
+    if (shouldAutoPause && wasPlaying) {
+      setResumeAfterWordPopup(true);
+      updatePlayerState({ playing: false });
+    } else {
+      setResumeAfterWordPopup(false);
+    }
+
     setWordPopupSentence(sentence);
 
     try {
@@ -30,7 +39,7 @@ export function useDictionary() {
       setWordPopupOpen(true);
     } catch {
       setResumeAfterWordPopup(false);
-      if (wasPlaying) updatePlayerState({ playing: true });
+      if (shouldAutoPause && wasPlaying) updatePlayerState({ playing: true });
     }
   }, [updatePlayerState, setSelectedWord, setWordPopupOpen, setWordPopupSentence, setResumeAfterWordPopup]);
 
