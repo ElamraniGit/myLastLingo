@@ -1,5 +1,5 @@
 /**
- * Settings view — theme, speed, auto-pause, account, server status.
+ * Settings view — theme, speed, quality, font size, account, server status.
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -8,11 +8,29 @@ import { useAuth } from '@/hooks/useAuth';
 import { authApi, BACKEND_ORIGIN } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import type { TranscriptFontSize, VideoQuality } from '@/types';
+
+const QUALITY_OPTIONS: { value: VideoQuality; label: string; hint: string }[] = [
+  { value: 'auto', label: 'Auto', hint: 'Let YouTube choose automatically' },
+  { value: 'medium', label: '360p', hint: 'Balanced for most phones' },
+  { value: 'large', label: '480p', hint: 'Better clarity, moderate data use' },
+  { value: 'hd720', label: '720p', hint: 'HD quality on supported videos' },
+  { value: 'hd1080', label: '1080p', hint: 'High quality when available' },
+];
+
+const FONT_OPTIONS: { value: TranscriptFontSize; label: string; preview: string }[] = [
+  { value: 'sm', label: 'Small', preview: 'A' },
+  { value: 'md', label: 'Medium', preview: 'A' },
+  { value: 'lg', label: 'Large', preview: 'A' },
+  { value: 'xl', label: 'Extra Large', preview: 'A' },
+];
 
 export default function SettingsView() {
   const {
     theme, toggleTheme,
     defaultSpeed, setDefaultSpeed,
+    defaultVideoQuality, setDefaultVideoQuality,
+    transcriptFontSize, setTranscriptFontSize,
     autoPauseOnWord, setAutoPauseOnWord,
     user, setUser,
   } = useStore();
@@ -136,12 +154,12 @@ export default function SettingsView() {
           <h3 className="font-semibold text-slate-200">🎬 Playback</h3>
         </div>
         <div className="divide-y divide-slate-700/30">
-          <div className="flex items-center justify-between px-5 py-4">
+          <div className="flex items-center justify-between px-5 py-4 gap-4">
             <div>
               <p className="text-sm font-medium text-slate-300">Default Speed</p>
               <p className="text-xs text-slate-500">Playback speed for new videos</p>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap justify-end">
               {SPEEDS.map((s) => (
                 <button
                   key={s}
@@ -151,6 +169,32 @@ export default function SettingsView() {
                   }`}
                 >
                   {s}×
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-5 py-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium text-slate-300">Default Video Quality</p>
+              <p className="text-xs text-slate-500">Used when a new YouTube video starts</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {QUALITY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setDefaultVideoQuality(option.value)}
+                  className={`text-left px-3 py-3 rounded-xl border transition-all ${
+                    defaultVideoQuality === option.value
+                      ? 'bg-blue-600/15 border-blue-500/40 text-blue-300'
+                      : 'bg-slate-900/40 border-slate-700 text-slate-300 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm">{option.label}</span>
+                    {defaultVideoQuality === option.value && <span className="text-xs">✓</span>}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{option.hint}</p>
                 </button>
               ))}
             </div>
@@ -176,17 +220,52 @@ export default function SettingsView() {
         <div className="px-5 py-4 border-b border-slate-700/50">
           <h3 className="font-semibold text-slate-200">🎨 Appearance</h3>
         </div>
-        <div className="flex items-center justify-between px-5 py-4">
-          <div>
-            <p className="text-sm font-medium text-slate-300">Dark Mode</p>
-            <p className="text-xs text-slate-500">Current: {theme} mode</p>
+        <div className="divide-y divide-slate-700/30">
+          <div className="flex items-center justify-between px-5 py-4">
+            <div>
+              <p className="text-sm font-medium text-slate-300">Dark Mode</p>
+              <p className="text-xs text-slate-500">Current: {theme} mode</p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className={`relative w-12 h-6 rounded-full transition-colors ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-600'}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0.5'}`} />
+            </button>
           </div>
-          <button
-            onClick={toggleTheme}
-            className={`relative w-12 h-6 rounded-full transition-colors ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-600'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0.5'}`} />
-          </button>
+
+          <div className="px-5 py-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium text-slate-300">Subtitle Text Size</p>
+              <p className="text-xs text-slate-500">Changes the subtitle/transcript reading size</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {FONT_OPTIONS.map((option) => {
+                const sizeClass = option.value === 'sm'
+                  ? 'text-base'
+                  : option.value === 'md'
+                  ? 'text-lg'
+                  : option.value === 'lg'
+                  ? 'text-xl'
+                  : 'text-2xl';
+
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setTranscriptFontSize(option.value)}
+                    className={`rounded-xl border px-3 py-3 transition-all ${
+                      transcriptFontSize === option.value
+                        ? 'bg-blue-600/15 border-blue-500/40 text-blue-300'
+                        : 'bg-slate-900/40 border-slate-700 text-slate-300 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className={`font-semibold ${sizeClass}`}>{option.preview}</div>
+                    <div className="text-xs mt-1">{option.label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -221,7 +300,7 @@ export default function SettingsView() {
         </div>
         <div className="px-5 py-4 space-y-2">
           {[
-            ['App', 'LinguaLearn v2.0'],
+            ['App', 'LinguaLearn v2.1'],
             ['Mode', 'Local-first, no cloud'],
             ['Platform', 'Android / Termux / Desktop'],
             ['Privacy', '100% private, no data sent'],

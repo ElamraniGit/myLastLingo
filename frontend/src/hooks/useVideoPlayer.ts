@@ -10,11 +10,44 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { transcriptsApi, playerApi } from '@/lib/api';
-import type { TranscriptSegment } from '@/types';
+import type { TranscriptSegment, VideoQuality } from '@/types';
 
 const sharedPlayerRef: { current: any } = { current: null };
 let transcriptProbeVideoId: string | null = null;
 let sessionRestoreVideoId: string | null = null;
+
+const VIDEO_QUALITY_ORDER: VideoQuality[] = [
+  'auto',
+  'highres',
+  'hd1080',
+  'hd720',
+  'large',
+  'medium',
+  'small',
+  'tiny',
+];
+
+function normalizeQualityFromYoutube(value?: string | null): VideoQuality {
+  if (!value || value === 'default') return 'auto';
+  if (VIDEO_QUALITY_ORDER.includes(value as VideoQuality)) {
+    return value as VideoQuality;
+  }
+  return 'auto';
+}
+
+function normalizeQualityForYoutube(value: VideoQuality): string {
+  return value === 'auto' ? 'default' : value;
+}
+
+function getInternalPlayer(playerRef: { current: any }) {
+  return playerRef.current?.getInternalPlayer?.() ?? null;
+}
+
+function sortQualities(values: VideoQuality[]): VideoQuality[] {
+  return [...new Set(values)].sort(
+    (a, b) => VIDEO_QUALITY_ORDER.indexOf(a) - VIDEO_QUALITY_ORDER.indexOf(b)
+  );
+}
 
 export function useVideoPlayer() {
   const {
@@ -24,15 +57,48 @@ export function useVideoPlayer() {
     transcript, setTranscript,
     setTranscriptStatus,
     defaultSpeed,
+    defaultVideoQuality,
   } = useAppStore();
 
   const [duration, setDuration] = useState(0);
+  const [availableQualities, setAvailableQualities] = useState<VideoQuality[]>(['auto', 'hd720', 'medium']);
   const playerRef = sharedPlayerRef;
   const restoredSeekForVideoRef = useRef<string | null>(null);
 
   // Keep a ref of latest playerState to avoid stale closures
   const playerStateRef = useRef(playerState);
   useEffect(() => { playerStateRef.current = playerState; }, [playerState]);
+
+  const currentQuality: VideoQuality = playerState.quality ?? defaultVideoQuality;
+
+  const refreshAvailableQualities = useCallback(() => {
+    const internal = getInternalPlayer(playerRef);
+    const levels = internal?.getAvailableQualityLevels?.();
+    if (!Array.isArray(levels) || levels.length === 0) {
+      setAvailableQualities(sortQualities(['auto', currentQuality, defaultVideoQuality]));
+      return;
+    }
+
+    const normalized = levels.map((q: string) => normalizeQualityFromYoutube(q));
+    setAvailableQualities(sortQualities(['auto', ...normalized]));
+  }, [playerRef, currentQuality, defaultVideoQuality]);
+
+  const applyQualityPreference = useCallback((quality: VideoQuality) => {
+    const internal = getInternalPlayer(playerRef);
+    if (!internal) return;
+
+    const ytQuality = normalizeQualityForYoutube(quality);
+    try {
+      if (typeof internal.setPlaybackQualityRange === 'function') {
+        internal.setPlaybackQualityRange(ytQuality);
+      }
+      if (typeof internal.setPlaybackQuality === 'function') {
+        internal.setPlaybackQuality(ytQuality);
+      }
+    } catch {
+      // Some browsers / players may reject quality changes. Ignore safely.
+    }
+  }, [playerRef]);
 
   // ── Initialize local player state for each newly selected video ─────────────
   useEffect(() => {
@@ -51,10 +117,11 @@ export function useVideoPlayer() {
       loop_enabled: false,
       loop_start: undefined,
       loop_end: undefined,
+      quality: defaultVideoQuality,
     });
     setCurrentTime(0);
     restoredSeekForVideoRef.current = null;
-  }, [currentVideo?.id, defaultSpeed, updatePlayerState, setCurrentTime]);
+  }, [currentVideo?.id, defaultSpeed, defaultVideoQuality, updatePlayerState, setCurrentTime]);
 
   // ── Restore saved player session (position / speed / volume) ───────────────
   useEffect(() => {
@@ -78,6 +145,7 @@ export function useVideoPlayer() {
           position: safePosition,
           speed: safeSpeed,
           volume: safeVolume,
+          quality: useAppStore.getState().playerState.quality ?? defaultVideoQuality,
         });
         setCurrentTime(safePosition);
         restoredSeekForVideoRef.current = null;
@@ -90,7 +158,7 @@ export function useVideoPlayer() {
       .catch(() => {
         // Fresh session — keep defaults.
       });
-  }, [currentVideo?.id, defaultSpeed, playerRef, setCurrentTime, updatePlayerState]);
+  }, [currentVideo?.id, defaultSpeed, defaultVideoQuality, playerRef, setCurrentTime, updatePlayerState]);
 
   // ── Reset transcript state when switching videos ────────────────────────────
   useEffect(() => {
@@ -134,6 +202,16 @@ export function useVideoPlayer() {
         }
       });
   }, [currentVideo?.id, setTranscript, setTranscriptStatus]);
+
+  // ── Apply quality preference when it changes ────────────────────────────────
+  useEffect(() => {
+    if (!currentVideo) return;
+    const timer = setTimeout(() => {
+      applyQualityPreference(currentQuality);
+      refreshAvailableQualities();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [currentVideo?.id, currentQuality, applyQualityPreference, refreshAvailableQualities]);
 
   // ── Extract transcript ──────────────────────────────────────────────────────
   const extractTranscript = useCallback(async () => {
@@ -195,6 +273,11 @@ export function useVideoPlayer() {
 
   const setSpeed = useCallback((speed: number) => updatePlayerState({ speed }), [updatePlayerState]);
   const setVolume = useCallback((volume: number) => updatePlayerState({ volume }), [updatePlayerState]);
+  const setQuality = useCallback((quality: VideoQuality) => {
+    updatePlayerState({ quality });
+    applyQualityPreference(quality);
+    refreshAvailableQualities();
+  }, [updatePlayerState, applyQualityPreference, refreshAvailableQualities]);
 
   const togglePlay = useCallback(() => {
     updatePlayerState({ playing: !playerStateRef.current.playing });
@@ -257,14 +340,20 @@ export function useVideoPlayer() {
   const onDuration = useCallback((d: number) => setDuration(d), []);
 
   const onReady = useCallback(() => {
-    if (!currentVideo || restoredSeekForVideoRef.current === currentVideo.id) return;
+    if (!currentVideo) return;
 
-    const pos = Number(useAppStore.getState().playerState.position || 0);
-    if (playerRef.current && pos > 0.25) {
-      playerRef.current.seekTo(pos, 'seconds');
-      restoredSeekForVideoRef.current = currentVideo.id;
-    }
-  }, [currentVideo?.id, playerRef]);
+    setTimeout(() => {
+      refreshAvailableQualities();
+      applyQualityPreference(useAppStore.getState().playerState.quality ?? defaultVideoQuality);
+
+      if (restoredSeekForVideoRef.current === currentVideo.id) return;
+      const pos = Number(useAppStore.getState().playerState.position || 0);
+      if (playerRef.current && pos > 0.25) {
+        playerRef.current.seekTo(pos, 'seconds');
+        restoredSeekForVideoRef.current = currentVideo.id;
+      }
+    }, 250);
+  }, [currentVideo?.id, defaultVideoQuality, playerRef, applyQualityPreference, refreshAvailableQualities]);
 
   const onEnded = useCallback(() => updatePlayerState({ playing: false }), [updatePlayerState]);
 
@@ -287,6 +376,8 @@ export function useVideoPlayer() {
     playing: playerState.playing,
     speed: playerState.speed,
     volume: playerState.volume,
+    currentQuality,
+    availableQualities,
     loopEnabled: playerState.loop_enabled,
     loopStart: playerState.loop_start,
     loopEnd: playerState.loop_end,
@@ -300,6 +391,7 @@ export function useVideoPlayer() {
     seekTo,
     setSpeed,
     setVolume,
+    setQuality,
     skipForward,
     skipBackward,
     goToSegment,

@@ -16,6 +16,8 @@ import type {
   AppPage,
   Theme,
   UserProgress,
+  VideoQuality,
+  TranscriptFontSize,
 } from '@/types';
 
 interface AppState {
@@ -109,6 +111,12 @@ interface AppState {
   defaultSpeed: number;
   setDefaultSpeed: (s: number) => void;
 
+  defaultVideoQuality: VideoQuality;
+  setDefaultVideoQuality: (q: VideoQuality) => void;
+
+  transcriptFontSize: TranscriptFontSize;
+  setTranscriptFontSize: (s: TranscriptFontSize) => void;
+
   autoPauseOnWord: boolean;
   setAutoPauseOnWord: (v: boolean) => void;
 
@@ -124,6 +132,7 @@ const initialPlayerState: PlayerState = {
   volume: 1.0,
   current_segment: 0,
   loop_enabled: false,
+  quality: 'auto',
 };
 
 export const useStore = create<AppState>()(
@@ -230,6 +239,12 @@ export const useStore = create<AppState>()(
       defaultSpeed: 1.0,
       setDefaultSpeed: (s) => set({ defaultSpeed: s }),
 
+      defaultVideoQuality: 'auto',
+      setDefaultVideoQuality: (q) => set({ defaultVideoQuality: q }),
+
+      transcriptFontSize: 'md',
+      setTranscriptFontSize: (s) => set({ transcriptFontSize: s }),
+
       autoPauseOnWord: true,
       setAutoPauseOnWord: (v) => set({ autoPauseOnWord: v }),
 
@@ -256,6 +271,8 @@ export const useStore = create<AppState>()(
         savedWords: s.savedWords,
         progress: s.progress,
         defaultSpeed: s.defaultSpeed,
+        defaultVideoQuality: s.defaultVideoQuality,
+        transcriptFontSize: s.transcriptFontSize,
         autoPauseOnWord: s.autoPauseOnWord,
       }),
     }

@@ -2,6 +2,18 @@ import React, { useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/youtube';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useStore } from '@/store/appStore';
+import type { VideoQuality } from '@/types';
+
+const QUALITY_LABELS: Record<VideoQuality, string> = {
+  auto: 'Auto',
+  highres: 'Max',
+  hd1080: '1080p',
+  hd720: '720p',
+  large: '480p',
+  medium: '360p',
+  small: '240p',
+  tiny: '144p',
+};
 
 function fmtTime(s: number) {
   if (!s || !isFinite(s)) return '0:00';
@@ -13,15 +25,32 @@ function fmtTime(s: number) {
 export default function VideoPlayer() {
   const { currentVideo } = useStore();
   const {
-    playerRef, playing, speed, volume, loopEnabled,
-    currentTime, duration,
-    togglePlay, seekTo, setSpeed, setVolume,
-    skipForward, skipBackward, toggleLoop,
-    onProgress, onDuration, onReady, onEnded,
+    playerRef,
+    playing,
+    speed,
+    volume,
+    currentQuality,
+    availableQualities,
+    loopEnabled,
+    currentTime,
+    duration,
+    togglePlay,
+    seekTo,
+    setSpeed,
+    setVolume,
+    setQuality,
+    skipForward,
+    skipBackward,
+    toggleLoop,
+    onProgress,
+    onDuration,
+    onReady,
+    onEnded,
   } = useVideoPlayer();
 
   const [speedOpen, setSpeedOpen] = useState(false);
   const [volOpen, setVolOpen] = useState(false);
+  const [qualityOpen, setQualityOpen] = useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -37,9 +66,15 @@ export default function VideoPlayer() {
         <ReactPlayer
           ref={playerRef}
           url={`https://www.youtube.com/watch?v=${currentVideo.youtube_id}`}
-          playing={playing} playbackRate={speed} volume={volume}
-          width="100%" height="100%"
-          onProgress={onProgress} onDuration={onDuration} onReady={onReady} onEnded={onEnded}
+          playing={playing}
+          playbackRate={speed}
+          volume={volume}
+          width="100%"
+          height="100%"
+          onProgress={onProgress}
+          onDuration={onDuration}
+          onReady={onReady}
+          onEnded={onEnded}
           config={{ playerVars: { modestbranding: 1, rel: 0, iv_load_policy: 3 } }}
         />
       </div>
@@ -51,7 +86,7 @@ export default function VideoPlayer() {
           </div>
         </div>
         {/* Controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           <button onClick={() => skipBackward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">⏮ 10s</button>
           <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
             {playing ? '⏸' : '▶'}
@@ -60,9 +95,41 @@ export default function VideoPlayer() {
           <span className="text-white/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
           <div className="flex-1" />
           <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>🔁</button>
+
+          {/* Quality */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setQualityOpen(!qualityOpen);
+                setSpeedOpen(false);
+                setVolOpen(false);
+              }}
+              className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-medium"
+              title="Playback quality"
+            >
+              {QUALITY_LABELS[currentQuality] ?? currentQuality}
+            </button>
+            {qualityOpen && (
+              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[96px]">
+                {availableQualities.map((quality) => (
+                  <button
+                    key={quality}
+                    onClick={() => {
+                      setQuality(quality);
+                      setQualityOpen(false);
+                    }}
+                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${currentQuality === quality ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}
+                  >
+                    {QUALITY_LABELS[quality] ?? quality}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Volume */}
           <div className="relative">
-            <button onClick={() => setVolOpen(!volOpen)} className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-sm">
+            <button onClick={() => { setVolOpen(!volOpen); setSpeedOpen(false); setQualityOpen(false); }} className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-sm">
               {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
             </button>
             {volOpen && (
@@ -72,14 +139,21 @@ export default function VideoPlayer() {
               </div>
             )}
           </div>
+
           {/* Speed */}
           <div className="relative">
-            <button onClick={() => setSpeedOpen(!speedOpen)} className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
+            <button onClick={() => { setSpeedOpen(!speedOpen); setVolOpen(false); setQualityOpen(false); }} className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
             {speedOpen && (
               <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[80px]">
                 {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((s) => (
-                  <button key={s} onClick={() => { setSpeed(s); setSpeedOpen(false); }}
-                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${speed === s ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}>
+                  <button
+                    key={s}
+                    onClick={() => {
+                      setSpeed(s);
+                      setSpeedOpen(false);
+                    }}
+                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${speed === s ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}
+                  >
                     {s}×
                   </button>
                 ))}

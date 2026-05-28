@@ -1,9 +1,9 @@
 /**
  * API service for LinguaLearn.
  * Communicates with local backend at 127.0.0.1:8080
- *
- * No changes to logic — cleaned up types and added retry for mobile networks.
  */
+
+import type { VideoQuality } from '@/types';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
@@ -84,18 +84,15 @@ async function request<T>(
   throw new ApiError('All retries failed', 0);
 }
 
-// API methods
 export const api = {
-  // Health check
   health: async () => {
     const response = await fetch(`${BACKEND_ORIGIN}/health`);
     if (!response.ok) throw new ApiError(`HTTP ${response.status}`, response.status);
     return response.json() as Promise<{ status: string; version: string; mode: string }>;
   },
 
-  // Videos
   videos: {
-    process: (url: string, quality?: string) =>
+    process: (url: string, quality?: VideoQuality) =>
       request<any>('/videos/process', {
         method: 'POST',
         body: { url, quality },
@@ -107,12 +104,11 @@ export const api = {
       request<any>(`/videos/${id}`, { method: 'DELETE' }),
   },
 
-  // Transcripts
   transcripts: {
     extract: (videoId: string, language = 'en') =>
       request<any>(`/transcripts/extract/${videoId}?language=${language}`, {
         method: 'POST',
-        timeout: 90000, // 90s for VTT download + parse
+        timeout: 90000,
       }),
     get: (videoId: string, language = 'en') =>
       request<any>(`/transcripts/${videoId}?language=${language}`),
@@ -122,7 +118,6 @@ export const api = {
       ),
   },
 
-  // Dictionary
   dictionary: {
     lookup: (word: string) =>
       request<any>('/dictionary/lookup', {
@@ -143,7 +138,6 @@ export const api = {
       request<any>(`/dictionary/level/${encodeURIComponent(word)}`),
   },
 
-  // Vocabulary
   vocabulary: {
     save: (
       word: string,
@@ -171,7 +165,6 @@ export const api = {
       request<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
   },
 
-  // Player
   player: {
     updateState: (state: any) =>
       request<any>('/player/state', {

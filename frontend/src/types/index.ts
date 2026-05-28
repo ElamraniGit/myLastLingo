@@ -1,5 +1,17 @@
 // ─── Core Domain Types ────────────────────────────────────────────────────────
 
+export type VideoQuality =
+  | 'auto'
+  | 'tiny'
+  | 'small'
+  | 'medium'
+  | 'large'
+  | 'hd720'
+  | 'hd1080'
+  | 'highres';
+
+export type TranscriptFontSize = 'sm' | 'md' | 'lg' | 'xl';
+
 export interface User {
   id: string;
   username: string;
@@ -102,6 +114,7 @@ export interface PlayerState {
   loop_enabled: boolean;
   loop_start?: number;
   loop_end?: number;
+  quality?: VideoQuality;
 }
 
 export interface UserProgress {

@@ -7,7 +7,13 @@ export default function VideoInput() {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<'idle'|'loading'|'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
-  const { setCurrentVideo, setPage, recentVideos, addRecentVideo } = useStore();
+  const {
+    setCurrentVideo,
+    setPage,
+    recentVideos,
+    addRecentVideo,
+    defaultVideoQuality,
+  } = useStore();
 
   const isYT = (s: string) =>
     /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(s.trim()) ||
@@ -17,18 +23,25 @@ export default function VideoInput() {
     e?.preventDefault();
     const v = url.trim();
     if (!v) return;
-    if (!isYT(v)) { setStatus('error'); setErrorMsg('Please enter a valid YouTube URL or video ID'); return; }
-    setStatus('loading'); setErrorMsg('');
+    if (!isYT(v)) {
+      setStatus('error');
+      setErrorMsg('Please enter a valid YouTube URL or video ID');
+      return;
+    }
+    setStatus('loading');
+    setErrorMsg('');
     try {
-      const video = await videosApi.process(v);
+      const video = await videosApi.process(v, defaultVideoQuality);
       addRecentVideo(video);
       setCurrentVideo(video);
       setPage('player');
     } catch (e) {
       setStatus('error');
       setErrorMsg(e instanceof ApiError ? e.message : 'Failed to load video');
-    } finally { setStatus('idle'); }
-  }, [url, addRecentVideo, setCurrentVideo, setPage]);
+    } finally {
+      setStatus('idle');
+    }
+  }, [url, defaultVideoQuality, addRecentVideo, setCurrentVideo, setPage]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-10 max-w-xl mx-auto w-full">
@@ -42,7 +55,8 @@ export default function VideoInput() {
       <form onSubmit={handleSubmit} className="w-full space-y-3">
         <div className="flex gap-2">
           <input
-            type="text" value={url}
+            type="text"
+            value={url}
             onChange={(e) => { setUrl(e.target.value); setErrorMsg(''); setStatus('idle'); }}
             placeholder="https://youtube.com/watch?v=..."
             className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
@@ -52,6 +66,9 @@ export default function VideoInput() {
             Start ▶
           </Button>
         </div>
+        <p className="text-xs text-slate-500 px-1">
+          Default playback quality: <span className="text-slate-300 font-medium">{defaultVideoQuality === 'auto' ? 'Auto' : defaultVideoQuality}</span>
+        </p>
         {errorMsg && (
           <div className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl">
             <p className="text-sm text-red-400">{errorMsg}</p>

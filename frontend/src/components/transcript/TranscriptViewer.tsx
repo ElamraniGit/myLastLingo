@@ -10,8 +10,15 @@ import React, { useRef, useEffect, memo } from 'react';
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
-import type { TranscriptSegment, WordTiming } from '@/types';
+import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
 import { Button } from '@/components/ui/Button';
+
+const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: string; meta: string }> = {
+  sm: { row: 'text-sm', current: 'text-sm', meta: 'text-[11px]' },
+  md: { row: 'text-base', current: 'text-sm', meta: 'text-xs' },
+  lg: { row: 'text-lg', current: 'text-base', meta: 'text-xs' },
+  xl: { row: 'text-xl', current: 'text-lg', meta: 'text-sm' },
+};
 
 function StatusBanner() {
   const { transcriptStatus } = useStore();
@@ -63,11 +70,12 @@ function StatusBanner() {
 }
 
 export default function TranscriptViewer() {
-  const { transcript, playerState, currentTime, transcriptStatus } = useStore();
+  const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize } = useStore();
   const { seekTo } = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const containerRef = useRef<HTMLDivElement>(null);
-  const activeRef    = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLDivElement>(null);
+  const font = FONT_SIZE_CLASSES[transcriptFontSize] ?? FONT_SIZE_CLASSES.md;
 
   useEffect(() => {
     const el = activeRef.current;
@@ -94,6 +102,7 @@ export default function TranscriptViewer() {
           <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
+          <span className="text-xs text-slate-500">Font: {transcriptFontSize.toUpperCase()}</span>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
           transcript.source === 'youtube'
@@ -114,6 +123,7 @@ export default function TranscriptViewer() {
               segment={seg}
               isActive={isActive}
               currentTime={currentTime}
+              fontSize={transcriptFontSize}
               onSeek={() => seekTo(seg.start)}
               onWordClick={(word) => lookupWord(word, seg.text)}
               ref={isActive ? activeRef : undefined}
@@ -123,7 +133,7 @@ export default function TranscriptViewer() {
       </div>
 
       {/* Current line bar */}
-      <CurrentLineBar />
+      <CurrentLineBar fontSize={transcriptFontSize} />
     </div>
   );
 }
@@ -132,10 +142,12 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
   segment: TranscriptSegment;
   isActive: boolean;
   currentTime: number;
+  fontSize: TranscriptFontSize;
   onSeek: () => void;
   onWordClick: (word: string) => void;
-}>(({ segment, isActive, currentTime, onSeek, onWordClick }, ref) => {
+}>(({ segment, isActive, currentTime, fontSize, onSeek, onWordClick }, ref) => {
   const clean = (w: string) => w.replace(/[^\w'-]/g, '').trim();
+  const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
 
   return (
     <div
@@ -148,14 +160,12 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
           : 'border-transparent hover:bg-slate-800/70 hover:border-slate-700/50'
       }`}
     >
-      {/* Active left accent */}
       {isActive && (
         <div className="absolute left-0 top-2 bottom-2 w-[3px] bg-blue-500 rounded-full" />
       )}
 
-      {/* Words — forced LTR */}
       <div
-        className="flex flex-wrap gap-x-1 gap-y-1 leading-relaxed pl-1"
+        className={`flex flex-wrap gap-x-1 gap-y-1 leading-relaxed pl-1 ${font.row}`}
         style={{ direction: 'ltr', textAlign: 'left' }}
       >
         {segment.words && segment.words.length > 0
@@ -163,6 +173,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
               <WordToken
                 key={wi}
                 word={word}
+                fontSize={fontSize}
                 isCurrentWord={currentTime >= word.start && currentTime <= word.end}
                 isActiveSentence={isActive}
                 onClick={(e) => {
@@ -179,7 +190,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
                   key={i}
                   onClick={(e) => { e.stopPropagation(); if (c) onWordClick(c); }}
                   style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-                  className={`cursor-pointer select-none px-0.5 rounded transition-colors duration-100 ${
+                  className={`${font.row} cursor-pointer select-none px-0.5 rounded transition-colors duration-100 ${
                     isActive
                       ? 'text-slate-100 hover:text-blue-300 hover:bg-blue-500/15'
                       : 'text-slate-500 hover:text-slate-200 hover:bg-slate-700/60'
@@ -191,12 +202,11 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
             })}
       </div>
 
-      {/* Timestamp on hover */}
       <div className="mt-1.5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-        <span className="text-xs text-slate-600 tabular-nums">
+        <span className={`${font.meta} text-slate-600 tabular-nums`}>
           {fmtTime(segment.start)} → {fmtTime(segment.end)}
         </span>
-        <span className="text-xs text-slate-700">
+        <span className={`${font.meta} text-slate-700`}>
           {(segment.end - segment.start).toFixed(1)}s
         </span>
       </div>
@@ -205,17 +215,20 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
 }));
 SegmentRow.displayName = 'SegmentRow';
 
-function WordToken({ word, isCurrentWord, isActiveSentence, onClick }: {
+function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }: {
   word: WordTiming;
+  fontSize: TranscriptFontSize;
   isCurrentWord: boolean;
   isActiveSentence: boolean;
   onClick: (e: React.MouseEvent) => void;
 }) {
+  const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
+
   return (
     <span
       onClick={onClick}
       style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-      className={`relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-all duration-100 ${
+      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-all duration-100 ${
         isCurrentWord
           ? 'text-blue-300 font-semibold bg-blue-500/20'
           : isActiveSentence
@@ -231,8 +244,9 @@ function WordToken({ word, isCurrentWord, isActiveSentence, onClick }: {
   );
 }
 
-function CurrentLineBar() {
+function CurrentLineBar({ fontSize }: { fontSize: TranscriptFontSize }) {
   const { transcript, playerState, currentTime } = useStore();
+  const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
   const seg = transcript?.segments?.find((s) => s.index === playerState.current_segment);
   if (!seg) return null;
 
@@ -243,7 +257,7 @@ function CurrentLineBar() {
   return (
     <div className="flex-shrink-0 border-t border-slate-800 px-4 pt-3 pb-4 bg-slate-900/60" dir="ltr">
       <p
-        className="text-sm text-slate-200 text-center leading-relaxed line-clamp-2 mb-2.5 min-h-[1.25rem] font-medium"
+        className={`${font.current} text-slate-200 text-center leading-relaxed line-clamp-2 mb-2.5 min-h-[1.25rem] font-medium`}
         style={{ direction: 'ltr', textAlign: 'center' }}
       >
         {seg.text}
@@ -252,8 +266,8 @@ function CurrentLineBar() {
         <div className="h-full bg-blue-500 rounded-full transition-all duration-100" style={{ width: `${pct}%` }} />
       </div>
       <div className="flex justify-between mt-1.5">
-        <span className="text-xs text-slate-700 tabular-nums">{fmtTime(seg.start)}</span>
-        <span className="text-xs text-slate-700 tabular-nums">{fmtTime(seg.end)}</span>
+        <span className={`${font.meta} text-slate-700 tabular-nums`}>{fmtTime(seg.start)}</span>
+        <span className={`${font.meta} text-slate-700 tabular-nums`}>{fmtTime(seg.end)}</span>
       </div>
     </div>
   );

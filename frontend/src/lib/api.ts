@@ -3,6 +3,8 @@
  * retry on timeout, and descriptive error messages.
  */
 
+import type { VideoQuality } from '@/types';
+
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
 
@@ -105,8 +107,12 @@ export const authApi = {
 
 // ─── Videos ───────────────────────────────────────────────────────────────────
 export const videosApi = {
-  process: (url: string) =>
-    req<any>('/videos/process', { method: 'POST', body: { url }, timeout: 30000 }),
+  process: (url: string, quality?: VideoQuality) =>
+    req<any>('/videos/process', {
+      method: 'POST',
+      body: { url, quality },
+      timeout: 30000,
+    }),
 
   list: (page = 1, limit = 20) =>
     req<any>(`/videos/list?page=${page}&limit=${limit}`),
