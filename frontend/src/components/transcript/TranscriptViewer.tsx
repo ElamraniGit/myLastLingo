@@ -1,7 +1,7 @@
 /**
  * TranscriptViewer — synchronized subtitles panel.
  * ALL text is LTR. dir="ltr" enforced on every container.
- * Click word → dictionary + auto-pause.
+ * Click word → dictionary popup + player pause.
  * Click segment → seek.
  * Auto-scroll to active segment.
  */
@@ -19,6 +19,30 @@ const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: stri
   lg: { row: 'text-lg', current: 'text-base', meta: 'text-xs' },
   xl: { row: 'text-xl', current: 'text-lg', meta: 'text-sm' },
 };
+
+function getActiveWordIndex(words: WordTiming[], currentTime: number) {
+  if (!Array.isArray(words) || words.length === 0) return -1;
+
+  const exact = words.findIndex(
+    (word) => currentTime >= word.start - 0.03 && currentTime <= word.end + 0.05
+  );
+  if (exact >= 0) return exact;
+
+  let bestIndex = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  words.forEach((word, index) => {
+    const distance = Math.min(
+      Math.abs(currentTime - word.start),
+      Math.abs(currentTime - word.end)
+    );
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  });
+
+  return bestDistance <= 0.12 ? bestIndex : -1;
+}
 
 function StatusBanner() {
   const { transcriptStatus } = useStore();
@@ -75,7 +99,6 @@ export default function TranscriptViewer() {
   const { lookupWord } = useDictionary();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
-  const font = FONT_SIZE_CLASSES[transcriptFontSize] ?? FONT_SIZE_CLASSES.md;
 
   useEffect(() => {
     const el = activeRef.current;
@@ -94,7 +117,6 @@ export default function TranscriptViewer() {
 
   return (
     <div className="flex flex-col h-full" dir="ltr">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-sm leading-none">📝</span>
@@ -113,7 +135,6 @@ export default function TranscriptViewer() {
         </span>
       </div>
 
-      {/* Segments */}
       <div ref={containerRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin" dir="ltr">
         {transcript.segments.map((seg) => {
           const isActive = playerState.current_segment === seg.index;
@@ -132,7 +153,6 @@ export default function TranscriptViewer() {
         })}
       </div>
 
-      {/* Current line bar */}
       <CurrentLineBar fontSize={transcriptFontSize} />
     </div>
   );
@@ -148,6 +168,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
 }>(({ segment, isActive, currentTime, fontSize, onSeek, onWordClick }, ref) => {
   const clean = (w: string) => w.replace(/[^\w'-]/g, '').trim();
   const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
+  const activeWordIndex = getActiveWordIndex(segment.words || [], currentTime);
 
   return (
     <div
@@ -174,7 +195,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
                 key={wi}
                 word={word}
                 fontSize={fontSize}
-                isCurrentWord={currentTime >= word.start && currentTime <= word.end}
+                isCurrentWord={activeWordIndex === wi}
                 isActiveSentence={isActive}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -228,7 +249,7 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }:
     <span
       onClick={onClick}
       style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-all duration-100 ${
+      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-all duration-75 ${
         isCurrentWord
           ? 'text-blue-300 font-semibold bg-blue-500/20'
           : isActiveSentence

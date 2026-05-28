@@ -72,6 +72,10 @@ interface AppState {
   wordPopupOpen: boolean;
   setWordPopupOpen: (v: boolean) => void;
 
+  /** Whether the player should resume automatically after closing the popup */
+  resumeAfterWordPopup: boolean;
+  setResumeAfterWordPopup: (v: boolean) => void;
+
   /** @deprecated use wordPopupOpen */
   wordModalOpen: boolean;
   setWordModalOpen: (v: boolean) => void;
@@ -200,6 +204,9 @@ export const useStore = create<AppState>()(
       wordPopupOpen: false,
       setWordPopupOpen: (v) => set({ wordPopupOpen: v, wordModalOpen: v }),
 
+      resumeAfterWordPopup: false,
+      setResumeAfterWordPopup: (v) => set({ resumeAfterWordPopup: v }),
+
       wordModalOpen: false,
       setWordModalOpen: (v) => set({ wordModalOpen: v, wordPopupOpen: v }),
 
@@ -256,6 +263,7 @@ export const useStore = create<AppState>()(
           transcript: null,
           currentTime: 0,
           transcriptStatus: 'idle',
+          resumeAfterWordPopup: false,
         }),
     }),
     {

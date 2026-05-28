@@ -54,7 +54,7 @@ export function useVideoPlayer() {
     currentVideo,
     playerState, updatePlayerState,
     currentTime, setCurrentTime,
-    transcript, setTranscript,
+    setTranscript,
     setTranscriptStatus,
     defaultSpeed,
     defaultVideoQuality,
@@ -65,7 +65,6 @@ export function useVideoPlayer() {
   const playerRef = sharedPlayerRef;
   const restoredSeekForVideoRef = useRef<string | null>(null);
 
-  // Keep a ref of latest playerState to avoid stale closures
   const playerStateRef = useRef(playerState);
   useEffect(() => { playerStateRef.current = playerState; }, [playerState]);
 
@@ -96,7 +95,7 @@ export function useVideoPlayer() {
         internal.setPlaybackQuality(ytQuality);
       }
     } catch {
-      // Some browsers / players may reject quality changes. Ignore safely.
+      // Ignore unsupported environments safely.
     }
   }, [playerRef]);
 
@@ -203,7 +202,6 @@ export function useVideoPlayer() {
       });
   }, [currentVideo?.id, setTranscript, setTranscriptStatus]);
 
-  // ── Apply quality preference when it changes ────────────────────────────────
   useEffect(() => {
     if (!currentVideo) return;
     const timer = setTimeout(() => {
@@ -213,7 +211,6 @@ export function useVideoPlayer() {
     return () => clearTimeout(timer);
   }, [currentVideo?.id, currentQuality, applyQualityPreference, refreshAvailableQualities]);
 
-  // ── Extract transcript ──────────────────────────────────────────────────────
   const extractTranscript = useCallback(async () => {
     if (!currentVideo) return;
     setTranscriptStatus('loading');
@@ -250,26 +247,45 @@ export function useVideoPlayer() {
     }
   }, [currentVideo, setTranscript, setTranscriptStatus]);
 
-  // ── Segment lookup ──────────────────────────────────────────────────────────
-  const getCurrentSegment = useCallback((): TranscriptSegment | null => {
-    const { transcript: t, currentTime: ct } = useAppStore.getState();
-    if (!t?.segments) return null;
-    return t.segments.find((s) => ct >= s.start && ct <= s.end) ?? null;
+  const getCurrentSegment = useCallback((time?: number): TranscriptSegment | null => {
+    const state = useAppStore.getState();
+    const ct = typeof time === 'number' ? time : state.currentTime;
+    const transcript = state.transcript;
+    if (!transcript?.segments) return null;
+    return transcript.segments.find((s) => ct >= s.start && ct <= s.end) ?? null;
   }, []);
 
-  const getCurrentWord = useCallback(() => {
-    const seg = getCurrentSegment();
+  const getCurrentWord = useCallback((time?: number) => {
+    const seg = getCurrentSegment(time);
     if (!seg?.words?.length) return null;
-    const ct = useAppStore.getState().currentTime;
-    return seg.words.find((w) => ct >= w.start && ct <= w.end) ?? null;
+    const ct = typeof time === 'number' ? time : useAppStore.getState().currentTime;
+    return seg.words.find((w) => ct >= w.start - 0.05 && ct <= w.end + 0.06) ?? null;
   }, [getCurrentSegment]);
 
-  // ── Player controls ─────────────────────────────────────────────────────────
+  const syncPlaybackState = useCallback((time: number) => {
+    if (!Number.isFinite(time)) return;
+    const rounded = Math.max(0, time);
+    setCurrentTime(rounded);
+    updatePlayerState({ position: rounded });
+
+    const seg = getCurrentSegment(rounded);
+    if (seg && seg.index !== playerStateRef.current.current_segment) {
+      updatePlayerState({ current_segment: seg.index });
+    }
+
+    const ps = playerStateRef.current;
+    if (ps.loop_enabled && ps.loop_end != null && rounded >= ps.loop_end) {
+      const loopStart = ps.loop_start ?? 0;
+      playerRef.current?.seekTo(loopStart, 'seconds');
+      setCurrentTime(loopStart);
+      updatePlayerState({ position: loopStart });
+    }
+  }, [getCurrentSegment, playerRef, setCurrentTime, updatePlayerState]);
+
   const seekTo = useCallback((time: number) => {
     playerRef.current?.seekTo(time, 'seconds');
-    updatePlayerState({ position: time });
-    setCurrentTime(time);
-  }, [playerRef, updatePlayerState, setCurrentTime]);
+    syncPlaybackState(time);
+  }, [playerRef, syncPlaybackState]);
 
   const setSpeed = useCallback((speed: number) => updatePlayerState({ speed }), [updatePlayerState]);
   const setVolume = useCallback((volume: number) => updatePlayerState({ volume }), [updatePlayerState]);
@@ -321,21 +337,9 @@ export function useVideoPlayer() {
     }
   }, [getCurrentSegment, updatePlayerState]);
 
-  // ── ReactPlayer event handlers ──────────────────────────────────────────────
   const onProgress = useCallback((state: { playedSeconds: number; loaded: number }) => {
-    setCurrentTime(state.playedSeconds);
-    updatePlayerState({ position: state.playedSeconds });
-
-    const seg = getCurrentSegment();
-    if (seg && seg.index !== playerStateRef.current.current_segment) {
-      updatePlayerState({ current_segment: seg.index });
-    }
-
-    const ps = playerStateRef.current;
-    if (ps.loop_enabled && ps.loop_end != null && state.playedSeconds >= ps.loop_end) {
-      seekTo(ps.loop_start ?? 0);
-    }
-  }, [setCurrentTime, updatePlayerState, getCurrentSegment, seekTo]);
+    syncPlaybackState(state.playedSeconds);
+  }, [syncPlaybackState]);
 
   const onDuration = useCallback((d: number) => setDuration(d), []);
 
@@ -357,7 +361,16 @@ export function useVideoPlayer() {
 
   const onEnded = useCallback(() => updatePlayerState({ playing: false }), [updatePlayerState]);
 
-  // ── Periodic state save ─────────────────────────────────────────────────────
+  // High-frequency sync loop for accurate word highlighting.
+  useEffect(() => {
+    if (!currentVideo || !playerState.playing) return;
+    const iv = setInterval(() => {
+      const current = Number(playerRef.current?.getCurrentTime?.());
+      if (Number.isFinite(current)) syncPlaybackState(current);
+    }, 80);
+    return () => clearInterval(iv);
+  }, [currentVideo?.id, playerState.playing, playerRef, syncPlaybackState]);
+
   useEffect(() => {
     if (!currentVideo || !playerState.playing) return;
     const iv = setInterval(() => {

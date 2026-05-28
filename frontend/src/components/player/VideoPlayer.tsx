@@ -71,21 +71,20 @@ export default function VideoPlayer() {
           volume={volume}
           width="100%"
           height="100%"
+          progressInterval={80}
           onProgress={onProgress}
           onDuration={onDuration}
           onReady={onReady}
           onEnded={onEnded}
-          config={{ playerVars: { modestbranding: 1, rel: 0, iv_load_policy: 3 } }}
+          config={{ playerVars: { modestbranding: 1, rel: 0, iv_load_policy: 3 } } as any}
         />
       </div>
       <div className="bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3 py-3">
-        {/* Progress bar */}
         <div className="h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 group relative" onClick={handleSeek}>
           <div className="h-full bg-blue-500 rounded-full relative transition-all duration-100" style={{ width: `${progress}%` }}>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
-        {/* Controls */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           <button onClick={() => skipBackward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">⏮ 10s</button>
           <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
@@ -96,7 +95,6 @@ export default function VideoPlayer() {
           <div className="flex-1" />
           <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>🔁</button>
 
-          {/* Quality */}
           <div className="relative">
             <button
               onClick={() => {
@@ -127,7 +125,6 @@ export default function VideoPlayer() {
             )}
           </div>
 
-          {/* Volume */}
           <div className="relative">
             <button onClick={() => { setVolOpen(!volOpen); setSpeedOpen(false); setQualityOpen(false); }} className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-sm">
               {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
@@ -140,7 +137,6 @@ export default function VideoPlayer() {
             )}
           </div>
 
-          {/* Speed */}
           <div className="relative">
             <button onClick={() => { setSpeedOpen(!speedOpen); setVolOpen(false); setQualityOpen(false); }} className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
             {speedOpen && (

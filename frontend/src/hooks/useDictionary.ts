@@ -5,27 +5,42 @@ import type { VocabularyListParams } from '@/types';
 
 export function useDictionary() {
   const {
-    setSelectedWord, setWordPopupOpen, setWordPopupSentence,
-    setSavedWords, setDueWords, setProgress,
-    autoPauseOnWord, updatePlayerState,
+    setSelectedWord,
+    setWordPopupOpen,
+    setWordPopupSentence,
+    setResumeAfterWordPopup,
+    setSavedWords,
+    setDueWords,
+    setProgress,
+    updatePlayerState,
   } = useStore();
 
   const lookupWord = useCallback(async (word: string, sentence = '') => {
     const clean = word.replace(/[.,!?;:'"()[\]{}]/g, '').trim().toLowerCase();
     if (!clean || clean.length < 2) return;
-    if (autoPauseOnWord) updatePlayerState({ playing: false });
+
+    const wasPlaying = useStore.getState().playerState.playing;
+    setResumeAfterWordPopup(wasPlaying);
+    if (wasPlaying) updatePlayerState({ playing: false });
     setWordPopupSentence(sentence);
+
     try {
       const data = await dictionaryApi.lookup(clean);
       setSelectedWord(data);
       setWordPopupOpen(true);
-    } catch {}
-  }, [autoPauseOnWord, updatePlayerState, setSelectedWord, setWordPopupOpen, setWordPopupSentence]);
+    } catch {
+      setResumeAfterWordPopup(false);
+      if (wasPlaying) updatePlayerState({ playing: true });
+    }
+  }, [updatePlayerState, setSelectedWord, setWordPopupOpen, setWordPopupSentence, setResumeAfterWordPopup]);
 
   const closeWordPopup = useCallback(() => {
+    const shouldResume = useStore.getState().resumeAfterWordPopup;
     setWordPopupOpen(false);
     setSelectedWord(null);
-  }, [setWordPopupOpen, setSelectedWord]);
+    setResumeAfterWordPopup(false);
+    if (shouldResume) updatePlayerState({ playing: true });
+  }, [setWordPopupOpen, setSelectedWord, setResumeAfterWordPopup, updatePlayerState]);
 
   const saveWord = useCallback(async (word: string, videoId?: string, sentence?: string, context?: string) => {
     try {
