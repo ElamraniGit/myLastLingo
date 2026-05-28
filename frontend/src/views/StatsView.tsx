@@ -35,17 +35,17 @@ export default function StatsView() {
   const cards = [
     { emoji: '📹', label: 'Videos watched', value: recentVideos.length, color: 'text-blue-400' },
     { emoji: '💾', label: 'Words saved', value: progress?.total ?? 0, color: 'text-purple-400' },
+    { emoji: '⭐', label: 'Favorites', value: progress?.favorite_count ?? 0, color: 'text-amber-400' },
     { emoji: '🔁', label: 'Total reviews', value: progress?.total_reviews ?? 0, color: 'text-cyan-400' },
     { emoji: '✅', label: 'Words learned', value: progress?.learned ?? 0, color: 'text-green-400' },
     { emoji: '🔔', label: 'Due now', value: summary?.due_now ?? progress?.due ?? 0, color: 'text-yellow-400' },
-    { emoji: '📅', label: 'Reviewed today', value: progress?.reviewed_today ?? 0, color: 'text-orange-400' },
   ];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">My Progress</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Track your review pipeline, consistency, and memory strength</p>
+        <p className="text-slate-400 text-sm mt-0.5">Track your review pipeline, consistency, vocabulary focus, and memory strength</p>
       </div>
 
       {(summary?.due_now ?? progress?.due ?? 0) > 0 && (
@@ -93,7 +93,7 @@ export default function StatsView() {
             <MiniStat label="Average ease" value={progress?.avg_ease?.toFixed(2) ?? '—'} />
             <MiniStat label="Total lapses" value={progress?.total_lapses ?? 0} />
             <MiniStat label="Active days (30d)" value={progress?.active_days_30 ?? 0} />
-            <MiniStat label="Due today" value={progress?.due ?? 0} />
+            <MiniStat label="Reviewed today" value={progress?.reviewed_today ?? 0} />
           </div>
         </div>
 
@@ -186,36 +186,56 @@ export default function StatsView() {
         </div>
       </div>
 
-      {recentVideos.length > 0 && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
+          <h2 className="text-base font-semibold text-slate-200 mb-4">Top Tags</h2>
+          {progress?.top_tags && progress.top_tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {progress.top_tags.map((tag) => (
+                <span key={tag.tag} className="px-3 py-1.5 rounded-full bg-slate-900/70 border border-slate-700 text-sm text-slate-300">
+                  #{tag.tag}
+                  <span className="text-slate-500 ml-2">{tag.count}</span>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Add tags in the vocabulary screen to organize your library.</p>
+          )}
+        </div>
+
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
           <h2 className="text-base font-semibold text-slate-200 mb-4">Recent Videos</h2>
-          <div className="space-y-3">
-            {recentVideos.slice(0, 5).map((v) => (
-              <div key={v.id} className="flex items-center gap-3">
-                {v.thumbnail_url ? (
-                  <img src={v.thumbnail_url} alt="" className="w-14 h-9 rounded-lg object-cover bg-slate-700 flex-shrink-0" />
-                ) : (
-                  <div className="w-14 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
-                    <span className="text-slate-500 text-sm">🎬</span>
+          {recentVideos.length > 0 ? (
+            <div className="space-y-3">
+              {recentVideos.slice(0, 5).map((v) => (
+                <div key={v.id} className="flex items-center gap-3">
+                  {v.thumbnail_url ? (
+                    <img src={v.thumbnail_url} alt="" className="w-14 h-9 rounded-lg object-cover bg-slate-700 flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                      <span className="text-slate-500 text-sm">🎬</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-200 line-clamp-1">{v.title}</p>
+                    <p className="text-xs text-slate-500">{v.channel}</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 line-clamp-1">{v.title}</p>
-                  <p className="text-xs text-slate-500">{v.channel}</p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Watched videos will appear here.</p>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="bg-blue-500/8 border border-blue-500/20 rounded-2xl p-5">
         <h2 className="text-sm font-semibold text-blue-400 mb-3">💡 Review Tips</h2>
         <ul className="space-y-2 text-sm text-slate-400">
           <li>• Use quiz mode to test recognition before rating yourself.</li>
-          <li>• If a word feels shaky, choose Again or Hard — the schedule will adapt.</li>
-          <li>• Watch the “Hardest Words” panel to spot words you keep forgetting.</li>
-          <li>• Short daily sessions are better than rare long sessions.</li>
+          <li>• Tag words by topic like travel, verbs, idioms, or exam-prep.</li>
+          <li>• Mark important words as favorites so you can revisit them quickly.</li>
+          <li>• Add memory notes in vocabulary cards to create personal hooks.</li>
         </ul>
       </div>
     </div>

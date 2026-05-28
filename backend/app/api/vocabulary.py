@@ -5,7 +5,7 @@ Handles saved words, flashcards, and spaced repetition.
 
 import uuid
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -26,6 +26,12 @@ class SaveWordRequest(BaseModel):
 class ReviewRequest(BaseModel):
     saved_word_id: str
     quality: int  # 0-5
+
+
+class UpdateSavedWordRequest(BaseModel):
+    tags: Optional[List[str]] = None
+    notes: Optional[str] = None
+    favorite: Optional[bool] = None
 
 
 class WordResponse(BaseModel):
@@ -105,30 +111,74 @@ async def list_vocabulary(
     status: Optional[str] = Query(None, pattern="^(learning|reviewing|learned)$"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
+    search: Optional[str] = Query(None),
+    level: Optional[str] = Query(None),
+    video_id: Optional[str] = Query(None),
+    due_only: bool = Query(False),
+    tag: Optional[str] = Query(None),
+    favorite_only: bool = Query(False),
+    sort: str = Query("next_review", pattern="^(next_review|newest|oldest|alphabetical|level|difficulty)$"),
 ):
-    """List saved vocabulary words."""
-    words = await db_manager.get_saved_words(status, limit * page)
-    start = (page - 1) * limit
-    paginated = words[start : start + limit]
-
-    async with db_manager.get_connection() as conn:
-        if status:
-            async with conn.execute(
-                "SELECT COUNT(*) as total FROM saved_words WHERE status = ?", (status,)
-            ) as cur:
-                row = await cur.fetchone()
-        else:
-            async with conn.execute("SELECT COUNT(*) as total FROM saved_words") as cur:
-                row = await cur.fetchone()
-        total = dict(row)["total"] if row else 0
+    """List saved vocabulary words with rich filtering."""
+    words = await db_manager.get_saved_words(
+        status=status,
+        limit=limit,
+        page=page,
+        search=search,
+        level=level,
+        video_id=video_id,
+        due_only=due_only,
+        tag=tag,
+        favorite_only=favorite_only,
+        sort=sort,
+    )
+    total = await db_manager.count_saved_words(
+        status=status,
+        search=search,
+        level=level,
+        video_id=video_id,
+        due_only=due_only,
+        tag=tag,
+        favorite_only=favorite_only,
+    )
 
     return {
-        "words": paginated,
+        "words": words,
         "page": page,
         "limit": limit,
         "total": total,
         "pages": max(1, (total + limit - 1) // limit),
+        "filters": {
+            "status": status,
+            "search": search,
+            "level": level,
+            "video_id": video_id,
+            "due_only": due_only,
+            "tag": tag,
+            "favorite_only": favorite_only,
+            "sort": sort,
+        },
     }
+
+
+@router.get("/filters")
+async def get_vocabulary_filters():
+    """Get available levels, source videos, and tags for filtering."""
+    return await db_manager.get_vocabulary_facets()
+
+
+@router.patch("/{saved_id}")
+async def update_saved_word(saved_id: str, request: UpdateSavedWordRequest):
+    """Update tags / notes / favorite metadata for a saved word."""
+    updated = await db_manager.update_saved_word_metadata(
+        saved_id,
+        tags=request.tags,
+        notes=request.notes,
+        favorite=request.favorite,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Saved word not found")
+    return {"message": "Saved word updated", "word": updated}
 
 
 @router.post("/review")
@@ -196,6 +246,7 @@ async def get_vocabulary_stats():
                 COALESCE(SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END), 0) as learned,
                 COALESCE(SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END), 0) as due,
                 COALESCE(SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END), 0) as never_reviewed,
+                COALESCE(SUM(CASE WHEN COALESCE(favorite, 0) = 1 THEN 1 ELSE 0 END), 0) as favorite_count,
                 COALESCE(SUM(lapses), 0) as total_lapses,
                 COALESCE(SUM(reviewed_count), 0) as total_reviews,
                 ROUND(COALESCE(AVG(ease_factor), 0), 2) as avg_ease
@@ -272,6 +323,19 @@ async def get_vocabulary_stats():
         ) as cur:
             rows = await cur.fetchall()
             stats["upcoming_review_days"] = {dict(r)["review_day"]: dict(r)["count"] for r in rows if dict(r)["review_day"]}
+
+        async with conn.execute("SELECT tags FROM saved_words WHERE tags IS NOT NULL AND tags != ''") as cur:
+            rows = await cur.fetchall()
+            top_tags: Dict[str, int] = {}
+            for row in rows:
+                for tag in db_manager._decode_json_field(dict(row).get("tags"), []):
+                    key = str(tag).strip().lower()
+                    if key:
+                        top_tags[key] = top_tags.get(key, 0) + 1
+            stats["top_tags"] = [
+                {"tag": tag, "count": count}
+                for tag, count in sorted(top_tags.items(), key=lambda item: (-item[1], item[0]))[:10]
+            ]
 
     return stats
 

@@ -6,6 +6,8 @@ Improvements in this version:
   - true async I/O via aiosqlite
   - lightweight schema migrations for review columns
   - stronger spaced-repetition / review support
+  - vocabulary metadata (tags / notes / favorites)
+  - richer filtering and sorting for saved words
   - normalized datetime handling for existing rows that may contain either
     ISO strings with `T` or SQLite-style `YYYY-MM-DD HH:MM:SS`
 """
@@ -13,7 +15,7 @@ Improvements in this version:
 import json
 import logging
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
@@ -181,7 +183,7 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_word_reviews_saved ON word_reviews(saved_word_id)")
 
     async def _run_migrations(self, conn: aiosqlite.Connection):
-        """Apply lightweight additive migrations for review system fields."""
+        """Apply lightweight additive migrations for review and vocabulary metadata fields."""
         async with conn.execute("PRAGMA table_info(saved_words)") as cursor:
             rows = await cursor.fetchall()
             columns = {dict(row)["name"] for row in rows}
@@ -191,6 +193,9 @@ class DatabaseManager:
             "lapses": "ALTER TABLE saved_words ADD COLUMN lapses INTEGER DEFAULT 0",
             "reviewed_count": "ALTER TABLE saved_words ADD COLUMN reviewed_count INTEGER DEFAULT 0",
             "last_quality": "ALTER TABLE saved_words ADD COLUMN last_quality INTEGER",
+            "tags": "ALTER TABLE saved_words ADD COLUMN tags TEXT DEFAULT '[]'",
+            "notes": "ALTER TABLE saved_words ADD COLUMN notes TEXT DEFAULT ''",
+            "favorite": "ALTER TABLE saved_words ADD COLUMN favorite INTEGER DEFAULT 0",
         }
 
         for column, sql in migrations.items():
@@ -217,18 +222,116 @@ class DatabaseManager:
         except (json.JSONDecodeError, TypeError):
             return default
 
+    def _normalize_tags(self, tags: Optional[List[str]]) -> List[str]:
+        if not tags:
+            return []
+        seen = set()
+        cleaned: List[str] = []
+        for raw in tags:
+            tag = str(raw).strip().lower()
+            if not tag:
+                continue
+            if len(tag) > 32:
+                tag = tag[:32]
+            if tag not in seen:
+                seen.add(tag)
+                cleaned.append(tag)
+        return cleaned[:12]
+
     def _parse_saved_word_row(self, row: aiosqlite.Row) -> Dict[str, Any]:
         data = dict(row)
         data["examples"] = self._decode_json_field(data.get("examples"), [])
-        if "synonyms" in data:
-            data["synonyms"] = self._decode_json_field(data.get("synonyms"), [])
-        if "antonyms" in data:
-            data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
-        if "conjugations" in data:
-            data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
-        if "related_words" in data:
-            data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+        data["synonyms"] = self._decode_json_field(data.get("synonyms"), [])
+        data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
+        data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
+        data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+        data["tags"] = self._decode_json_field(data.get("tags"), [])
+        data["favorite"] = bool(data.get("favorite", 0))
         return data
+
+    def _build_saved_words_query(
+        self,
+        *,
+        count: bool = False,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        level: Optional[str] = None,
+        video_id: Optional[str] = None,
+        due_only: bool = False,
+        tag: Optional[str] = None,
+        favorite_only: bool = False,
+        sort: str = "next_review",
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> Tuple[str, List[Any]]:
+        due_expr = self._normalized_datetime_expr("sw.next_review")
+        select_clause = "COUNT(*) as total" if count else f"""
+            sw.*, w.word, w.pronunciation, w.part_of_speech,
+            w.meaning_ar, w.meaning_en, w.level, w.examples,
+            w.synonyms, w.antonyms, w.conjugations, w.related_words,
+            COALESCE(v.title, '') as source_video_title,
+            COALESCE(v.channel, '') as source_video_channel
+        """
+
+        query = f"""
+            SELECT {select_clause}
+            FROM saved_words sw
+            JOIN words w ON sw.word_id = w.id
+            LEFT JOIN videos v ON sw.video_id = v.id
+        """
+
+        clauses: List[str] = []
+        params: List[Any] = []
+
+        if status:
+            clauses.append("sw.status = ?")
+            params.append(status)
+        if level:
+            clauses.append("w.level = ?")
+            params.append(level)
+        if video_id:
+            clauses.append("sw.video_id = ?")
+            params.append(video_id)
+        if due_only:
+            clauses.append(f"(sw.next_review IS NULL OR {due_expr} <= datetime('now'))")
+        if favorite_only:
+            clauses.append("COALESCE(sw.favorite, 0) = 1")
+        if tag:
+            clauses.append("LOWER(COALESCE(sw.tags, '[]')) LIKE ?")
+            params.append(f'%"{tag.strip().lower()}"%')
+        if search:
+            term = f"%{search.strip().lower()}%"
+            clauses.append("(" + " OR ".join([
+                "LOWER(w.word) LIKE ?",
+                "LOWER(COALESCE(w.meaning_en, '')) LIKE ?",
+                "LOWER(COALESCE(w.meaning_ar, '')) LIKE ?",
+                "LOWER(COALESCE(sw.sentence, '')) LIKE ?",
+                "LOWER(COALESCE(sw.notes, '')) LIKE ?",
+                "LOWER(COALESCE(v.title, '')) LIKE ?",
+            ]) + ")")
+            params.extend([term] * 6)
+
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+
+        if count:
+            return query, params
+
+        sort_map = {
+            "newest": "datetime(sw.created_at) DESC, LOWER(w.word) ASC",
+            "oldest": "datetime(sw.created_at) ASC, LOWER(w.word) ASC",
+            "alphabetical": "LOWER(w.word) ASC",
+            "level": "w.level ASC, LOWER(w.word) ASC",
+            "difficulty": "COALESCE(sw.lapses, 0) DESC, COALESCE(sw.reviewed_count, 0) DESC, LOWER(w.word) ASC",
+            "next_review": f"CASE WHEN sw.next_review IS NULL THEN 0 ELSE 1 END ASC, {due_expr} ASC, datetime(sw.created_at) DESC",
+        }
+        query += f" ORDER BY {sort_map.get(sort, sort_map['next_review'])}"
+
+        if limit is not None:
+            query += " LIMIT ? OFFSET ?"
+            params.extend([limit, max(offset, 0)])
+
+        return query, params
 
     # =========================================================================
     # Video CRUD
@@ -365,7 +468,7 @@ class DatabaseManager:
         import uuid as _uuid
 
         saved_id = str(_uuid.uuid4())
-        next_review = self._now_str()  # due immediately so review screen is useful right away
+        next_review = self._now_str()
 
         async with self.get_connection() as conn:
             await conn.execute(
@@ -373,8 +476,8 @@ class DatabaseManager:
                 INSERT INTO saved_words
                     (id, word_id, video_id, sentence, context, status, ease_factor,
                      interval, repetitions, next_review, learning_step, lapses,
-                     reviewed_count, last_quality)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     reviewed_count, last_quality, tags, notes, favorite)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     saved_id,
@@ -391,6 +494,9 @@ class DatabaseManager:
                     0,
                     0,
                     None,
+                    json.dumps([], ensure_ascii=False),
+                    "",
+                    0,
                 ),
             )
         return saved_id
@@ -401,9 +507,12 @@ class DatabaseManager:
                 """
                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
-                       w.synonyms, w.antonyms, w.conjugations, w.related_words
+                       w.synonyms, w.antonyms, w.conjugations, w.related_words,
+                       COALESCE(v.title, '') as source_video_title,
+                       COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw
                 JOIN words w ON sw.word_id = w.id
+                LEFT JOIN videos v ON sw.video_id = v.id
                 WHERE sw.id = ?
                 """,
                 (saved_word_id,),
@@ -411,25 +520,143 @@ class DatabaseManager:
                 row = await cursor.fetchone()
                 return self._parse_saved_word_row(row) if row else None
 
-    async def get_saved_words(self, status: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
-        query = """
-            SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
-                   w.meaning_ar, w.meaning_en, w.level, w.examples,
-                   w.synonyms, w.antonyms, w.conjugations, w.related_words
-            FROM saved_words sw
-            JOIN words w ON sw.word_id = w.id
-        """
-        params: List[Any] = []
-        if status:
-            query += " WHERE sw.status = ?"
-            params.append(status)
-        query += f" ORDER BY {self._normalized_datetime_expr('sw.next_review')} ASC, sw.created_at DESC LIMIT ?"
-        params.append(limit)
-
+    async def get_saved_words(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+        page: int = 1,
+        search: Optional[str] = None,
+        level: Optional[str] = None,
+        video_id: Optional[str] = None,
+        due_only: bool = False,
+        tag: Optional[str] = None,
+        favorite_only: bool = False,
+        sort: str = "next_review",
+    ) -> List[Dict[str, Any]]:
+        offset = max(0, (page - 1) * limit)
+        query, params = self._build_saved_words_query(
+            status=status,
+            search=search,
+            level=level,
+            video_id=video_id,
+            due_only=due_only,
+            tag=tag,
+            favorite_only=favorite_only,
+            sort=sort,
+            limit=limit,
+            offset=offset,
+        )
         async with self.get_connection() as conn:
             async with conn.execute(query, params) as cursor:
                 rows = await cursor.fetchall()
                 return [self._parse_saved_word_row(row) for row in rows]
+
+    async def count_saved_words(
+        self,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        level: Optional[str] = None,
+        video_id: Optional[str] = None,
+        due_only: bool = False,
+        tag: Optional[str] = None,
+        favorite_only: bool = False,
+    ) -> int:
+        query, params = self._build_saved_words_query(
+            count=True,
+            status=status,
+            search=search,
+            level=level,
+            video_id=video_id,
+            due_only=due_only,
+            tag=tag,
+            favorite_only=favorite_only,
+        )
+        async with self.get_connection() as conn:
+            async with conn.execute(query, params) as cursor:
+                row = await cursor.fetchone()
+                return int(dict(row).get("total", 0) if row else 0)
+
+    async def get_vocabulary_facets(self) -> Dict[str, Any]:
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                """
+                SELECT w.level, COUNT(*) as count
+                FROM saved_words sw
+                JOIN words w ON sw.word_id = w.id
+                GROUP BY w.level
+                ORDER BY w.level ASC
+                """
+            ) as cursor:
+                level_rows = await cursor.fetchall()
+
+            async with conn.execute(
+                """
+                SELECT v.id as video_id, v.title, v.channel, COUNT(*) as count
+                FROM saved_words sw
+                LEFT JOIN videos v ON sw.video_id = v.id
+                WHERE sw.video_id IS NOT NULL
+                GROUP BY v.id, v.title, v.channel
+                ORDER BY count DESC, v.title ASC
+                """
+            ) as cursor:
+                video_rows = await cursor.fetchall()
+
+            async with conn.execute("SELECT tags FROM saved_words WHERE tags IS NOT NULL AND tags != ''") as cursor:
+                tag_rows = await cursor.fetchall()
+
+        tag_counts: Dict[str, int] = {}
+        for row in tag_rows:
+            tags = self._decode_json_field(dict(row).get("tags"), [])
+            for tag in tags:
+                key = str(tag).strip().lower()
+                if not key:
+                    continue
+                tag_counts[key] = tag_counts.get(key, 0) + 1
+
+        return {
+            "levels": [dict(r) for r in level_rows],
+            "videos": [dict(r) for r in video_rows],
+            "tags": [
+                {"tag": tag, "count": count}
+                for tag, count in sorted(tag_counts.items(), key=lambda item: (-item[1], item[0]))
+            ],
+        }
+
+    async def update_saved_word_metadata(
+        self,
+        saved_word_id: str,
+        *,
+        tags: Optional[List[str]] = None,
+        notes: Optional[str] = None,
+        favorite: Optional[bool] = None,
+    ) -> Optional[Dict[str, Any]]:
+        updates: List[str] = []
+        params: List[Any] = []
+
+        if tags is not None:
+            normalized_tags = self._normalize_tags(tags)
+            updates.append("tags = ?")
+            params.append(json.dumps(normalized_tags, ensure_ascii=False))
+
+        if notes is not None:
+            updates.append("notes = ?")
+            params.append(str(notes).strip()[:2000])
+
+        if favorite is not None:
+            updates.append("favorite = ?")
+            params.append(1 if favorite else 0)
+
+        if not updates:
+            return await self.get_saved_word(saved_word_id)
+
+        params.append(saved_word_id)
+        async with self.get_connection() as conn:
+            await conn.execute(
+                f"UPDATE saved_words SET {', '.join(updates)} WHERE id = ?",
+                params,
+            )
+
+        return await self.get_saved_word(saved_word_id)
 
     async def get_due_words(self, limit: int = 20) -> List[Dict[str, Any]]:
         due_expr = self._normalized_datetime_expr("sw.next_review")
@@ -438,9 +665,12 @@ class DatabaseManager:
                 f"""
                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
-                       w.synonyms, w.antonyms, w.conjugations, w.related_words
+                       w.synonyms, w.antonyms, w.conjugations, w.related_words,
+                       COALESCE(v.title, '') as source_video_title,
+                       COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw
                 JOIN words w ON sw.word_id = w.id
+                LEFT JOIN videos v ON sw.video_id = v.id
                 WHERE sw.next_review IS NULL OR {due_expr} <= datetime('now')
                 ORDER BY
                     CASE sw.status
@@ -449,6 +679,8 @@ class DatabaseManager:
                         WHEN 'learned' THEN 2
                         ELSE 3
                     END,
+                    COALESCE(sw.favorite, 0) DESC,
+                    COALESCE(sw.lapses, 0) DESC,
                     {due_expr} ASC,
                     sw.created_at ASC
                 LIMIT ?
@@ -465,11 +697,11 @@ class DatabaseManager:
                 f"""
                 SELECT
                     COUNT(*) as total_saved,
-                    SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END) as learning,
-                    SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) as reviewing,
-                    SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END) as learned,
-                    SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END) as never_reviewed,
-                    SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END) as due_now
+                    COALESCE(SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END), 0) as learning,
+                    COALESCE(SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END), 0) as reviewing,
+                    COALESCE(SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END), 0) as learned,
+                    COALESCE(SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END), 0) as never_reviewed,
+                    COALESCE(SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END), 0) as due_now
                 FROM saved_words
                 """
             ) as cursor:

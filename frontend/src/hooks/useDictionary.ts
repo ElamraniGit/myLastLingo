@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { dictionaryApi, vocabularyApi } from '@/lib/api';
+import type { VocabularyListParams } from '@/types';
 
 export function useDictionary() {
   const {
@@ -37,11 +38,20 @@ export function useDictionary() {
     }
   }, [setSavedWords]);
 
-  const loadVocabulary = useCallback(async (status?: string, page = 1, limit = 30) => {
-    const data = await vocabularyApi.list(status, page, limit);
+  const loadVocabulary = useCallback(async (params: VocabularyListParams = {}) => {
+    const data = await vocabularyApi.list(params);
     if (data?.words) setSavedWords(data.words);
     return data;
   }, [setSavedWords]);
+
+  const loadVocabularyFilters = useCallback(async () => {
+    return vocabularyApi.filters();
+  }, []);
+
+  const updateSavedWord = useCallback(async (savedId: string, data: { tags?: string[]; notes?: string; favorite?: boolean }) => {
+    const result = await vocabularyApi.update(savedId, data);
+    return result?.word;
+  }, []);
 
   const loadDueWords = useCallback(async (limit = 20) => {
     try {
@@ -99,6 +109,8 @@ export function useDictionary() {
     closeWordPopup,
     saveWord,
     loadVocabulary,
+    loadVocabularyFilters,
+    updateSavedWord,
     loadDueWords,
     reviewWord,
     loadReviewSummary,

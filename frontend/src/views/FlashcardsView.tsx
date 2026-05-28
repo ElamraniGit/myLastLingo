@@ -106,7 +106,7 @@ export default function FlashcardsView() {
     const [dueData, summaryData, vocabData] = await Promise.all([
       loadDueWords(40),
       loadReviewSummary().catch(() => null),
-      loadVocabulary(undefined, 1, 200).catch(() => ({ words: [] })),
+      loadVocabulary({ page: 1, limit: 200 }).catch(() => ({ words: [] })),
     ]);
 
     setQueue(dueData?.words || []);

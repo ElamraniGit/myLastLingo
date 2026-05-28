@@ -3,7 +3,7 @@
  * Communicates with local backend at 127.0.0.1:8080
  */
 
-import type { VideoQuality } from '@/types';
+import type { VideoQuality, VocabularyListParams } from '@/types';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
@@ -79,6 +79,16 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   throw new ApiError('All retries failed', 0);
 }
 
+function buildQuery(params: Record<string, any>) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.set(key, String(value));
+  });
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
   health: async () => {
     const response = await fetch(`${BACKEND_ORIGIN}/health`);
@@ -87,32 +97,20 @@ export const api = {
   },
 
   videos: {
-    process: (url: string, quality?: VideoQuality) =>
-      request<any>('/videos/process', {
-        method: 'POST',
-        body: { url, quality },
-      }),
+    process: (url: string, quality?: VideoQuality) => request<any>('/videos/process', { method: 'POST', body: { url, quality } }),
     list: (page = 1, limit = 20) => request<any>(`/videos/list?page=${page}&limit=${limit}`),
     get: (id: string) => request<any>(`/videos/${id}`),
     delete: (id: string) => request<any>(`/videos/${id}`, { method: 'DELETE' }),
   },
 
   transcripts: {
-    extract: (videoId: string, language = 'en') =>
-      request<any>(`/transcripts/extract/${videoId}?language=${language}`, {
-        method: 'POST',
-        timeout: 90000,
-      }),
+    extract: (videoId: string, language = 'en') => request<any>(`/transcripts/extract/${videoId}?language=${language}`, { method: 'POST', timeout: 90000 }),
     get: (videoId: string, language = 'en') => request<any>(`/transcripts/${videoId}?language=${language}`),
     getSegments: (videoId: string, language = 'en') => request<any>(`/transcripts/${videoId}/segments?language=${language}`),
   },
 
   dictionary: {
-    lookup: (word: string) =>
-      request<any>('/dictionary/lookup', {
-        method: 'POST',
-        body: { word },
-      }),
+    lookup: (word: string) => request<any>('/dictionary/lookup', { method: 'POST', body: { word } }),
     search: (query: string, limit = 10) => request<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
     suggest: (prefix: string, limit = 10) => request<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=${limit}`),
     popular: (limit = 50) => request<any>(`/dictionary/popular?limit=${limit}`),
@@ -120,21 +118,22 @@ export const api = {
   },
 
   vocabulary: {
-    save: (word: string, videoId?: string, sentence?: string, context?: string) =>
-      request<any>('/vocabulary/save', {
-        method: 'POST',
-        body: { word, video_id: videoId, sentence, context },
-      }),
-    list: (status?: string, page = 1, limit = 20) => {
-      let url = `/vocabulary/list?page=${page}&limit=${limit}`;
-      if (status) url += `&status=${status}`;
-      return request<any>(url);
-    },
-    review: (savedWordId: string, quality: number) =>
-      request<any>('/vocabulary/review', {
-        method: 'POST',
-        body: { saved_word_id: savedWordId, quality },
-      }),
+    save: (word: string, videoId?: string, sentence?: string, context?: string) => request<any>('/vocabulary/save', { method: 'POST', body: { word, video_id: videoId, sentence, context } }),
+    list: (params: VocabularyListParams = {}) => request<any>(`/vocabulary/list${buildQuery({
+      status: params.status,
+      page: params.page ?? 1,
+      limit: params.limit ?? 30,
+      search: params.search,
+      level: params.level,
+      video_id: params.video_id,
+      due_only: params.due_only,
+      tag: params.tag,
+      favorite_only: params.favorite_only,
+      sort: params.sort,
+    })}`),
+    filters: () => request<any>('/vocabulary/filters'),
+    update: (savedId: string, data: { tags?: string[]; notes?: string; favorite?: boolean }) => request<any>(`/vocabulary/${savedId}`, { method: 'PATCH', body: data }),
+    review: (savedWordId: string, quality: number) => request<any>('/vocabulary/review', { method: 'POST', body: { saved_word_id: savedWordId, quality } }),
     due: (limit = 20) => request<any>(`/vocabulary/due?limit=${limit}`),
     reviewSummary: () => request<any>('/vocabulary/review/summary'),
     reviewHistory: (savedWordId: string, limit = 20) => request<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),

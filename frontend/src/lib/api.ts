@@ -3,7 +3,7 @@
  * retry on timeout, and descriptive error messages.
  */
 
-import type { VideoQuality } from '@/types';
+import type { VideoQuality, VocabularyListParams } from '@/types';
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
@@ -85,6 +85,16 @@ async function req<T>(endpoint: string, opts: Opts = {}): Promise<T> {
   }
 }
 
+function buildQuery(params: Record<string, any>) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.set(key, String(value));
+  });
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const authApi = {
   register: (username: string, email: string, password: string, display_name?: string) =>
     req<any>('/auth/register', { method: 'POST', body: { username, email, password, display_name }, auth: false }),
@@ -109,8 +119,7 @@ export const videosApi = {
       timeout: 30000,
     }),
 
-  list: (page = 1, limit = 20) =>
-    req<any>(`/videos/list?page=${page}&limit=${limit}`),
+  list: (page = 1, limit = 20) => req<any>(`/videos/list?page=${page}&limit=${limit}`),
 
   get: (id: string) => req<any>(`/videos/${id}`),
 
@@ -124,19 +133,15 @@ export const transcriptsApi = {
       timeout: 120000,
     }),
 
-  get: (videoId: string, language = 'en') =>
-    req<any>(`/transcripts/${videoId}?language=${language}`),
+  get: (videoId: string, language = 'en') => req<any>(`/transcripts/${videoId}?language=${language}`),
 };
 
 export const dictionaryApi = {
-  lookup: (word: string) =>
-    req<any>('/dictionary/lookup', { method: 'POST', body: { word } }),
+  lookup: (word: string) => req<any>('/dictionary/lookup', { method: 'POST', body: { word } }),
 
-  search: (query: string, limit = 10) =>
-    req<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
+  search: (query: string, limit = 10) => req<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
 
-  suggest: (prefix: string) =>
-    req<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=8`),
+  suggest: (prefix: string) => req<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=8`),
 };
 
 export const vocabularyApi = {
@@ -146,11 +151,24 @@ export const vocabularyApi = {
       body: { word, video_id: videoId, sentence: sentence || '', context: context || '' },
     }),
 
-  list: (status?: string, page = 1, limit = 30) => {
-    let url = `/vocabulary/list?page=${page}&limit=${limit}`;
-    if (status) url += `&status=${status}`;
-    return req<any>(url);
-  },
+  list: (params: VocabularyListParams = {}) =>
+    req<any>(`/vocabulary/list${buildQuery({
+      status: params.status,
+      page: params.page ?? 1,
+      limit: params.limit ?? 30,
+      search: params.search,
+      level: params.level,
+      video_id: params.video_id,
+      due_only: params.due_only,
+      tag: params.tag,
+      favorite_only: params.favorite_only,
+      sort: params.sort,
+    })}`),
+
+  filters: () => req<any>('/vocabulary/filters'),
+
+  update: (savedId: string, data: { tags?: string[]; notes?: string; favorite?: boolean }) =>
+    req<any>(`/vocabulary/${savedId}`, { method: 'PATCH', body: data }),
 
   review: (savedWordId: string, quality: number) =>
     req<any>('/vocabulary/review', { method: 'POST', body: { saved_word_id: savedWordId, quality } }),
@@ -159,8 +177,7 @@ export const vocabularyApi = {
 
   reviewSummary: () => req<any>('/vocabulary/review/summary'),
 
-  reviewHistory: (savedWordId: string, limit = 20) =>
-    req<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),
+  reviewHistory: (savedWordId: string, limit = 20) => req<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),
 
   stats: () => req<any>('/vocabulary/stats'),
 
@@ -168,8 +185,7 @@ export const vocabularyApi = {
 };
 
 export const playerApi = {
-  saveState: (state: any) =>
-    req<any>('/player/state', { method: 'POST', body: state }),
+  saveState: (state: any) => req<any>('/player/state', { method: 'POST', body: state }),
 
   getState: (videoId: string) => req<any>(`/player/state/${videoId}`),
 };

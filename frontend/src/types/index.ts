@@ -97,8 +97,13 @@ export interface SavedWord {
   conjugations?: Record<string, string>;
   related_words?: string[];
   video_id?: string;
+  source_video_title?: string;
+  source_video_channel?: string;
   sentence?: string;
   context?: string;
+  notes?: string;
+  tags?: string[];
+  favorite?: boolean;
   status: 'learning' | 'reviewing' | 'learned';
   ease_factor?: number;
   interval?: number;
@@ -125,6 +130,25 @@ export interface PlayerState {
   quality?: VideoQuality;
 }
 
+export interface VocabularyListParams {
+  status?: 'learning' | 'reviewing' | 'learned';
+  page?: number;
+  limit?: number;
+  search?: string;
+  level?: string;
+  video_id?: string;
+  due_only?: boolean;
+  tag?: string;
+  favorite_only?: boolean;
+  sort?: 'next_review' | 'newest' | 'oldest' | 'alphabetical' | 'level' | 'difficulty';
+}
+
+export interface VocabularyFacetData {
+  levels: Array<{ level: string; count: number }>;
+  videos: Array<{ video_id: string; title: string; channel?: string; count: number }>;
+  tags: Array<{ tag: string; count: number }>;
+}
+
 export interface UserProgress {
   total: number;
   learning: number;
@@ -132,6 +156,7 @@ export interface UserProgress {
   learned: number;
   due: number;
   never_reviewed?: number;
+  favorite_count?: number;
   total_reviews?: number;
   total_lapses?: number;
   avg_ease?: number;
@@ -147,6 +172,7 @@ export interface UserProgress {
     reviewed_count: number;
     next_review?: string;
   }>;
+  top_tags?: Array<{ tag: string; count: number }>;
   streak_days?: number;
 }
 
