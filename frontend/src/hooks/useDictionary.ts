@@ -37,8 +37,8 @@ export function useDictionary() {
     }
   }, [setSavedWords]);
 
-  const loadVocabulary = useCallback(async (status?: string, page = 1) => {
-    const data = await vocabularyApi.list(status, page);
+  const loadVocabulary = useCallback(async (status?: string, page = 1, limit = 30) => {
+    const data = await vocabularyApi.list(status, page, limit);
     if (data?.words) setSavedWords(data.words);
     return data;
   }, [setSavedWords]);

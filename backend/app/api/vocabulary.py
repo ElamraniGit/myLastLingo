@@ -104,7 +104,7 @@ async def save_word(request: SaveWordRequest):
 async def list_vocabulary(
     status: Optional[str] = Query(None, pattern="^(learning|reviewing|learned)$"),
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=200),
 ):
     """List saved vocabulary words."""
     words = await db_manager.get_saved_words(status, limit * page)
@@ -183,7 +183,7 @@ async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le
 
 @router.get("/stats")
 async def get_vocabulary_stats():
-    """Get vocabulary learning statistics."""
+    """Get rich vocabulary and review statistics."""
     async with db_manager.get_connection() as conn:
         due_expr = db_manager._normalized_datetime_expr("next_review")
 
@@ -191,10 +191,14 @@ async def get_vocabulary_stats():
             f"""
             SELECT
                 COUNT(*) as total,
-                SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END) as learning,
-                SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) as reviewing,
-                SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END) as learned,
-                SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END) as due
+                COALESCE(SUM(CASE WHEN status = 'learning' THEN 1 ELSE 0 END), 0) as learning,
+                COALESCE(SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END), 0) as reviewing,
+                COALESCE(SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END), 0) as learned,
+                COALESCE(SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END), 0) as due,
+                COALESCE(SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END), 0) as never_reviewed,
+                COALESCE(SUM(lapses), 0) as total_lapses,
+                COALESCE(SUM(reviewed_count), 0) as total_reviews,
+                ROUND(COALESCE(AVG(ease_factor), 0), 2) as avg_ease
             FROM saved_words
             """
         ) as cur:
@@ -232,6 +236,42 @@ async def get_vocabulary_stats():
         ) as cur:
             rows = await cur.fetchall()
             stats["level_distribution"] = {dict(r)["level"]: dict(r)["count"] for r in rows}
+
+        async with conn.execute(
+            """
+            SELECT quality, COUNT(*) as count
+            FROM word_reviews
+            GROUP BY quality
+            ORDER BY quality
+            """
+        ) as cur:
+            rows = await cur.fetchall()
+            stats["recent_quality_breakdown"] = {str(dict(r)["quality"]): dict(r)["count"] for r in rows}
+
+        async with conn.execute(
+            f"""
+            SELECT w.word, sw.status, sw.lapses, sw.reviewed_count, sw.next_review
+            FROM saved_words sw
+            JOIN words w ON sw.word_id = w.id
+            ORDER BY sw.lapses DESC, sw.reviewed_count DESC, {due_expr} ASC
+            LIMIT 5
+            """
+        ) as cur:
+            rows = await cur.fetchall()
+            stats["hardest_words"] = [dict(r) for r in rows]
+
+        async with conn.execute(
+            f"""
+            SELECT date({due_expr}) as review_day, COUNT(*) as count
+            FROM saved_words
+            WHERE next_review IS NOT NULL
+              AND {due_expr} <= datetime('now', '+7 days')
+            GROUP BY date({due_expr})
+            ORDER BY date({due_expr}) ASC
+            """
+        ) as cur:
+            rows = await cur.fetchall()
+            stats["upcoming_review_days"] = {dict(r)["review_day"]: dict(r)["count"] for r in rows if dict(r)["review_day"]}
 
     return stats
 

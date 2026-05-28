@@ -131,9 +131,22 @@ export interface UserProgress {
   reviewing?: number;
   learned: number;
   due: number;
+  never_reviewed?: number;
+  total_reviews?: number;
+  total_lapses?: number;
+  avg_ease?: number;
   reviewed_today: number;
   active_days_30: number;
   level_distribution?: Record<string, number>;
+  recent_quality_breakdown?: Record<string, number>;
+  upcoming_review_days?: Record<string, number>;
+  hardest_words?: Array<{
+    word: string;
+    status: string;
+    lapses: number;
+    reviewed_count: number;
+    next_review?: string;
+  }>;
   streak_days?: number;
 }
 
