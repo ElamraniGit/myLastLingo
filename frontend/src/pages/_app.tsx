@@ -7,35 +7,40 @@ import '@/styles/globals.css';
 import React, { useEffect, useState } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useStore } from '@/store/appStore';
 import Layout from '@/components/common/Layout';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 
 // Views (not Next.js pages — rendered via store.currentPage)
-import PlayerView    from '@/views/PlayerView';
+import PlayerView from '@/views/PlayerView';
 import VocabularyView from '@/views/VocabularyView';
 import FlashcardsView from '@/views/FlashcardsView';
-import StatsView     from '@/views/StatsView';
-import SettingsView  from '@/views/SettingsView';
-import ProfileView   from '@/views/ProfileView';
+import StatsView from '@/views/StatsView';
+import SettingsView from '@/views/SettingsView';
+import ProfileView from '@/views/ProfileView';
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
   const { currentPage, isAuthenticated, theme } = useStore();
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Apply theme class
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   useEffect(() => {
-    // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
     setHydrated(true);
   }, []);
+
+  // Allow regular Next.js pages like /404 to render normally.
+  if (router.pathname !== '/') {
+    return <Component {...pageProps} />;
+  }
 
   if (!hydrated) {
     return (
@@ -50,23 +55,28 @@ export default function App({ Component, pageProps }: AppProps) {
     );
   }
 
-  // ── Auth gate ──────────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     if (currentPage === 'register') return <RegisterPage />;
     return <LoginPage />;
   }
 
-  // ── Authenticated page routing ─────────────────────────────────────────────
   const renderPage = () => {
     switch (currentPage) {
       case 'player':
-      case 'home':     return <PlayerView />;
-      case 'vocabulary': return <VocabularyView />;
-      case 'flashcards': return <FlashcardsView />;
-      case 'stats':    return <StatsView />;
-      case 'settings': return <SettingsView />;
-      case 'profile':  return <ProfileView />;
-      default:         return <PlayerView />;
+      case 'home':
+        return <PlayerView />;
+      case 'vocabulary':
+        return <VocabularyView />;
+      case 'flashcards':
+        return <FlashcardsView />;
+      case 'stats':
+        return <StatsView />;
+      case 'settings':
+        return <SettingsView />;
+      case 'profile':
+        return <ProfileView />;
+      default:
+        return <PlayerView />;
     }
   };
 

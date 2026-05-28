@@ -1,80 +1,81 @@
 #!/bin/bash
-"""
-================================================================
-LinguaLearn - Quick Install & Start for Termux
-================================================================
-
-سكريبت سريع للتثبيت والتشغيل مباشرة
-
-الاستخدام:
-    pkg install -y curl
-    curl -sL https://raw.githubusercontent.com/... | bash
-    
-    أو:
-    chmod +x quick_install.sh
-    ./quick_install.sh
-
-================================================================
-"""
+# =================================================================
+# LinguaLearn - Quick Install & Start for Termux
+# =================================================================
+# سكريبت سريع للتثبيت من داخل مجلد المشروع الحالي.
+# الاستخدام:
+#   chmod +x scripts/quick_install.sh
+#   ./scripts/quick_install.sh
+# =================================================================
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 echo "╔══════════════════════════════════════════╗"
 echo "║      LinguaLearn Quick Install 🚀        ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# Check Termux
 if [ -z "$PREFIX" ]; then
-    echo "❌ This script requires Termux on Android"
-    exit 1
+  echo "❌ This script requires Termux on Android"
+  exit 1
 fi
 
 echo "📱 Termux detected"
+echo "📂 Project root: $PROJECT_ROOT"
 echo ""
 
-# 1. Install basic dependencies
-echo "[1/4] Installing dependencies..."
+echo "[1/5] Installing system dependencies..."
 pkg update -y && pkg upgrade -y
-pkg install -y python nodejs-lts git ffmpeg build-essential cmake rust binutils
+pkg install -y python nodejs-lts git ffmpeg build-essential cmake rust binutils curl wget sqlite
 
-# 2. Clone project (if not already)
-if [ ! -d "english-learning-app" ]; then
-    echo ""
-    echo "[2/4] Creating project..."
-    mkdir -p english-learning-app
-fi
-
-cd english-learning-app
-
-# 3. Install Python packages
 echo ""
-echo "[3/4] Installing Python packages..."
+echo "[2/5] Installing Python packages..."
 pip install --upgrade pip
-pip install fastapi uvicorn[standard] websockets aiosqlite pyyaml aiohttp yt-dlp
+pip install -r requirements.txt
 
-# Install Whisper (optional - for offline transcription)
 read -p "Install Whisper for offline transcription? (y/N, requires ~1GB): " install_whisper
 if [ "$install_whisper" = "y" ] || [ "$install_whisper" = "Y" ]; then
-    echo "Installing faster-whisper..."
-    pip install faster-whisper numpy
+  echo "Installing faster-whisper..."
+  pip install numpy faster-whisper
 fi
 
-# Create directories
-mkdir -p data/{downloads,cache/{videos,transcripts,thumbnails},dictionary}
-mkdir -p models/whisper logs
-
-# 4. Start the app
 echo ""
-echo "[4/4] Starting..."
+echo "[3/5] Installing frontend packages..."
+cd frontend
+npm install
+cd ..
+
+echo ""
+echo "[4/5] Creating runtime directories..."
+mkdir -p data/downloads
+mkdir -p data/cache/videos
+mkdir -p data/cache/transcripts
+mkdir -p data/cache/thumbnails
+mkdir -p data/dictionary
+mkdir -p data/temp
+mkdir -p models/whisper
+mkdir -p logs
+
+echo ""
+echo "[5/5] Building frontend..."
+cd frontend
+npm run build || echo "⚠️ Build failed — you can still use: npm run dev"
+cd ..
+
 echo ""
 echo "╔══════════════════════════════════════════╗"
 echo "║      ✅ Ready to go!                     ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
-echo "Run the following commands:"
+echo "Start everything with:"
+echo "  ./scripts/start_all.sh"
 echo ""
-echo "  cd english-learning-app"
-echo "  python3 -m uvicorn backend.main:app --host 127.0.0.1 --port 8080"
+echo "Or manually:"
+echo "  ./scripts/start_backend.sh"
+echo "  ./scripts/start_frontend.sh"
 echo ""
-echo "Then open: http://127.0.0.1:8080
+echo "Then open: http://127.0.0.1:3000"

@@ -2,10 +2,10 @@
  * Settings view — theme, speed, auto-pause, account, server status.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
-import { authApi, tokenStore } from '@/lib/api';
+import { authApi, BACKEND_ORIGIN } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -14,19 +14,22 @@ export default function SettingsView() {
     theme, toggleTheme,
     defaultSpeed, setDefaultSpeed,
     autoPauseOnWord, setAutoPauseOnWord,
-    user,
+    user, setUser,
   } = useStore();
   const { logout } = useAuth();
 
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
-  const [ytdlpVersion, setYtdlpVersion] = useState<string>('');
   const [profileForm, setProfileForm] = useState({ display_name: '', email: '', current_password: '', new_password: '' });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
 
+  const backendLabel = useMemo(
+    () => BACKEND_ORIGIN.replace(/^https?:\/\//, ''),
+    []
+  );
+
   useEffect(() => {
-    // Check backend
-    fetch('http://127.0.0.1:8080/health')
+    fetch(`${BACKEND_ORIGIN}/health`)
       .then((r) => r.json())
       .then((d) => { setBackendOk(d.status === 'healthy'); })
       .catch(() => setBackendOk(false));
@@ -46,8 +49,16 @@ export default function SettingsView() {
         current_password: profileForm.current_password || undefined,
         new_password: profileForm.new_password || undefined,
       });
+      const freshUser = await authApi.me();
+      setUser(freshUser);
       setSaveMsg('Profile updated!');
-      setProfileForm((f) => ({ ...f, current_password: '', new_password: '' }));
+      setProfileForm((f) => ({
+        ...f,
+        display_name: freshUser.display_name || '',
+        email: freshUser.email || '',
+        current_password: '',
+        new_password: '',
+      }));
     } catch (e: any) {
       setSaveMsg(e.message || 'Update failed');
     }
@@ -194,7 +205,7 @@ export default function SettingsView() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-400">API</span>
-            <span className="text-xs text-slate-500 font-mono">127.0.0.1:8080</span>
+            <span className="text-xs text-slate-500 font-mono">{backendLabel}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-400">Mode</span>

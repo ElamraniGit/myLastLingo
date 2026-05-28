@@ -22,14 +22,23 @@ mkdir -p logs
 
 PORT="${LINGUALEARN_PORT:-8080}"
 HOST="${LINGUALEARN_HOST:-127.0.0.1}"
+LOG_LEVEL="info"
+ACCESS_LOG_FLAG="--no-access-log"
+
+for arg in "$@"; do
+  if [ "$arg" = "--debug" ]; then
+    LOG_LEVEL="debug"
+    ACCESS_LOG_FLAG="--access-log"
+  fi
+done
 
 echo "🚀 Starting LinguaLearn backend on http://${HOST}:${PORT}"
 echo "📂 Project root: ${PROJECT_ROOT}"
+echo "🪵 Log level: ${LOG_LEVEL}"
 
-# Run backend
 python3 -m uvicorn backend.main:app \
   --host "$HOST" \
   --port "$PORT" \
   --workers 1 \
-  --log-level info \
-  --no-access-log
+  --log-level "$LOG_LEVEL" \
+  $ACCESS_LOG_FLAG

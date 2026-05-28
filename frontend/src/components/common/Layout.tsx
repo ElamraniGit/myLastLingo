@@ -4,6 +4,7 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
+import { BACKEND_ORIGIN } from '@/lib/api';
 import type { AppPage } from '@/types';
 
 const NAV: { id: AppPage; label: string; emoji: string }[] = [
@@ -109,7 +110,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 function BackendStatus() {
   const [ok, setOk] = React.useState<boolean | null>(null);
   useEffect(() => {
-    fetch('http://127.0.0.1:8080/health').then((r) => setOk(r.ok)).catch(() => setOk(false));
+    fetch(`${BACKEND_ORIGIN}/health`)
+      .then((r) => setOk(r.ok))
+      .catch(() => setOk(false));
   }, []);
   return (
     <div className="flex items-center gap-2 text-xs text-slate-600">

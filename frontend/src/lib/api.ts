@@ -3,7 +3,12 @@
  * retry on timeout, and descriptive error messages.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
+
+export const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
+
+const BASE = API_BASE;
 
 // ─── Token storage (localStorage, SSR-safe) ───────────────────────────────────
 export const tokenStore = {
@@ -169,5 +174,9 @@ export const playerApi = {
 
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
-  check: () => req<any>('/health', { auth: false }),
+  check: async () => {
+    const res = await fetch(`${BACKEND_ORIGIN}/health`);
+    if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+    return res.json();
+  },
 };

@@ -7,8 +7,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
-import { useVideoPlayer } from '@/hooks/useVideoPlayer';
-import { LevelBadge, Badge } from '@/components/ui/Badge';
+import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
 
@@ -26,7 +25,6 @@ const POS_COLORS: Record<string, string> = {
 export default function WordPopup() {
   const { wordPopupOpen, selectedWord, wordPopupSentence, currentVideo } = useStore();
   const { closeWordPopup, saveWord } = useDictionary();
-  const { seekTo, play } = useVideoPlayer();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 

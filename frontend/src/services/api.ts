@@ -7,6 +7,7 @@
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1';
+const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
 
 interface RequestOptions {
   method?: string;
@@ -86,8 +87,11 @@ async function request<T>(
 // API methods
 export const api = {
   // Health check
-  health: () =>
-    request<{ status: string; version: string; mode: string }>('/health'),
+  health: async () => {
+    const response = await fetch(`${BACKEND_ORIGIN}/health`);
+    if (!response.ok) throw new ApiError(`HTTP ${response.status}`, response.status);
+    return response.json() as Promise<{ status: string; version: string; mode: string }>;
+  },
 
   // Videos
   videos: {
