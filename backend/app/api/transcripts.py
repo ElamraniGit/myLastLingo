@@ -412,35 +412,62 @@ def _count_inline_timestamps(text: str) -> int:
     return len(re.findall(r"<\d{1,2}:\d{2}:\d{2}[.,]\d{3}>", text or ""))
 
 
-def _tokenize_caption_text(text: str) -> List[str]:
-    return [token for token in text.split() if token]
+
+def _normalize_word_token(word: str) -> str:
+    return re.sub(r"[^\w'-]", "", (word or "").lower())
 
 
-def _is_prefix_tokens(shorter: List[str], longer: List[str]) -> bool:
-    if len(shorter) > len(longer):
-        return False
-    return [w.lower() for w in shorter] == [w.lower() for w in longer[:len(shorter)]]
+
+def _common_prefix_len(words_a: List[str], words_b: List[str]) -> int:
+    count = 0
+    for a, b in zip(words_a, words_b):
+        if _normalize_word_token(a) != _normalize_word_token(b):
+            break
+        count += 1
+    return count
 
 
-def _group_progressive_cues(raw_cues: List[Dict]) -> List[List[Dict]]:
-    """Group rolling captions that progressively extend the same sentence."""
-    if not raw_cues:
+
+def _prepare_growth_cues(raw_cues: List[Dict]) -> List[Dict]:
+    """Collapse exact duplicates while preserving the best raw cue text."""
+    prepared: List[Dict] = []
+    for raw in raw_cues:
+        cue = dict(raw)
+        cue["tokens"] = cue["text"].split()
+        if not cue["tokens"]:
+            continue
+
+        if prepared:
+            prev = prepared[-1]
+            common = _common_prefix_len(prev["tokens"], cue["tokens"])
+            if common == len(prev["tokens"]) == len(cue["tokens"]):
+                if _count_inline_timestamps(cue.get("raw_text", "")) > _count_inline_timestamps(prev.get("raw_text", "")):
+                    prev["raw_text"] = cue.get("raw_text", "")
+                prev["start"] = min(prev["start"], cue["start"])
+                prev["end"] = max(prev["end"], cue["end"])
+                continue
+
+        prepared.append(cue)
+
+    return prepared
+
+
+
+def _group_growth_cues(cues: List[Dict]) -> List[List[Dict]]:
+    """Group rolling-window cues where each cue expands the previous text."""
+    if not cues:
         return []
 
     groups: List[List[Dict]] = []
-    current_group: List[Dict] = [raw_cues[0]]
+    current_group: List[Dict] = [cues[0]]
 
-    for cue in raw_cues[1:]:
+    for cue in cues[1:]:
         prev = current_group[-1]
-        prev_words = _tokenize_caption_text(prev["text"])
-        current_words = _tokenize_caption_text(cue["text"])
+        common = _common_prefix_len(prev["tokens"], cue["tokens"])
+        is_growth = common == len(prev["tokens"]) and len(cue["tokens"]) >= len(prev["tokens"])
+        close_in_time = cue["start"] <= prev["end"] + 1.0
 
-        same_progression = (
-            cue["text"].lower().strip() == prev["text"].lower().strip()
-            or _is_prefix_tokens(prev_words, current_words)
-        )
-
-        if same_progression:
+        if is_growth and close_in_time:
             current_group.append(cue)
         else:
             groups.append(current_group)
@@ -450,83 +477,64 @@ def _group_progressive_cues(raw_cues: List[Dict]) -> List[List[Dict]]:
     return groups
 
 
-def _build_progressive_word_timings(group: List[Dict], final_text: str, start: float, end: float) -> List[Dict]:
-    """Infer word timings by observing when words first appear across rolling cues."""
-    final_words = _tokenize_caption_text(final_text)
-    if not final_words:
+
+def _build_word_timings_from_growth_cues(group: List[Dict]) -> List[Dict]:
+    """Infer word timings from successive growing subtitle cues."""
+    if not group:
         return []
 
-    intro_times: List[float] = [start] * len(final_words)
-    for idx in range(len(final_words)):
-        first_seen = start
-        target_prefix = [w.lower() for w in final_words[: idx + 1]]
-        for cue in group:
-            cue_words = _tokenize_caption_text(cue["text"])
-            if len(cue_words) >= idx + 1 and [w.lower() for w in cue_words[: idx + 1]] == target_prefix:
-                first_seen = cue["start"]
-                break
-        intro_times[idx] = max(start, first_seen)
+    segment_start = group[0]["start"]
+    segment_end = max(cue["end"] for cue in group)
+    final_tokens = group[-1]["tokens"]
 
-    timings: List[Dict] = []
-    batch_start = 0
-    while batch_start < len(final_words):
-        batch_time = intro_times[batch_start]
-        batch_end = batch_start + 1
-        while batch_end < len(final_words) and abs(intro_times[batch_end] - batch_time) < 1e-6:
-            batch_end += 1
+    previous_tokens: List[str] = []
+    result: List[Dict] = []
 
-        interval_end = intro_times[batch_end] if batch_end < len(final_words) else end
-        interval_end = max(interval_end, batch_time + 0.08 * (batch_end - batch_start))
+    for index, cue in enumerate(group):
+        tokens = cue["tokens"]
+        common = _common_prefix_len(previous_tokens, tokens)
+        if common < len(previous_tokens):
+            return []
 
-        batch_words = final_words[batch_start:batch_end]
-        if len(batch_words) == 1:
-            timings.append({
-                "word": batch_words[0],
-                "start": round(batch_time, 3),
-                "end": round(interval_end, 3),
-            })
-        else:
-            batch_text = " ".join(batch_words)
-            relative = _fallback_even_word_timings(batch_text, batch_time, interval_end)
-            timings.extend(relative)
+        introduced = tokens[common:]
+        if introduced:
+            interval_start = cue["start"]
+            interval_end = group[index + 1]["start"] if index + 1 < len(group) else segment_end
+            if interval_end <= interval_start:
+                interval_end = interval_start + max(0.12 * len(introduced), 0.12)
 
-        batch_start = batch_end
+            batch = _fallback_even_word_timings(" ".join(introduced), interval_start, interval_end)
+            result.extend(batch)
 
-    return _smooth_word_timings(timings, start, end)
+        previous_tokens = tokens
 
+    if len(result) != len(final_tokens):
+        return []
 
-def _best_inline_timing_cue(group: List[Dict]) -> Optional[Dict]:
-    best: Optional[Dict] = None
-    best_score = (-1, -1.0)
-    for cue in group:
-        score = (
-            _count_inline_timestamps(cue.get("raw_text", "")),
-            cue["end"] - cue["start"],
-        )
-        if score > best_score:
-            best_score = score
-            best = cue
-    return best
+    for idx, token in enumerate(final_tokens):
+        result[idx]["word"] = token
+
+    return _smooth_word_timings(result, segment_start, segment_end)
+
 
 
 def _parse_vtt(vtt_content: str) -> List[Dict]:
     """
     Parse WebVTT subtitle format to structured segments.
 
-    Strategy:
-      1. Preserve karaoke/inline timestamps when available.
-      2. For rolling auto-captions without real word timings, infer word onsets from
-         progressive cue expansion (when each word first appears on screen).
-      3. Fall back to weighted word-duration heuristics only when necessary.
+    Priority order for word timing extraction:
+      1. Real inline karaoke timestamps inside the cue
+      2. Rolling-window inference from adjacent growth cues
+      3. Weighted fallback heuristic distribution across the cue duration
     """
-    segments = []
+    segments: List[Dict] = []
 
     content = vtt_content.lstrip("\ufeff").strip()
     if not content.startswith("WEBVTT"):
         logger.warning("VTT file does not start with WEBVTT header")
         return segments
 
-    raw_cues = []
+    raw_cues: List[Dict] = []
     for block in re.split(r"\n\n+", content):
         block = block.strip()
         if not block or block.startswith("WEBVTT") or block.startswith("NOTE"):
@@ -569,40 +577,46 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
                 "raw_text": raw_text,
             })
 
-    if not raw_cues:
-        return segments
+    prepared_cues = _prepare_growth_cues(raw_cues)
+    groups = _group_growth_cues(prepared_cues)
 
-    groups = _group_progressive_cues(raw_cues)
     for idx, group in enumerate(groups):
-        final_cue = max(group, key=lambda cue: (len(_tokenize_caption_text(cue["text"])), cue["end"] - cue["start"]))
-        final_text = final_cue["text"]
-        start = group[0]["start"]
-        end = group[-1]["end"]
+        segment_start = round(group[0]["start"], 3)
+        segment_end = round(max(cue["end"] for cue in group), 3)
+        final_cue = group[-1]
+        text = final_cue["text"]
 
-        inline_cue = _best_inline_timing_cue(group)
-        word_timings: List[Dict] = []
-        if inline_cue and _count_inline_timestamps(inline_cue.get("raw_text", "")) > 0:
-            word_timings = _extract_word_timings_from_vtt_text(inline_cue.get("raw_text", ""), start, end)
+        inline_candidate = None
+        for cue in reversed(group):
+            if _count_inline_timestamps(cue.get("raw_text", "")) > 0 and len(cue["tokens"]) == len(final_cue["tokens"]):
+                inline_candidate = cue
+                break
 
-        final_word_count = len(_tokenize_caption_text(final_text))
-        if len(word_timings) < final_word_count:
-            progressive_timings = _build_progressive_word_timings(group, final_text, start, end)
-            if progressive_timings:
-                word_timings = progressive_timings
+        if inline_candidate is not None:
+            word_timings = _extract_word_timings_from_vtt_text(
+                inline_candidate.get("raw_text", ""),
+                inline_candidate["start"],
+                inline_candidate["end"],
+            )
+            word_timings = _smooth_word_timings(word_timings, segment_start, segment_end)
+        else:
+            word_timings = _build_word_timings_from_growth_cues(group) if len(group) > 1 else []
 
         if not word_timings:
-            word_timings = _fallback_even_word_timings(final_text, start, end)
+            word_timings = _fallback_even_word_timings(text, segment_start, segment_end)
 
         segments.append({
             "index": idx,
-            "start": round(start, 3),
-            "end": round(end, 3),
-            "text": final_text,
+            "start": segment_start,
+            "end": segment_end,
+            "text": text,
             "words": word_timings,
-            "duration": round(end - start, 3),
+            "duration": round(segment_end - segment_start, 3),
         })
 
-    logger.debug(f"VTT parser: {len(raw_cues)} raw cues → {len(segments)} grouped segments")
+    logger.debug(
+        f"VTT parser: {len(raw_cues)} raw cues → {len(groups)} groups → {len(segments)} final segments"
+    )
     return segments
 
 
