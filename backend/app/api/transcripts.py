@@ -266,21 +266,96 @@ def _strip_vtt_markup(text: str) -> str:
     return text.strip()
 
 
+_SHORT_FUNCTION_WORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "do", "for", "from",
+    "he", "her", "him", "his", "i", "in", "is", "it", "me", "my", "of",
+    "on", "or", "our", "she", "so", "the", "their", "them", "there", "they",
+    "to", "up", "us", "we", "you", "your",
+}
+
+
+def _estimate_word_weight(word: str) -> float:
+    cleaned = re.sub(r"[^A-Za-z0-9'_-]", "", word).lower()
+    if not cleaned:
+        return 0.35
+
+    length = len(cleaned)
+    weight = 0.65 + min(length, 10) * 0.11
+
+    if cleaned in _SHORT_FUNCTION_WORDS:
+        weight *= 0.72
+    if length <= 2:
+        weight *= 0.82
+    if length >= 8:
+        weight *= 1.12
+    if "'" in cleaned:
+        weight += 0.08
+    if re.search(r"[,.!?;:]$", word):
+        weight += 0.28
+    if re.fullmatch(r"[♪…]+", word):
+        weight *= 0.6
+
+    return max(weight, 0.3)
+
+
+
+def _smooth_word_timings(word_timings: List[Dict], cue_start: float, cue_end: float) -> List[Dict]:
+    if not word_timings:
+        return []
+
+    word_timings[0]["start"] = round(max(cue_start, word_timings[0]["start"]), 3)
+    for i in range(len(word_timings)):
+        current = word_timings[i]
+        if i > 0:
+            prev = word_timings[i - 1]
+            if current["start"] < prev["end"]:
+                midpoint = round((current["start"] + prev["end"]) / 2, 3)
+                prev["end"] = midpoint
+                current["start"] = midpoint
+        if current["end"] <= current["start"]:
+            current["end"] = round(current["start"] + 0.08, 3)
+
+    word_timings[-1]["end"] = round(cue_end, 3)
+
+    for i in range(len(word_timings) - 2, -1, -1):
+        if word_timings[i]["end"] > word_timings[i + 1]["start"]:
+            midpoint = round((word_timings[i]["end"] + word_timings[i + 1]["start"]) / 2, 3)
+            word_timings[i]["end"] = midpoint
+            word_timings[i + 1]["start"] = midpoint
+
+    return word_timings
+
+
+
 def _fallback_even_word_timings(text: str, start: float, end: float) -> List[Dict]:
     words = text.split()
     if not words:
         return []
 
-    duration = max(end - start, 0.12 * len(words), 0.12)
-    word_duration = duration / max(len(words), 1)
-    return [
-        {
+    raw_duration = max(end - start, 0.12)
+    lead_in = min(0.05, raw_duration * 0.06)
+    tail_out = min(0.05, raw_duration * 0.06)
+    timing_start = start + lead_in
+    timing_end = max(timing_start, end - tail_out)
+    usable_duration = max(timing_end - timing_start, raw_duration * 0.7, 0.08 * len(words))
+
+    weights = [_estimate_word_weight(word) for word in words]
+    total_weight = max(sum(weights), 1e-6)
+
+    cursor = timing_start
+    word_timings: List[Dict] = []
+    for i, word in enumerate(words):
+        share = usable_duration * (weights[i] / total_weight)
+        word_start = cursor
+        word_end = timing_end if i == len(words) - 1 else min(timing_end, cursor + share)
+        word_timings.append({
             "word": word,
-            "start": round(start + i * word_duration, 3),
-            "end": round(start + (i + 1) * word_duration, 3),
-        }
-        for i, word in enumerate(words)
-    ]
+            "start": round(word_start, 3),
+            "end": round(word_end, 3),
+        })
+        cursor = word_end
+
+    return _smooth_word_timings(word_timings, start, end)
 
 
 def _extract_word_timings_from_vtt_text(raw_text: str, cue_start: float, cue_end: float) -> List[Dict]:
