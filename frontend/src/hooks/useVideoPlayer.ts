@@ -250,9 +250,43 @@ export function useVideoPlayer() {
   const getCurrentSegment = useCallback((time?: number): TranscriptSegment | null => {
     const state = useAppStore.getState();
     const ct = typeof time === 'number' ? time : state.currentTime;
-    const transcript = state.transcript;
-    if (!transcript?.segments) return null;
-    return transcript.segments.find((s) => ct >= s.start && ct <= s.end) ?? null;
+    const segs = state.transcript?.segments;
+    if (!segs || segs.length === 0) return null;
+
+    // Fast path: check if still in the same segment
+    const lastIdx = state.playerState.current_segment;
+    if (lastIdx >= 0 && lastIdx < segs.length) {
+      const last = segs[lastIdx];
+      if (ct >= last.start - 0.1 && ct <= last.end + 0.05) return last;
+
+      // Check the NEXT segment (most common transition)
+      const nextIdx = lastIdx + 1;
+      if (nextIdx < segs.length) {
+        const next = segs[nextIdx];
+        if (ct >= next.start - 0.1 && ct <= next.end + 0.05) return next;
+      }
+    }
+
+    // Binary search for the right segment
+    let lo = 0, hi = segs.length - 1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const seg = segs[mid];
+      if (ct < seg.start - 0.1) {
+        hi = mid - 1;
+      } else if (ct > seg.end + 0.05) {
+        lo = mid + 1;
+      } else {
+        return seg;
+      }
+    }
+
+    // If in a gap between segments, snap to the nearest upcoming one
+    if (lo < segs.length && ct >= segs[lo].start - 0.3) {
+      return segs[lo];
+    }
+
+    return null;
   }, []);
 
   const getCurrentWord = useCallback((time?: number) => {

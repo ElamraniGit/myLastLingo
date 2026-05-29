@@ -22,25 +22,23 @@ const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: stri
 function getActiveWordIndex(words: WordTiming[], currentTime: number) {
   if (!Array.isArray(words) || words.length === 0) return -1;
 
+  // Shift time slightly forward so highlight leads the audio
+  const t = currentTime + 0.08;
+
+  // Direct match (most common case)
   const exact = words.findIndex(
-    (word) => currentTime >= word.start - 0.03 && currentTime <= word.end + 0.05
+    (w) => t >= w.start && t <= w.end + 0.08
   );
   if (exact >= 0) return exact;
 
-  let bestIndex = -1;
-  let bestDistance = Number.POSITIVE_INFINITY;
-  words.forEach((word, index) => {
-    const distance = Math.min(
-      Math.abs(currentTime - word.start),
-      Math.abs(currentTime - word.end)
-    );
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      bestIndex = index;
-    }
-  });
-
-  return bestDistance <= 0.12 ? bestIndex : -1;
+  // Nearest word within tolerance
+  let bestIdx = -1;
+  let bestDist = 0.2;
+  for (let i = 0; i < words.length; i++) {
+    const d = Math.min(Math.abs(t - words[i].start), Math.abs(t - words[i].end));
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  return bestIdx;
 }
 
 function StatusBanner() {
