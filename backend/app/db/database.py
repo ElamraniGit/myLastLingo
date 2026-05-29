@@ -579,6 +579,7 @@ class DatabaseManager:
 
     async def get_saved_words(
         self,
+        user_id: str = "",
         status: Optional[str] = None,
         limit: int = 100,
         page: int = 1,
@@ -592,6 +593,7 @@ class DatabaseManager:
     ) -> List[Dict[str, Any]]:
         offset = max(0, (page - 1) * limit)
         query, params = self._build_saved_words_query(
+            user_id=user_id,
             status=status,
             search=search,
             level=level,
@@ -610,6 +612,7 @@ class DatabaseManager:
 
     async def count_saved_words(
         self,
+        user_id: str = "",
         status: Optional[str] = None,
         search: Optional[str] = None,
         level: Optional[str] = None,
@@ -620,6 +623,7 @@ class DatabaseManager:
     ) -> int:
         query, params = self._build_saved_words_query(
             count=True,
+            user_id=user_id,
             status=status,
             search=search,
             level=level,

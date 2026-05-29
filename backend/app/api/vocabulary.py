@@ -123,6 +123,7 @@ async def list_vocabulary(
     current_user: dict = Depends(get_current_user),
 ):
     """List saved vocabulary words with rich filtering."""
+    uid = current_user["sub"]
     words = await db_manager.get_saved_words(
         status=status,
         limit=limit,
@@ -134,6 +135,7 @@ async def list_vocabulary(
         tag=tag,
         favorite_only=favorite_only,
         sort=sort,
+        user_id=uid,
     )
     total = await db_manager.count_saved_words(
         status=status,
@@ -143,6 +145,7 @@ async def list_vocabulary(
         due_only=due_only,
         tag=tag,
         favorite_only=favorite_only,
+        user_id=uid,
     )
 
     return {
@@ -165,7 +168,7 @@ async def list_vocabulary(
 
 
 @router.get("/filters")
-async def get_vocabulary_filters():
+async def get_vocabulary_filters(current_user: dict = Depends(get_current_user)):
     """Get available levels, source videos, and tags for filtering."""
     return await db_manager.get_vocabulary_facets()
 
@@ -207,7 +210,8 @@ async def review_word(request: ReviewRequest, current_user: dict = Depends(get_c
 @router.get("/due")
 async def get_due_words(limit: int = Query(20, ge=1, le=100), current_user: dict = Depends(get_current_user)):
     """Get words due for review."""
-    words = await db_manager.get_due_words(limit)
+    uid = current_user["sub"]
+    words = await db_manager.get_due_words(limit, user_id=uid)
     summary = await db_manager.get_review_summary()
     return {"words": words, "count": len(words), "summary": summary}
 
@@ -219,7 +223,7 @@ async def get_review_summary(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/review/history/{saved_word_id}")
-async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le=100)):
+async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le=100), current_user: dict = Depends(get_current_user)):
     """Get review history for one saved word."""
     saved_word = await db_manager.get_saved_word(saved_word_id)
     if not saved_word:

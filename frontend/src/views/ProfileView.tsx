@@ -234,7 +234,7 @@ function SettingsTab() {
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Pause on word click</span>
           <button onClick={() => setAutoPauseOnWord(!autoPauseOnWord)}
-            className={`w-10 h-5 rounded-full transition-colors relative ${autoPauseOnWord ? 'bg-blue-600' : 'bg-slate-600'}`}>
+            className={`w-10 h-5 rounded-full transition-colors relative ${autoPauseOnWord ? 'bg-blue-600' : 'bg-elevated'}`}>
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoPauseOnWord ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </button>
         </div>
@@ -245,7 +245,7 @@ function SettingsTab() {
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Dark mode</span>
           <button onClick={toggleTheme}
-            className={`w-10 h-5 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-600'}`}>
+            className={`w-10 h-5 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-elevated'}`}>
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </button>
         </div>

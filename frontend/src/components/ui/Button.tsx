@@ -21,7 +21,7 @@ export function Button({
 
   const variants = {
     primary:   'bg-blue-600 text-heading hover:bg-blue-500 shadow-lg shadow-blue-500/20',
-    secondary: 'bg-elevated text-heading hover:bg-slate-600 border border-line',
+    secondary: 'bg-elevated text-heading hover:bg-elevated border border-line',
     ghost:     'text-body hover:text-heading hover:bg-elevated/50',
     danger:    'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20',
     outline:   'border border-line text-body hover:bg-elevated/50 hover:border-line',
