@@ -182,6 +182,18 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_video ON sessions(video_id)")
 
         await conn.execute("""
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_chat_user ON chat_messages(user_id, conversation_id)")
+
+        await conn.execute("""
             CREATE TABLE IF NOT EXISTS text_sources (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,

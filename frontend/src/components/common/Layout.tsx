@@ -33,6 +33,11 @@ const Icons = {
       <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M10 9l5 3-5 3V9z" />
     </svg>
   ),
+  chat: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
 };
 
 const NAV: { id: AppPage; label: string; icon: React.ReactNode }[] = [
@@ -40,6 +45,7 @@ const NAV: { id: AppPage; label: string; icon: React.ReactNode }[] = [
   { id: 'library',    label: 'Library',  icon: Icons.library },
   { id: 'vocabulary', label: 'Words',    icon: Icons.words },
   { id: 'flashcards', label: 'Review',   icon: Icons.review },
+  { id: 'chat',       label: 'AI Chat',  icon: Icons.chat },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

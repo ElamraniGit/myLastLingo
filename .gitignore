@@ -33,6 +33,7 @@ models/
 
 # Secret keys — never commit!
 data/.secret_key
+data/.groq_key
 
 # OS
 .DS_Store

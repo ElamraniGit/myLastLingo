@@ -203,6 +203,25 @@ export const libraryApi = {
     req<any>(`/library/source/${id}`, { method: 'DELETE' }),
 };
 
+export const chatApi = {
+  sendMessage: (message: string, conversation_id?: string) =>
+    req<any>('/chat/message', {
+      method: 'POST',
+      body: { message, conversation_id },
+      timeout: 35000,
+    }),
+
+  setKey: (api_key: string) =>
+    req<any>('/chat/set-key', { method: 'POST', body: { api_key } }),
+
+  hasKey: () => req<any>('/chat/has-key'),
+
+  getHistory: (conversation_id?: string) =>
+    req<any>(`/chat/history${conversation_id ? '?conversation_id=' + conversation_id : ''}`),
+
+  clearHistory: () => req<any>('/chat/history', { method: 'DELETE' }),
+};
+
 export const healthApi = {
   check: async () => {
     const res = await fetch(`${BACKEND_ORIGIN}/health`);

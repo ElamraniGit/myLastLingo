@@ -20,6 +20,7 @@ import VocabularyView from '@/views/VocabularyView';
 import FlashcardsView from '@/views/FlashcardsView';
 import ProfileView from '@/views/ProfileView';
 import LibraryView from '@/views/LibraryView';
+import ChatView from '@/views/ChatView';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -75,6 +76,8 @@ export default function App({ Component, pageProps }: AppProps) {
         return <VocabularyView />;
       case 'flashcards':
         return <FlashcardsView />;
+      case 'chat':
+        return <ChatView />;
       case 'profile':
       case 'settings':
       case 'stats':
