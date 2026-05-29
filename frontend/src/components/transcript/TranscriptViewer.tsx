@@ -100,7 +100,7 @@ export default function TranscriptViewer() {
   const activeRef = useRef<HTMLDivElement>(null);
   const lastScrolledSegment = useRef<number>(-1);
 
-  // Auto-scroll: scroll INSIDE the transcript container only (not the page)
+  // Auto-scroll active segment into view within the transcript container
   useEffect(() => {
     const segIdx = playerState.current_segment;
     if (segIdx === lastScrolledSegment.current) return;
@@ -111,18 +111,9 @@ export default function TranscriptViewer() {
 
     lastScrolledSegment.current = segIdx;
 
-    // Calculate where to scroll inside the container
-    const elTop = el.offsetTop;
-    const elHeight = el.offsetHeight;
-    const containerHeight = container.clientHeight;
-
-    // Place the active segment about 1/3 from the top of the container
-    const targetScroll = elTop - containerHeight / 3 + elHeight / 2;
-
-    container.scrollTo({
-      top: Math.max(0, targetScroll),
-      behavior: 'smooth',
-    });
+    // scrollIntoView works correctly here because the transcript
+    // lives in its own overflow container (not the page body)
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
 
   if (transcriptStatus !== 'ready' || !transcript?.segments?.length) {
