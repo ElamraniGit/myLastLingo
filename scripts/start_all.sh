@@ -1,11 +1,10 @@
 #!/bin/bash
 # =================================================================
-# LinguaLearn - Start Everything
+# LinguaLearn — Start Everything
 # =================================================================
-# Starts backend + frontend together.
 # Usage:
-#   ./scripts/start_all.sh
-#   ./scripts/start_all.sh --debug
+#   ./scripts/start_all.sh          → production mode
+#   ./scripts/start_all.sh --dev    → development mode (hot reload)
 # To stop: Ctrl+C
 # =================================================================
 
@@ -17,27 +16,29 @@ NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
 cd "$PROJECT_ROOT"
 
-DEBUG_FLAG=""
+# Parse args
+DEV_FLAG=""
+MODE="PRODUCTION"
 for arg in "$@"; do
-  if [ "$arg" = "--debug" ]; then
-    DEBUG_FLAG="--debug"
+  if [ "$arg" = "--dev" ]; then
+    DEV_FLAG="--dev"
+    MODE="DEVELOPMENT"
   fi
 done
 
 echo -e "${BLUE}"
 echo "╔══════════════════════════════════════════╗"
-echo "║     LinguaLearn - Starting All           ║"
+echo "║     LinguaLearn — $MODE           "
 echo "╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# ── Kill ALL old LinguaLearn processes first ─────────────────────
+# ── Kill old processes ───────────────────────────────────────────
 echo -e "${YELLOW}🧹 Cleaning up old processes...${NC}"
 pkill -f "uvicorn.*backend.main" 2>/dev/null || true
 pkill -f "next.*dev" 2>/dev/null || true
-pkill -f "node.*next" 2>/dev/null || true
+pkill -f "next.*start" 2>/dev/null || true
 if command -v fuser >/dev/null 2>&1; then
   fuser -k 8080/tcp 2>/dev/null || true
   fuser -k 3000/tcp 2>/dev/null || true
@@ -46,96 +47,68 @@ sleep 2
 echo -e "${GREEN}   ✅ Cleanup done.${NC}"
 echo ""
 
-# ── Cleanup on Ctrl+C ───────────────────────────────────────────
+# ── Cleanup on exit ──────────────────────────────────────────────
 cleanup() {
   echo ""
   echo -e "${YELLOW}🛑 Shutting down...${NC}"
-
-  # Kill by PID
   [ -n "${BACKEND_PID:-}" ]  && kill "$BACKEND_PID"  2>/dev/null && echo "   Backend stopped"
   [ -n "${FRONTEND_PID:-}" ] && kill "$FRONTEND_PID" 2>/dev/null && echo "   Frontend stopped"
-
-  # Also kill any children
   pkill -f "uvicorn.*backend.main" 2>/dev/null || true
-  pkill -f "next.*dev" 2>/dev/null || true
-
+  pkill -f "next" 2>/dev/null || true
   wait 2>/dev/null || true
-  echo -e "${GREEN}✅ All services stopped. Goodbye!${NC}"
+  echo -e "${GREEN}✅ All services stopped.${NC}"
   exit 0
 }
-
 trap cleanup SIGINT SIGTERM EXIT
 
 # ── Start backend ────────────────────────────────────────────────
 echo -e "${GREEN}🚀 Starting backend...${NC}"
-bash "$SCRIPT_DIR/start_backend.sh" $DEBUG_FLAG &
+bash "$SCRIPT_DIR/start_backend.sh" &
 BACKEND_PID=$!
 
-# Wait for /health to respond (up to 15 seconds)
 echo -n "   Waiting for backend"
 READY=0
 for i in $(seq 1 15); do
-  sleep 1
-  echo -n "."
-
-  # Check if process died
+  sleep 1; echo -n "."
   if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-    echo ""
-    echo -e "${RED}❌ Backend process died. Check logs: logs/app.log${NC}"
-    exit 1
+    echo ""; echo -e "${RED}❌ Backend died${NC}"; exit 1
   fi
-
-  # Check /health
   if command -v curl >/dev/null 2>&1; then
     HTTP=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/health 2>/dev/null || echo "000")
-    if [ "$HTTP" = "200" ]; then
-      READY=1
-      break
-    fi
+    [ "$HTTP" = "200" ] && READY=1 && break
   else
-    # No curl — try Python
-    if python3 -c "
+    python3 -c "
 import urllib.request
 try:
     r = urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)
     exit(0 if r.status == 200 else 1)
 except: exit(1)
-" 2>/dev/null; then
-      READY=1
-      break
-    fi
+" 2>/dev/null && READY=1 && break
   fi
 done
-
 echo ""
-if [ "$READY" -eq 1 ]; then
-  echo -e "${GREEN}   ✅ Backend is ready on http://127.0.0.1:8080${NC}"
-else
-  echo -e "${YELLOW}   ⚠️  Backend may still be starting...${NC}"
-fi
-
+[ "$READY" -eq 1 ] && echo -e "${GREEN}   ✅ Backend ready${NC}" || echo -e "${YELLOW}   ⚠️ Backend may still be starting${NC}"
 echo ""
 
 # ── Start frontend ───────────────────────────────────────────────
-echo -e "${GREEN}🚀 Starting frontend...${NC}"
-bash "$SCRIPT_DIR/start_frontend.sh" &
+echo -e "${GREEN}🚀 Starting frontend ($MODE)...${NC}"
+bash "$SCRIPT_DIR/start_frontend.sh" $DEV_FLAG &
 FRONTEND_PID=$!
 
-sleep 4
+sleep 5
 if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
-  echo -e "${RED}❌ Frontend failed to start${NC}"
-  exit 1
+  echo -e "${RED}❌ Frontend failed${NC}"; exit 1
 fi
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════${NC}"
-echo -e "${GREEN}   ✅ All services running!${NC}"
+echo -e "${GREEN}   ✅ LinguaLearn is running! ($MODE)${NC}"
 echo ""
-echo -e "   📱 ${YELLOW}Frontend:${NC}  http://127.0.0.1:3000"
-echo -e "   🔧 ${YELLOW}Backend:${NC}   http://127.0.0.1:8080"
-echo -e "   ❤️  ${YELLOW}Health:${NC}    http://127.0.0.1:8080/health"
+echo -e "   📱 ${YELLOW}App:${NC}      http://127.0.0.1:3000"
+echo -e "   🔧 ${YELLOW}Backend:${NC}  http://127.0.0.1:8080"
+echo -e "   ❤️  ${YELLOW}Health:${NC}   http://127.0.0.1:8080/health"
 echo ""
-echo -e "   ${YELLOW}Press Ctrl+C to stop all services${NC}"
+echo -e "   ${YELLOW}Press Ctrl+C to stop${NC}"
 echo -e "${GREEN}════════════════════════════════════════════${NC}"
 echo ""
 
