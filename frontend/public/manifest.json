@@ -1,60 +1,50 @@
 {
-  "name": "LinguaLearn - English Learning",
+  "name": "LinguaLearn — Learn English",
   "short_name": "LinguaLearn",
-  "description": "Learn English through YouTube videos with interactive subtitles, dictionary, and spaced repetition",
+  "description": "Learn English from YouTube videos with interactive subtitles, dictionary, and spaced repetition",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#020617",
   "theme_color": "#3b82f6",
   "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "languages"],
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/icon-512x512.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ],
-  "categories": ["education", "languages"],
-  "lang": "ar",
-  "dir": "rtl",
-  "screenshots": [],
   "shortcuts": [
     {
-      "name": "Player",
-      "short_name": "Play",
-      "description": "Open video player",
-      "url": "/?page=player"
+      "name": "Library",
+      "short_name": "Library",
+      "url": "/?page=library",
+      "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "192x192" }]
     },
     {
-      "name": "Vocabulary",
-      "short_name": "Words",
-      "description": "View saved words",
-      "url": "/?page=vocabulary"
-    },
-    {
-      "name": "Flashcards",
+      "name": "Review Words",
       "short_name": "Review",
-      "description": "Review flashcards",
-      "url": "/?page=flashcards"
+      "url": "/?page=flashcards",
+      "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

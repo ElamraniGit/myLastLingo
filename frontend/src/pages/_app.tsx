@@ -10,6 +10,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useStore } from '@/store/appStore';
 import Layout from '@/components/common/Layout';
+import InstallPrompt from '@/components/common/InstallPrompt';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 
@@ -94,7 +95,10 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>LinguaLearn — English Learning</title>
         <link rel="manifest" href="/manifest.json" />
       </Head>
-      <Layout>{renderPage()}</Layout>
+      <Layout>
+        {renderPage()}
+        <InstallPrompt />
+      </Layout>
     </>
   );
 }
