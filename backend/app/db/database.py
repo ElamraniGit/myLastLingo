@@ -533,8 +533,8 @@ class DatabaseManager:
                 INSERT INTO saved_words
                     (id, word_id, video_id, sentence, context, status, ease_factor,
                      interval, repetitions, next_review, learning_step, lapses,
-                     reviewed_count, last_quality, tags, notes, favorite)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     reviewed_count, last_quality, tags, notes, favorite, user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     saved_id,
@@ -554,6 +554,7 @@ class DatabaseManager:
                     json.dumps([], ensure_ascii=False),
                     "",
                     0,
+                    user_id,
                 ),
             )
         return saved_id
@@ -752,8 +753,10 @@ class DatabaseManager:
                 rows = await cursor.fetchall()
                 return [self._parse_saved_word_row(row) for row in rows]
 
-    async def get_review_summary(self) -> Dict[str, Any]:
+    async def get_review_summary(self, user_id: str = "") -> Dict[str, Any]:
         due_expr = self._normalized_datetime_expr("next_review")
+        where = "WHERE (user_id = ? OR user_id = '')" if user_id else ""
+        params = (user_id,) if user_id else ()
         async with self.get_connection() as conn:
             async with conn.execute(
                 f"""
@@ -764,8 +767,8 @@ class DatabaseManager:
                     COALESCE(SUM(CASE WHEN status = 'learned' THEN 1 ELSE 0 END), 0) as learned,
                     COALESCE(SUM(CASE WHEN reviewed_count = 0 THEN 1 ELSE 0 END), 0) as never_reviewed,
                     COALESCE(SUM(CASE WHEN next_review IS NULL OR {due_expr} <= datetime('now') THEN 1 ELSE 0 END), 0) as due_now
-                FROM saved_words
-                """
+                FROM saved_words {where}
+                """, params
             ) as cursor:
                 row = await cursor.fetchone()
                 data = dict(row) if row else {}

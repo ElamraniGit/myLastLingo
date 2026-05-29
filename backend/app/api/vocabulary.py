@@ -197,7 +197,7 @@ async def review_word(request: ReviewRequest, current_user: dict = Depends(get_c
     if not updated:
         raise HTTPException(status_code=404, detail="Saved word not found")
 
-    summary = await db_manager.get_review_summary()
+    summary = await db_manager.get_review_summary(user_id=current_user["sub"])
     return {
         "message": "Review recorded",
         "saved_word_id": request.saved_word_id,
@@ -212,14 +212,14 @@ async def get_due_words(limit: int = Query(20, ge=1, le=100), current_user: dict
     """Get words due for review."""
     uid = current_user["sub"]
     words = await db_manager.get_due_words(limit, user_id=uid)
-    summary = await db_manager.get_review_summary()
+    summary = await db_manager.get_review_summary(user_id=uid)
     return {"words": words, "count": len(words), "summary": summary}
 
 
 @router.get("/review/summary")
 async def get_review_summary(current_user: dict = Depends(get_current_user)):
     """Get compact review queue summary."""
-    return await db_manager.get_review_summary()
+    return await db_manager.get_review_summary(user_id=current_user["sub"])
 
 
 @router.get("/review/history/{saved_word_id}")
@@ -244,6 +244,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
     async with db_manager.get_connection() as conn:
         due_expr = db_manager._normalized_datetime_expr("next_review")
 
+        uid = current_user["sub"]
         async with conn.execute(
             f"""
             SELECT
@@ -257,8 +258,8 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
                 COALESCE(SUM(lapses), 0) as total_lapses,
                 COALESCE(SUM(reviewed_count), 0) as total_reviews,
                 ROUND(COALESCE(AVG(ease_factor), 0), 2) as avg_ease
-            FROM saved_words
-            """
+            FROM saved_words WHERE (user_id = ? OR user_id = '')
+            """, (uid,)
         ) as cur:
             row = await cur.fetchone()
             stats = dict(row) if row else {}
@@ -288,9 +289,10 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             SELECT w.level, COUNT(*) as count
             FROM saved_words sw
             JOIN words w ON sw.word_id = w.id
+            WHERE (sw.user_id = ? OR sw.user_id = '')
             GROUP BY w.level
             ORDER BY w.level
-            """
+            """, (uid,)
         ) as cur:
             rows = await cur.fetchall()
             stats["level_distribution"] = {dict(r)["level"]: dict(r)["count"] for r in rows}
@@ -311,9 +313,10 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             SELECT w.word, sw.status, sw.lapses, sw.reviewed_count, sw.next_review
             FROM saved_words sw
             JOIN words w ON sw.word_id = w.id
+            WHERE (sw.user_id = ? OR sw.user_id = '')
             ORDER BY sw.lapses DESC, sw.reviewed_count DESC, {due_expr} ASC
             LIMIT 5
-            """
+            """, (uid,)
         ) as cur:
             rows = await cur.fetchall()
             stats["hardest_words"] = [dict(r) for r in rows]
@@ -322,16 +325,17 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             f"""
             SELECT date({due_expr}) as review_day, COUNT(*) as count
             FROM saved_words
-            WHERE next_review IS NOT NULL
+            WHERE (user_id = ? OR user_id = '')
+              AND next_review IS NOT NULL
               AND {due_expr} <= datetime('now', '+7 days')
             GROUP BY date({due_expr})
             ORDER BY date({due_expr}) ASC
-            """
+            """, (uid,)
         ) as cur:
             rows = await cur.fetchall()
             stats["upcoming_review_days"] = {dict(r)["review_day"]: dict(r)["count"] for r in rows if dict(r)["review_day"]}
 
-        async with conn.execute("SELECT tags FROM saved_words WHERE tags IS NOT NULL AND tags != ''") as cur:
+        async with conn.execute("SELECT tags FROM saved_words WHERE (user_id = ? OR user_id = '') AND tags IS NOT NULL AND tags != ''", (uid,)) as cur:
             rows = await cur.fetchall()
             top_tags: Dict[str, int] = {}
             for row in rows:
