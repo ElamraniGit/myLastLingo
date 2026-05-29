@@ -1,5 +1,6 @@
 /**
  * Main learning view: video + transcript side by side (desktop) or stacked (mobile).
+ * Video is sticky at top on mobile so it stays visible while scrolling subtitles.
  */
 
 import React from 'react';
@@ -16,48 +17,52 @@ function fmtDuration(s: number) {
 }
 
 export default function PlayerView() {
-  const { currentVideo, setPage, setCurrentVideo, resetPlayer } = useStore();
+  const { currentVideo, resetPlayer } = useStore();
 
   if (!currentVideo) return <VideoInput />;
 
   return (
-    <div className="flex flex-col lg:flex-row h-full">
+    <div className="flex flex-col lg:flex-row h-full overflow-hidden">
 
-      {/* ── Left: video ──────────────────────────────────────────────── */}
-      <div className="flex flex-col lg:w-[55%] flex-shrink-0">
-        {/* Back button + video info */}
-        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-          <button
-            onClick={() => resetPlayer()}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-all flex-shrink-0"
-          >
-            ← Back
-          </button>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-100 line-clamp-1">{currentVideo.title}</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {currentVideo.channel}
-              {currentVideo.duration > 0 && <> · {fmtDuration(currentVideo.duration)}</>}
-            </p>
+      {/* ── Left column (desktop) / Top section (mobile) ────────── */}
+      <div className="flex flex-col lg:w-[55%] flex-shrink-0 lg:h-full">
+
+        {/* Video section — sticky on mobile */}
+        <div className="sticky top-0 z-20 bg-slate-950 flex-shrink-0">
+          {/* Back button + video info */}
+          <div className="flex items-center gap-3 px-4 pt-3 pb-1">
+            <button
+              onClick={() => resetPlayer()}
+              className="p-2 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-all flex-shrink-0"
+            >
+              ← Back
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-100 line-clamp-1">{currentVideo.title}</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {currentVideo.channel}
+                {currentVideo.duration > 0 && <> · {fmtDuration(currentVideo.duration)}</>}
+              </p>
+            </div>
+          </div>
+
+          <div className="px-4 pb-3">
+            <VideoPlayer />
           </div>
         </div>
 
-        <div className="px-4 pb-4">
-          <VideoPlayer />
-        </div>
-
-        {/* Mobile: transcript below player */}
-        <div className="lg:hidden flex-1 min-h-0 border-t border-slate-800">
+        {/* Mobile: transcript below sticky video */}
+        <div className="lg:hidden flex-1 min-h-0 overflow-hidden border-t border-slate-800">
           <TranscriptViewer />
         </div>
       </div>
 
-      {/* ── Right: transcript (desktop) ──────────────────────────────── */}
+      {/* ── Right column: transcript (desktop only) ──────────────── */}
       <div className="hidden lg:flex flex-col flex-1 min-w-0 border-l border-slate-800">
         <TranscriptViewer />
       </div>
 
-      {/* ── Word popup ───────────────────────────────────────────────── */}
+      {/* ── Word popup ───────────────────────────────────────────── */}
       <WordPopup />
     </div>
   );

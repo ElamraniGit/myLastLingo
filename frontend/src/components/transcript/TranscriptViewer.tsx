@@ -1,12 +1,11 @@
 /**
  * TranscriptViewer — synchronized subtitles panel.
- * ALL text is LTR. dir="ltr" enforced on every container.
+ * Auto-scrolls to the active segment as the video plays.
  * Click word → dictionary popup + player pause.
  * Click segment → seek.
- * Auto-scroll to active segment.
  */
 
-import React, { useRef, useEffect, memo } from 'react';
+import React, { useRef, useEffect, memo, useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
@@ -99,16 +98,18 @@ export default function TranscriptViewer() {
   const { lookupWord } = useDictionary();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
+  const lastScrolledSegment = useRef<number>(-1);
 
+  // Auto-scroll: always scroll to active segment when it changes
   useEffect(() => {
+    const segIdx = playerState.current_segment;
+    if (segIdx === lastScrolledSegment.current) return;
+
     const el = activeRef.current;
-    const container = containerRef.current;
-    if (!el || !container) return;
-    const cr = container.getBoundingClientRect();
-    const er = el.getBoundingClientRect();
-    if (er.top < cr.top + 80 || er.bottom > cr.bottom - 80) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (!el) return;
+
+    lastScrolledSegment.current = segIdx;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
 
   if (transcriptStatus !== 'ready' || !transcript?.segments?.length) {
@@ -124,7 +125,6 @@ export default function TranscriptViewer() {
           <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
-          <span className="text-xs text-slate-500">Font: {transcriptFontSize.toUpperCase()}</span>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
           transcript.source === 'youtube'
