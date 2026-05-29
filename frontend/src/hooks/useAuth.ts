@@ -11,19 +11,26 @@ export function useAuth() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Restore session on mount
+  // Restore session on mount (runs once)
   useEffect(() => {
     const token = tokenStore.get();
     if (!token || isAuthenticated) return;
 
+    let cancelled = false;
     authApi.me()
       .then((u) => {
+        if (cancelled) return;
         setUser(u);
-        setPage('player');
+        // Only navigate to player if currently on login/register
+        const page = useStore.getState().currentPage;
+        if (page === 'login' || page === 'register') {
+          setPage('player');
+        }
       })
       .catch(() => {
-        tokenStore.clear();
+        if (!cancelled) tokenStore.clear();
       });
+    return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(

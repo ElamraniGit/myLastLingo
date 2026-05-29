@@ -4,7 +4,7 @@
  * - When a video is loaded: shows player + transcript
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
 import { libraryApi } from '@/lib/api';
@@ -68,15 +68,15 @@ function HomeDashboard() {
   const { loadVocabulary, loadReviewSummary, lookupWord } = useDictionary();
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
   const [sources, setSources] = useState<any[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const didLoad = useRef(false);
 
   useEffect(() => {
-    if (loaded) return;
-    setLoaded(true);
+    if (didLoad.current) return;
+    didLoad.current = true;
     loadVocabulary({ page: 1, limit: 5, sort: 'newest' }).catch(() => {});
     loadReviewSummary().then(setSummary).catch(() => null);
     libraryApi.listSources(1, 5).then(d => setSources(d?.sources || [])).catch(() => {});
-  }, [loaded]);
+  }, []);
 
   const recentWords = savedWords.slice(0, 5);
   const dueCount = summary?.due_now ?? 0;
