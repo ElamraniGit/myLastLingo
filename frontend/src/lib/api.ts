@@ -192,15 +192,15 @@ export const playerApi = {
 
 export const libraryApi = {
   listSources: (page = 1, limit = 50) =>
-    req<any>(\`/library/sources?page=\${page}&limit=\${limit}\`),
+    req<any>(`/library/sources?page=${page}&limit=${limit}`),
 
   addText: (title: string, content: string, source_type = 'text') =>
     req<any>('/library/text', { method: 'POST', body: { title, content, source_type } }),
 
-  getText: (id: string) => req<any>(\`/library/text/\${id}\`),
+  getText: (id: string) => req<any>(`/library/text/${id}`),
 
   deleteSource: (id: string) =>
-    req<any>(\`/library/source/\${id}\`, { method: 'DELETE' }),
+    req<any>(`/library/source/${id}`, { method: 'DELETE' }),
 };
 
 export const healthApi = {
