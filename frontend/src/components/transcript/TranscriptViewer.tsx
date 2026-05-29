@@ -157,7 +157,6 @@ export default function TranscriptViewer() {
         })}
       </div>
 
-      <CurrentLineBar fontSize={transcriptFontSize} />
     </div>
   );
 }
@@ -269,34 +268,6 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }:
   );
 }
 
-function CurrentLineBar({ fontSize }: { fontSize: TranscriptFontSize }) {
-  const { transcript, playerState, currentTime } = useStore();
-  const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
-  const seg = transcript?.segments?.find((s) => s.index === playerState.current_segment);
-  if (!seg) return null;
-
-  const pct = seg.duration > 0
-    ? Math.min(((currentTime - seg.start) / seg.duration) * 100, 100)
-    : 0;
-
-  return (
-    <div className="flex-shrink-0 border-t border-slate-800 px-4 pt-3 pb-4 bg-slate-900/60" dir="ltr">
-      <p
-        className={`${font.current} text-slate-200 text-center leading-relaxed line-clamp-2 mb-2.5 min-h-[1.25rem] font-medium`}
-        style={{ direction: 'ltr', textAlign: 'center' }}
-      >
-        {seg.text}
-      </p>
-      <div className="h-[3px] bg-slate-800 rounded-full overflow-hidden">
-        <div className="h-full bg-blue-500 rounded-full transition-all duration-100" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="flex justify-between mt-1.5">
-        <span className={`${font.meta} text-slate-700 tabular-nums`}>{fmtTime(seg.start)}</span>
-        <span className={`${font.meta} text-slate-700 tabular-nums`}>{fmtTime(seg.end)}</span>
-      </div>
-    </div>
-  );
-}
 
 function fmtTime(s: number): string {
   if (!s || !isFinite(s)) return '0:00';
