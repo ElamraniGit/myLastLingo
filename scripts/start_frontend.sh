@@ -20,6 +20,15 @@ fi
 pkill -f "next.*dev" 2>/dev/null && echo "   Killed old Next.js dev server" && sleep 1 || true
 pkill -f "node.*next" 2>/dev/null && sleep 1 || true
 
+# ── Ensure node_modules exists and binaries are executable ───────
+if [ ! -d "node_modules" ]; then
+  echo "📦 node_modules not found. Running npm install..."
+  npm install
+fi
+
+# Fix permissions on .bin (common issue after git operations)
+chmod +x node_modules/.bin/* 2>/dev/null || true
+
 echo "🌐 Starting LinguaLearn frontend on http://127.0.0.1:${PORT}"
 
-exec npm run dev
+exec npx next dev -p "$PORT"
