@@ -13,12 +13,10 @@ import Layout from '@/components/common/Layout';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 
-// Views (not Next.js pages — rendered via store.currentPage)
+// Views
 import PlayerView from '@/views/PlayerView';
 import VocabularyView from '@/views/VocabularyView';
 import FlashcardsView from '@/views/FlashcardsView';
-import StatsView from '@/views/StatsView';
-import SettingsView from '@/views/SettingsView';
 import ProfileView from '@/views/ProfileView';
 import LibraryView from '@/views/LibraryView';
 
@@ -38,10 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
     setHydrated(true);
   }, []);
 
-  // Allow regular Next.js pages like /404 to render normally.
-  if (router.pathname !== '/') {
-    return <Component {...pageProps} />;
-  }
+  if (router.pathname !== '/') return <Component {...pageProps} />;
 
   if (!hydrated) {
     return (
@@ -66,17 +61,15 @@ export default function App({ Component, pageProps }: AppProps) {
       case 'player':
       case 'home':
         return <PlayerView />;
+      case 'library':
+        return <LibraryView />;
       case 'vocabulary':
         return <VocabularyView />;
       case 'flashcards':
         return <FlashcardsView />;
-      case 'stats':
-        return <StatsView />;
-      case 'library':
-        return <LibraryView />;
-      case 'settings':
-        return <SettingsView />;
       case 'profile':
+      case 'settings':
+      case 'stats':
         return <ProfileView />;
       default:
         return <PlayerView />;
