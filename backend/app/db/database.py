@@ -188,6 +188,20 @@ class DatabaseManager:
             rows = await cursor.fetchall()
             columns = {dict(row)["name"] for row in rows}
 
+        # Also migrate words table
+        async with conn.execute("PRAGMA table_info(words)") as wcur:
+            wrows = await wcur.fetchall()
+            word_columns = {dict(r)["name"] for r in wrows}
+
+        word_migrations = {
+            "definitions": "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
+            "how_to_use": "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
+        }
+        for col, sql in word_migrations.items():
+            if col not in word_columns:
+                logger.info(f"Applying migration: add words.{col}")
+                await conn.execute(sql)
+
         migrations = {
             "learning_step": "ALTER TABLE saved_words ADD COLUMN learning_step INTEGER DEFAULT 0",
             "lapses": "ALTER TABLE saved_words ADD COLUMN lapses INTEGER DEFAULT 0",
@@ -418,8 +432,9 @@ class DatabaseManager:
                 """
                 INSERT OR REPLACE INTO words
                     (id, word, pronunciation, part_of_speech, level, meaning_ar, meaning_en,
-                     examples, synonyms, antonyms, root_form, conjugations, related_words, frequency)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     examples, synonyms, antonyms, root_form, conjugations, related_words,
+                     definitions, how_to_use, frequency)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     word_data.get("id"),
@@ -435,6 +450,8 @@ class DatabaseManager:
                     word_data.get("root_form", ""),
                     json.dumps(word_data.get("conjugations", {}), ensure_ascii=False),
                     json.dumps(word_data.get("related_words", []), ensure_ascii=False),
+                    json.dumps(word_data.get("definitions", []), ensure_ascii=False),
+                    json.dumps(word_data.get("how_to_use", []), ensure_ascii=False),
                     word_data.get("frequency", 0),
                 ),
             )
@@ -452,6 +469,8 @@ class DatabaseManager:
                 data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
                 data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
                 data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+                data["definitions"] = self._decode_json_field(data.get("definitions"), [])
+                data["how_to_use"] = self._decode_json_field(data.get("how_to_use"), [])
                 return data
 
     # =========================================================================

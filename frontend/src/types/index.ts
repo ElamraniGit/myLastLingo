@@ -63,6 +63,12 @@ export interface Transcript {
   segment_count?: number;
 }
 
+export interface WordDefinition {
+  part_of_speech: string;
+  definition: string;
+  example: string;
+}
+
 export interface Word {
   id: string;
   word: string;
@@ -71,6 +77,8 @@ export interface Word {
   level: CEFRLevel;
   meaning_ar: string;
   meaning_en: string;
+  definitions?: WordDefinition[];
+  how_to_use?: string[];
   examples: string[];
   synonyms: string[];
   antonyms: string[];
