@@ -39,8 +39,6 @@ export default function VideoPlayer() {
     setSpeed,
     setVolume,
     setQuality,
-    skipForward,
-    skipBackward,
     toggleLoop,
     onProgress,
     onDuration,
@@ -86,11 +84,9 @@ export default function VideoPlayer() {
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <button onClick={() => skipBackward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">⏮ 10s</button>
           <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
             {playing ? '⏸' : '▶'}
           </button>
-          <button onClick={() => skipForward(10)} className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs">10s ⏭</button>
           <span className="text-white/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
           <div className="flex-1" />
           <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>🔁</button>

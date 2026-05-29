@@ -614,10 +614,83 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
             "duration": round(segment_end - segment_start, 3),
         })
 
+    # Deduplicate segments (YouTube auto-subs often repeat lines)
+    segments = _dedup_segments(segments)
+
     logger.debug(
-        f"VTT parser: {len(raw_cues)} raw cues → {len(groups)} groups → {len(segments)} final segments"
+        f"VTT parser: {len(raw_cues)} raw cues → {len(groups)} groups → {len(segments)} final segments (after dedup)"
     )
     return segments
+
+
+
+def _normalize_segment_text(text: str) -> str:
+    """Normalize text for comparison: lowercase, strip punctuation, collapse spaces."""
+    t = re.sub(r"[^\w\s]", "", (text or "").lower())
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _dedup_segments(segments: List[Dict]) -> List[Dict]:
+    """
+    Remove duplicate/near-duplicate subtitle segments.
+
+    YouTube auto-generated VTT often produces:
+      - Exact duplicate lines with slightly different timestamps
+      - Lines where one is a substring of the adjacent one
+      - Repeated text across non-adjacent segments
+
+    Strategy:
+      1. Skip segments whose normalized text matches the previous segment
+      2. Skip segments whose text is fully contained in the previous or next
+      3. Merge segments that overlap in time AND have identical text
+      4. Re-index the remaining segments
+    """
+    if len(segments) <= 1:
+        return segments
+
+    cleaned: List[Dict] = []
+
+    for i, seg in enumerate(segments):
+        norm = _normalize_segment_text(seg["text"])
+        if not norm:
+            continue
+
+        # Skip if identical to previous
+        if cleaned:
+            prev_norm = _normalize_segment_text(cleaned[-1]["text"])
+            if norm == prev_norm:
+                # Keep the one with longer time span
+                if seg["duration"] > cleaned[-1]["duration"]:
+                    cleaned[-1] = seg
+                continue
+
+            # Skip if current is a substring of previous
+            if norm in prev_norm:
+                continue
+
+            # If previous is a substring of current, replace it
+            if prev_norm in norm:
+                cleaned[-1] = seg
+                continue
+
+            # Skip near-duplicates (>80% word overlap)
+            prev_words = set(prev_norm.split())
+            curr_words = set(norm.split())
+            if prev_words and curr_words:
+                overlap = len(prev_words & curr_words) / max(len(prev_words), len(curr_words))
+                if overlap > 0.8 and abs(seg["start"] - cleaned[-1]["start"]) < 2.0:
+                    # Keep the longer text
+                    if len(seg["text"]) > len(cleaned[-1]["text"]):
+                        cleaned[-1] = seg
+                    continue
+
+        cleaned.append(seg)
+
+    # Re-index
+    for i, seg in enumerate(cleaned):
+        seg["index"] = i
+
+    return cleaned
 
 
 def _vtt_time_to_seconds(vtt_time: str) -> float:
