@@ -253,6 +253,9 @@ async def _fetch_youtube_captions(youtube_id: str, language: str) -> List[Dict]:
 # ---------------------------------------------------------------------------
 # VTT Parser (Bug #6 fix: handles auto-generated YouTube VTT properly)
 # ---------------------------------------------------------------------------
+# VTT Parser — Rewritten for YouTube auto-generated sliding-window subtitles
+# ---------------------------------------------------------------------------
+
 
 def _strip_vtt_markup(text: str) -> str:
     """Strip YouTube/WebVTT karaoke markup while keeping readable text."""
@@ -260,292 +263,34 @@ def _strip_vtt_markup(text: str) -> str:
         return ""
     text = text.replace("\n", " ")
     text = re.sub(r"<\d{1,2}:\d{2}:\d{2}[.,]\d{3}>", "", text)
-    text = re.sub(r"</?c(?:\.[^>]*)?>", "", text)
+    text = re.sub(r"</?c(?:\.[^>]*)?>" , "", text)
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
-_SHORT_FUNCTION_WORDS = {
-    "a", "an", "and", "are", "as", "at", "be", "by", "do", "for", "from",
-    "he", "her", "him", "his", "i", "in", "is", "it", "me", "my", "of",
-    "on", "or", "our", "she", "so", "the", "their", "them", "there", "they",
-    "to", "up", "us", "we", "you", "your",
-}
+def _norm(text: str) -> str:
+    """Lowercase, strip punctuation, collapse spaces — for comparison."""
+    t = re.sub(r"[^\w\s]", "", (text or "").lower())
+    return re.sub(r"\s+", " ", t).strip()
 
 
-def _estimate_word_weight(word: str) -> float:
-    cleaned = re.sub(r"[^A-Za-z0-9'_-]", "", word).lower()
-    if not cleaned:
-        return 0.35
-
-    length = len(cleaned)
-    weight = 0.65 + min(length, 10) * 0.11
-
-    if cleaned in _SHORT_FUNCTION_WORDS:
-        weight *= 0.72
-    if length <= 2:
-        weight *= 0.82
-    if length >= 8:
-        weight *= 1.12
-    if "'" in cleaned:
-        weight += 0.08
-    if re.search(r"[,.!?;:]$", word):
-        weight += 0.28
-    if re.fullmatch(r"[♪…]+", word):
-        weight *= 0.6
-
-    return max(weight, 0.3)
-
-
-
-def _smooth_word_timings(word_timings: List[Dict], cue_start: float, cue_end: float) -> List[Dict]:
-    if not word_timings:
-        return []
-
-    word_timings[0]["start"] = round(max(cue_start, word_timings[0]["start"]), 3)
-    for i in range(len(word_timings)):
-        current = word_timings[i]
-        if i > 0:
-            prev = word_timings[i - 1]
-            if current["start"] < prev["end"]:
-                midpoint = round((current["start"] + prev["end"]) / 2, 3)
-                prev["end"] = midpoint
-                current["start"] = midpoint
-        if current["end"] <= current["start"]:
-            current["end"] = round(current["start"] + 0.08, 3)
-
-    word_timings[-1]["end"] = round(cue_end, 3)
-
-    for i in range(len(word_timings) - 2, -1, -1):
-        if word_timings[i]["end"] > word_timings[i + 1]["start"]:
-            midpoint = round((word_timings[i]["end"] + word_timings[i + 1]["start"]) / 2, 3)
-            word_timings[i]["end"] = midpoint
-            word_timings[i + 1]["start"] = midpoint
-
-    return word_timings
-
-
-
-def _fallback_even_word_timings(text: str, start: float, end: float) -> List[Dict]:
-    words = text.split()
-    if not words:
-        return []
-
-    raw_duration = max(end - start, 0.12)
-    lead_in = min(0.05, raw_duration * 0.06)
-    tail_out = min(0.05, raw_duration * 0.06)
-    timing_start = start + lead_in
-    timing_end = max(timing_start, end - tail_out)
-    usable_duration = max(timing_end - timing_start, raw_duration * 0.7, 0.08 * len(words))
-
-    weights = [_estimate_word_weight(word) for word in words]
-    total_weight = max(sum(weights), 1e-6)
-
-    cursor = timing_start
-    word_timings: List[Dict] = []
-    for i, word in enumerate(words):
-        share = usable_duration * (weights[i] / total_weight)
-        word_start = cursor
-        word_end = timing_end if i == len(words) - 1 else min(timing_end, cursor + share)
-        word_timings.append({
-            "word": word,
-            "start": round(word_start, 3),
-            "end": round(word_end, 3),
-        })
-        cursor = word_end
-
-    return _smooth_word_timings(word_timings, start, end)
-
-
-def _extract_word_timings_from_vtt_text(raw_text: str, cue_start: float, cue_end: float) -> List[Dict]:
-    """Extract word timings from YouTube karaoke-style VTT timestamp tags."""
-    if not raw_text:
-        return []
-
-    inline = raw_text.replace("\n", " ").strip()
-    timestamp_re = re.compile(r"<(\d{1,2}:\d{2}:\d{2}[.,]\d{3})>")
-    matches = list(timestamp_re.finditer(inline))
-    if not matches:
-        return []
-
-    chunks = []
-    prev_idx = 0
-    prev_time = cue_start
-    for match in matches:
-        next_time = _vtt_time_to_seconds(match.group(1))
-        chunk_text = inline[prev_idx:match.start()]
-        chunks.append((prev_time, next_time, chunk_text))
-        prev_idx = match.end()
-        prev_time = next_time
-    chunks.append((prev_time, cue_end, inline[prev_idx:]))
-
-    word_timings: List[Dict] = []
-    for raw_start, raw_end, chunk in chunks:
-        cleaned_chunk = _strip_vtt_markup(chunk)
-        if not cleaned_chunk:
-            continue
-        words = cleaned_chunk.split()
-        if not words:
-            continue
-
-        start = raw_start
-        end = raw_end
-        if end <= start:
-            end = min(cue_end, start + max(0.12 * len(words), 0.12))
-            if end <= start:
-                end = start + 0.12
-
-        duration = max(end - start, 0.12 * len(words), 0.12)
-        word_duration = duration / max(len(words), 1)
-        for i, word in enumerate(words):
-            word_timings.append({
-                "word": word,
-                "start": round(start + i * word_duration, 3),
-                "end": round(start + (i + 1) * word_duration, 3),
-            })
-
-    return word_timings
-
-
-def _count_inline_timestamps(text: str) -> int:
-    return len(re.findall(r"<\d{1,2}:\d{2}:\d{2}[.,]\d{3}>", text or ""))
-
-
-
-def _normalize_word_token(word: str) -> str:
-    return re.sub(r"[^\w'-]", "", (word or "").lower())
-
-
-
-def _common_prefix_len(words_a: List[str], words_b: List[str]) -> int:
-    count = 0
-    for a, b in zip(words_a, words_b):
-        if _normalize_word_token(a) != _normalize_word_token(b):
-            break
-        count += 1
-    return count
-
-
-
-def _prepare_growth_cues(raw_cues: List[Dict]) -> List[Dict]:
-    """Collapse exact duplicates while preserving the best raw cue text."""
-    prepared: List[Dict] = []
-    for raw in raw_cues:
-        cue = dict(raw)
-        cue["tokens"] = cue["text"].split()
-        if not cue["tokens"]:
-            continue
-
-        if prepared:
-            prev = prepared[-1]
-            common = _common_prefix_len(prev["tokens"], cue["tokens"])
-            if common == len(prev["tokens"]) == len(cue["tokens"]):
-                if _count_inline_timestamps(cue.get("raw_text", "")) > _count_inline_timestamps(prev.get("raw_text", "")):
-                    prev["raw_text"] = cue.get("raw_text", "")
-                prev["start"] = min(prev["start"], cue["start"])
-                prev["end"] = max(prev["end"], cue["end"])
-                continue
-
-        prepared.append(cue)
-
-    return prepared
-
-
-
-def _group_growth_cues(cues: List[Dict]) -> List[List[Dict]]:
-    """Group rolling-window cues where each cue expands the previous text."""
-    if not cues:
-        return []
-
-    groups: List[List[Dict]] = []
-    current_group: List[Dict] = [cues[0]]
-
-    for cue in cues[1:]:
-        prev = current_group[-1]
-        common = _common_prefix_len(prev["tokens"], cue["tokens"])
-        is_growth = common == len(prev["tokens"]) and len(cue["tokens"]) >= len(prev["tokens"])
-        close_in_time = cue["start"] <= prev["end"] + 1.0
-
-        if is_growth and close_in_time:
-            current_group.append(cue)
-        else:
-            groups.append(current_group)
-            current_group = [cue]
-
-    groups.append(current_group)
-    return groups
-
-
-
-def _build_word_timings_from_growth_cues(group: List[Dict]) -> List[Dict]:
-    """Infer word timings from successive growing subtitle cues."""
-    if not group:
-        return []
-
-    segment_start = group[0]["start"]
-    segment_end = max(cue["end"] for cue in group)
-    final_tokens = group[-1]["tokens"]
-
-    previous_tokens: List[str] = []
-    result: List[Dict] = []
-
-    for index, cue in enumerate(group):
-        tokens = cue["tokens"]
-        common = _common_prefix_len(previous_tokens, tokens)
-        if common < len(previous_tokens):
-            return []
-
-        introduced = tokens[common:]
-        if introduced:
-            interval_start = cue["start"]
-            interval_end = group[index + 1]["start"] if index + 1 < len(group) else segment_end
-            if interval_end <= interval_start:
-                interval_end = interval_start + max(0.12 * len(introduced), 0.12)
-
-            batch = _fallback_even_word_timings(" ".join(introduced), interval_start, interval_end)
-            result.extend(batch)
-
-        previous_tokens = tokens
-
-    if len(result) != len(final_tokens):
-        return []
-
-    for idx, token in enumerate(final_tokens):
-        result[idx]["word"] = token
-
-    return _smooth_word_timings(result, segment_start, segment_end)
-
-
-
-def _parse_vtt(vtt_content: str) -> List[Dict]:
-    """
-    Parse WebVTT subtitle format to structured segments.
-
-    Priority order for word timing extraction:
-      1. Real inline karaoke timestamps inside the cue
-      2. Rolling-window inference from adjacent growth cues
-      3. Weighted fallback heuristic distribution across the cue duration
-    """
-    segments: List[Dict] = []
-
+def _extract_raw_cues(vtt_content: str) -> List[Dict]:
+    """Parse VTT content into a flat list of raw cues."""
     content = vtt_content.lstrip("\ufeff").strip()
     if not content.startswith("WEBVTT"):
         logger.warning("VTT file does not start with WEBVTT header")
-        return segments
+        return []
 
-    raw_cues: List[Dict] = []
+    cues: List[Dict] = []
     for block in re.split(r"\n\n+", content):
         block = block.strip()
         if not block or block.startswith("WEBVTT") or block.startswith("NOTE"):
             continue
 
         lines = block.splitlines()
-        if len(lines) < 2:
-            continue
-
         timestamp_line = None
-        text_lines = []
+        text_lines: List[str] = []
         for i, line in enumerate(lines):
             if "-->" in line:
                 timestamp_line = line
@@ -570,127 +315,181 @@ def _parse_vtt(vtt_content: str) -> List[Dict]:
         raw_text = "\n".join(text_lines).strip()
         text = _strip_vtt_markup(raw_text)
         if text:
-            raw_cues.append({
+            cues.append({
                 "start": start,
                 "end": end,
                 "text": text,
-                "raw_text": raw_text,
+                "words": text.split(),
             })
 
-    prepared_cues = _prepare_growth_cues(raw_cues)
-    groups = _group_growth_cues(prepared_cues)
+    return cues
 
-    for idx, group in enumerate(groups):
-        segment_start = round(group[0]["start"], 3)
-        segment_end = round(max(cue["end"] for cue in group), 3)
-        final_cue = group[-1]
-        text = final_cue["text"]
 
-        inline_candidate = None
-        for cue in reversed(group):
-            if _count_inline_timestamps(cue.get("raw_text", "")) > 0 and len(cue["tokens"]) == len(final_cue["tokens"]):
-                inline_candidate = cue
-                break
+def _find_new_words(seen_words: List[str], cue_words: List[str]) -> List[str]:
+    """
+    Given all words emitted so far and the current cue words,
+    return only the truly NEW words the cue introduces.
+    """
+    if not seen_words or not cue_words:
+        return cue_words
 
-        if inline_candidate is not None:
-            word_timings = _extract_word_timings_from_vtt_text(
-                inline_candidate.get("raw_text", ""),
-                inline_candidate["start"],
-                inline_candidate["end"],
-            )
-            word_timings = _smooth_word_timings(word_timings, segment_start, segment_end)
+    seen_norm = [_norm(w) for w in seen_words]
+    curr_norm = [_norm(w) for w in cue_words]
+
+    # Find longest suffix of seen that matches a prefix of current
+    best_overlap = 0
+    max_check = min(len(seen_norm), len(curr_norm))
+
+    for overlap_len in range(1, max_check + 1):
+        if seen_norm[-overlap_len:] == curr_norm[:overlap_len]:
+            best_overlap = overlap_len
+
+    if best_overlap > 0:
+        return cue_words[best_overlap:]
+
+    # Fuzzy fallback: skip leading words found in recent history
+    recent = set(seen_norm[-20:])
+    skip = 0
+    for w in curr_norm:
+        if w in recent:
+            skip += 1
         else:
-            word_timings = _build_word_timings_from_growth_cues(group) if len(group) > 1 else []
+            break
 
-        if not word_timings:
-            word_timings = _fallback_even_word_timings(text, segment_start, segment_end)
+    if 0 < skip < len(cue_words):
+        return cue_words[skip:]
 
-        segments.append({
-            "index": idx,
-            "start": segment_start,
-            "end": segment_end,
-            "text": text,
-            "words": word_timings,
-            "duration": round(segment_end - segment_start, 3),
-        })
-
-    # Deduplicate segments (YouTube auto-subs often repeat lines)
-    segments = _dedup_segments(segments)
-
-    logger.debug(
-        f"VTT parser: {len(raw_cues)} raw cues → {len(groups)} groups → {len(segments)} final segments (after dedup)"
-    )
-    return segments
+    return cue_words
 
 
-
-def _normalize_segment_text(text: str) -> str:
-    """Normalize text for comparison: lowercase, strip punctuation, collapse spaces."""
-    t = re.sub(r"[^\w\s]", "", (text or "").lower())
-    return re.sub(r"\s+", " ", t).strip()
-
-
-def _dedup_segments(segments: List[Dict]) -> List[Dict]:
+def _build_clean_segments(cues: List[Dict]) -> List[Dict]:
     """
-    Remove duplicate/near-duplicate subtitle segments.
-
-    YouTube auto-generated VTT often produces:
-      - Exact duplicate lines with slightly different timestamps
-      - Lines where one is a substring of the adjacent one
-      - Repeated text across non-adjacent segments
-
-    Strategy:
-      1. Skip segments whose normalized text matches the previous segment
-      2. Skip segments whose text is fully contained in the previous or next
-      3. Merge segments that overlap in time AND have identical text
-      4. Re-index the remaining segments
+    Collapse YouTube sliding-window cues into clean non-overlapping segments.
     """
-    if len(segments) <= 1:
-        return segments
+    if not cues:
+        return []
 
-    cleaned: List[Dict] = []
+    # Phase 1: collapse growing cues
+    collapsed: List[Dict] = []
+    for cue in cues:
+        if collapsed:
+            prev = collapsed[-1]
+            prev_n = _norm(prev["text"])
+            curr_n = _norm(cue["text"])
 
-    for i, seg in enumerate(segments):
-        norm = _normalize_segment_text(seg["text"])
-        if not norm:
+            if curr_n.startswith(prev_n) and len(curr_n) > len(prev_n):
+                collapsed[-1] = cue
+                continue
+
+            if curr_n == prev_n:
+                collapsed[-1]["end"] = max(prev["end"], cue["end"])
+                continue
+
+        collapsed.append(dict(cue))
+
+    # Phase 2: extract only NEW words from each cue
+    word_runs: List[Dict] = []
+    all_words: List[str] = []
+
+    for cue in collapsed:
+        new_words = _find_new_words(all_words, cue["words"])
+        if not new_words:
             continue
 
-        # Skip if identical to previous
-        if cleaned:
-            prev_norm = _normalize_segment_text(cleaned[-1]["text"])
-            if norm == prev_norm:
-                # Keep the one with longer time span
-                if seg["duration"] > cleaned[-1]["duration"]:
-                    cleaned[-1] = seg
-                continue
+        n_total = len(cue["words"])
+        n_new = len(new_words)
+        cue_dur = cue["end"] - cue["start"]
 
-            # Skip if current is a substring of previous
-            if norm in prev_norm:
-                continue
+        if n_total > 0 and cue_dur > 0:
+            word_dur = cue_dur / n_total
+            seg_start = cue["start"] + (n_total - n_new) * word_dur
+        else:
+            seg_start = cue["start"]
 
-            # If previous is a substring of current, replace it
-            if prev_norm in norm:
-                cleaned[-1] = seg
-                continue
+        word_runs.append({
+            "start": seg_start,
+            "end": cue["end"],
+            "words": new_words,
+            "text": " ".join(new_words),
+        })
+        all_words.extend(new_words)
 
-            # Skip near-duplicates (>80% word overlap)
-            prev_words = set(prev_norm.split())
-            curr_words = set(norm.split())
-            if prev_words and curr_words:
-                overlap = len(prev_words & curr_words) / max(len(prev_words), len(curr_words))
-                if overlap > 0.8 and abs(seg["start"] - cleaned[-1]["start"]) < 2.0:
-                    # Keep the longer text
-                    if len(seg["text"]) > len(cleaned[-1]["text"]):
-                        cleaned[-1] = seg
-                    continue
+    # Phase 3: merge into sentence-sized segments
+    return _merge_into_sentences(word_runs)
 
-        cleaned.append(seg)
 
-    # Re-index
-    for i, seg in enumerate(cleaned):
-        seg["index"] = i
+def _merge_into_sentences(
+    runs: List[Dict],
+    max_words: int = 14,
+    max_duration: float = 6.0,
+) -> List[Dict]:
+    """Merge small word-runs into sentence-like segments."""
+    if not runs:
+        return []
 
-    return cleaned
+    merged: List[Dict] = []
+    buf_words: List[str] = []
+    buf_start = 0.0
+    buf_end = 0.0
+
+    def flush():
+        nonlocal buf_words, buf_start, buf_end
+        if not buf_words:
+            return
+        text = " ".join(buf_words)
+        n = len(buf_words)
+        dur = max(buf_end - buf_start, 0.1)
+        wd = dur / n
+        words = [{
+            "word": w,
+            "start": round(buf_start + j * wd, 3),
+            "end": round(buf_start + (j + 1) * wd, 3),
+        } for j, w in enumerate(buf_words)]
+
+        merged.append({
+            "index": len(merged),
+            "start": round(buf_start, 3),
+            "end": round(buf_end, 3),
+            "text": text,
+            "words": words,
+            "duration": round(buf_end - buf_start, 3),
+        })
+        buf_words = []
+
+    for run in runs:
+        if not buf_words:
+            buf_start = run["start"]
+
+        buf_words.extend(run["words"])
+        buf_end = run["end"]
+
+        text_so_far = " ".join(buf_words)
+        ends_sentence = bool(re.search(r"[.!?]$", text_so_far.rstrip()))
+        too_long = len(buf_words) >= max_words
+        too_much_time = (buf_end - buf_start) >= max_duration
+
+        if ends_sentence or too_long or too_much_time:
+            flush()
+
+    flush()
+    return merged
+
+
+def _parse_vtt(vtt_content: str) -> List[Dict]:
+    """
+    Parse WebVTT subtitle format to clean, non-overlapping segments.
+    Handles YouTube auto-generated sliding-window subtitles.
+    """
+    raw_cues = _extract_raw_cues(vtt_content)
+    if not raw_cues:
+        return []
+
+    segments = _build_clean_segments(raw_cues)
+
+    logger.debug(
+        f"VTT parser: {len(raw_cues)} raw cues -> {len(segments)} clean segments"
+    )
+    return segments
 
 
 def _vtt_time_to_seconds(vtt_time: str) -> float:
