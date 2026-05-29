@@ -17,7 +17,8 @@ from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Depends
+from backend.app.api.auth import get_current_user
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ def extract_youtube_id(url: str) -> Optional[str]:
 
 
 @router.post("/process", response_model=VideoResponse)
-async def process_video(input_data: VideoURLInput, background_tasks: BackgroundTasks):
+async def process_video(input_data: VideoURLInput, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Process a YouTube video: extract ID, fetch info, prepare for playback."""
 
     youtube_id = extract_youtube_id(input_data.url)
@@ -65,7 +66,7 @@ async def process_video(input_data: VideoURLInput, background_tasks: BackgroundT
         raise HTTPException(status_code=400, detail="Invalid YouTube URL")
 
     # Return cached record if already processed
-    existing = await db_manager.get_video_by_youtube_id(youtube_id)
+    existing = await db_manager.get_video_by_youtube_id(youtube_id, current_user["sub"])
     if existing:
         logger.info(f"Video already exists: {youtube_id}")
         return VideoResponse(**existing)
@@ -107,6 +108,7 @@ async def process_video(input_data: VideoURLInput, background_tasks: BackgroundT
             "thumbnail_url": info.get("thumbnail", ""),
             "description": info.get("description", "")[:2000],  # trim long descriptions
             "status": "ready",
+            "user_id": current_user["sub"],
         }
 
         await db_manager.add_video(video_data)
@@ -125,18 +127,19 @@ async def process_video(input_data: VideoURLInput, background_tasks: BackgroundT
 async def list_videos(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
 ):
     """List all processed videos."""
     offset = (page - 1) * limit
     async with db_manager.get_connection() as conn:
         async with conn.execute(
-            "SELECT * FROM videos ORDER BY created_at DESC LIMIT ? OFFSET ?",
-            (limit, offset),
+            "SELECT * FROM videos WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+            (current_user["sub"], limit, offset),
         ) as cursor:
             rows = await cursor.fetchall()
             videos = [dict(r) for r in rows]
 
-        async with conn.execute("SELECT COUNT(*) as total FROM videos") as cursor:
+        async with conn.execute("SELECT COUNT(*) as total FROM videos WHERE user_id = ?", (current_user["sub"],)) as cursor:
             row = await cursor.fetchone()
             total = dict(row)["total"] if row else 0
 

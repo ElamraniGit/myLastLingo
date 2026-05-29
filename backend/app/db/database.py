@@ -199,6 +199,20 @@ class DatabaseManager:
             rows = await cursor.fetchall()
             columns = {dict(row)["name"] for row in rows}
 
+        # Add user_id to tables that need per-user isolation
+        for tbl, col_sql in [
+            ("videos", "ALTER TABLE videos ADD COLUMN user_id TEXT DEFAULT ''"),
+            ("saved_words", "ALTER TABLE saved_words ADD COLUMN user_id TEXT DEFAULT ''"),
+            ("sessions", "ALTER TABLE sessions ADD COLUMN user_id TEXT DEFAULT ''"),
+            ("text_sources", "ALTER TABLE text_sources ADD COLUMN user_id TEXT DEFAULT ''"),
+        ]:
+            async with conn.execute(f"PRAGMA table_info({tbl})") as tc:
+                trows = await tc.fetchall()
+                tcols = {dict(r)["name"] for r in trows}
+            if "user_id" not in tcols:
+                logger.info(f"Applying migration: add {tbl}.user_id")
+                await conn.execute(col_sql)
+
         # Also migrate words table
         async with conn.execute("PRAGMA table_info(words)") as wcur:
             wrows = await wcur.fetchall()
@@ -288,6 +302,7 @@ class DatabaseManager:
         sort: str = "next_review",
         limit: Optional[int] = None,
         offset: int = 0,
+        user_id: str = "",
     ) -> Tuple[str, List[Any]]:
         due_expr = self._normalized_datetime_expr("sw.next_review")
         select_clause = "COUNT(*) as total" if count else f"""
@@ -307,6 +322,10 @@ class DatabaseManager:
 
         clauses: List[str] = []
         params: List[Any] = []
+
+        if user_id:
+            clauses.append("sw.user_id = ?")
+            params.append(user_id)
 
         if status:
             clauses.append("sw.status = ?")
@@ -367,8 +386,8 @@ class DatabaseManager:
             await conn.execute(
                 """
                 INSERT OR REPLACE INTO videos
-                    (id, youtube_id, title, channel, duration, thumbnail_url, description, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, youtube_id, title, channel, duration, thumbnail_url, description, status, user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     video_data.get("id"),
@@ -379,6 +398,7 @@ class DatabaseManager:
                     video_data.get("thumbnail_url", ""),
                     video_data.get("description", ""),
                     video_data.get("status", "downloaded"),
+                    video_data.get("user_id", ""),
                 ),
             )
         return video_data.get("id", "")
@@ -389,9 +409,15 @@ class DatabaseManager:
                 row = await cursor.fetchone()
                 return dict(row) if row else None
 
-    async def get_video_by_youtube_id(self, youtube_id: str) -> Optional[Dict[str, Any]]:
+    async def get_video_by_youtube_id(self, youtube_id: str, user_id: str = "") -> Optional[Dict[str, Any]]:
         async with self.get_connection() as conn:
-            async with conn.execute("SELECT * FROM videos WHERE youtube_id = ?", (youtube_id,)) as cursor:
+            if user_id:
+                query = "SELECT * FROM videos WHERE youtube_id = ? AND user_id = ?"
+                params = (youtube_id, user_id)
+            else:
+                query = "SELECT * FROM videos WHERE youtube_id = ?"
+                params = (youtube_id,)
+            async with conn.execute(query, params) as cursor:
                 row = await cursor.fetchone()
                 return dict(row) if row else None
 
@@ -494,6 +520,7 @@ class DatabaseManager:
         video_id: Optional[str],
         sentence: str,
         context: str,
+        user_id: str = "",
     ) -> str:
         import uuid as _uuid
 
@@ -688,7 +715,7 @@ class DatabaseManager:
 
         return await self.get_saved_word(saved_word_id)
 
-    async def get_due_words(self, limit: int = 20) -> List[Dict[str, Any]]:
+    async def get_due_words(self, limit: int = 20, user_id: str = "") -> List[Dict[str, Any]]:
         due_expr = self._normalized_datetime_expr("sw.next_review")
         async with self.get_connection() as conn:
             async with conn.execute(
@@ -701,7 +728,8 @@ class DatabaseManager:
                 FROM saved_words sw
                 JOIN words w ON sw.word_id = w.id
                 LEFT JOIN videos v ON sw.video_id = v.id
-                WHERE sw.next_review IS NULL OR {due_expr} <= datetime('now')
+                WHERE (sw.user_id = ? OR sw.user_id = '')
+                  AND (sw.next_review IS NULL OR {due_expr} <= datetime('now'))
                 ORDER BY
                     CASE sw.status
                         WHEN 'learning' THEN 0
@@ -715,7 +743,7 @@ class DatabaseManager:
                     sw.created_at ASC
                 LIMIT ?
                 """,
-                (limit,),
+                (user_id, limit),
             ) as cursor:
                 rows = await cursor.fetchall()
                 return [self._parse_saved_word_row(row) for row in rows]

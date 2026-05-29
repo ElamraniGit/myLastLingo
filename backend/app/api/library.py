@@ -7,7 +7,8 @@ import logging
 from typing import Optional
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from backend.app.api.auth import get_current_user
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -32,19 +33,19 @@ class SourceResponse(BaseModel):
 
 
 @router.get("/sources")
-async def list_sources(page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200)):
+async def list_sources(page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200), current_user: dict = Depends(get_current_user)):
     """List all learning sources (videos + texts) sorted by newest."""
     offset = (page - 1) * limit
     async with db_manager.get_connection() as conn:
         # Get videos
         async with conn.execute(
-            "SELECT id, youtube_id, title, channel, duration, thumbnail_url, created_at FROM videos ORDER BY created_at DESC"
+            "SELECT id, youtube_id, title, channel, duration, thumbnail_url, created_at FROM videos WHERE user_id = ? ORDER BY created_at DESC", (current_user["sub"],)
         ) as cur:
             video_rows = [dict(r) for r in await cur.fetchall()]
 
         # Get text sources
         async with conn.execute(
-            "SELECT id, title, source_type, content, word_count, created_at FROM text_sources ORDER BY created_at DESC"
+            "SELECT id, title, source_type, content, word_count, created_at FROM text_sources WHERE user_id = ? ORDER BY created_at DESC", (current_user["sub"],)
         ) as cur:
             text_rows = [dict(r) for r in await cur.fetchall()]
 
@@ -88,7 +89,7 @@ async def list_sources(page: int = Query(1, ge=1), limit: int = Query(50, ge=1, 
 
 
 @router.post("/text")
-async def add_text_source(req: AddTextRequest):
+async def add_text_source(req: AddTextRequest, current_user: dict = Depends(get_current_user)):
     """Add a text/paste source to the library."""
     title = req.title.strip()
     content = req.content.strip()
@@ -104,9 +105,9 @@ async def add_text_source(req: AddTextRequest):
 
     async with db_manager.get_connection() as conn:
         await conn.execute(
-            """INSERT INTO text_sources (id, title, source_type, content, word_count, created_at)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (source_id, title, req.source_type, content, word_count, now),
+            """INSERT INTO text_sources (id, title, source_type, content, word_count, created_at, user_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (source_id, title, req.source_type, content, word_count, now, current_user["sub"]),
         )
 
     logger.info(f"Text source added: {title} ({word_count} words)")
@@ -121,7 +122,7 @@ async def add_text_source(req: AddTextRequest):
 
 
 @router.get("/text/{source_id}")
-async def get_text_source(source_id: str):
+async def get_text_source(source_id: str, current_user: dict = Depends(get_current_user)):
     """Get full text source content."""
     async with db_manager.get_connection() as conn:
         async with conn.execute(
@@ -136,7 +137,7 @@ async def get_text_source(source_id: str):
 
 
 @router.delete("/source/{source_id}")
-async def delete_source(source_id: str):
+async def delete_source(source_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a source (video or text)."""
     async with db_manager.get_connection() as conn:
         # Try text first

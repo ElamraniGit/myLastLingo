@@ -7,7 +7,8 @@ import uuid
 import logging
 from typing import Optional, Dict, Any, List
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from backend.app.api.auth import get_current_user
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class WordResponse(BaseModel):
 
 
 @router.post("/save")
-async def save_word(request: SaveWordRequest):
+async def save_word(request: SaveWordRequest, current_user: dict = Depends(get_current_user)):
     """Save a word to user's vocabulary."""
     word = request.word.lower().strip()
     if not word:
@@ -73,8 +74,8 @@ async def save_word(request: SaveWordRequest):
 
     async with db_manager.get_connection() as conn:
         async with conn.execute(
-            "SELECT * FROM saved_words WHERE word_id = ? AND (video_id = ? OR video_id IS NULL)",
-            (word_data["id"], request.video_id),
+            "SELECT * FROM saved_words WHERE word_id = ? AND user_id = ? AND (video_id = ? OR video_id IS NULL)",
+            (word_data["id"], current_user["sub"], request.video_id),
         ) as cursor:
             existing = await cursor.fetchone()
 
@@ -94,6 +95,7 @@ async def save_word(request: SaveWordRequest):
         request.video_id,
         request.sentence,
         request.context,
+        user_id=current_user["sub"],
     )
     saved_word = await db_manager.get_saved_word(saved_id)
 
@@ -118,6 +120,7 @@ async def list_vocabulary(
     tag: Optional[str] = Query(None),
     favorite_only: bool = Query(False),
     sort: str = Query("next_review", pattern="^(next_review|newest|oldest|alphabetical|level|difficulty)$"),
+    current_user: dict = Depends(get_current_user),
 ):
     """List saved vocabulary words with rich filtering."""
     words = await db_manager.get_saved_words(
@@ -182,7 +185,7 @@ async def update_saved_word(saved_id: str, request: UpdateSavedWordRequest):
 
 
 @router.post("/review")
-async def review_word(request: ReviewRequest):
+async def review_word(request: ReviewRequest, current_user: dict = Depends(get_current_user)):
     """Review a saved word using an improved spaced-repetition flow."""
     if request.quality < 0 or request.quality > 5:
         raise HTTPException(status_code=400, detail="Quality must be between 0 and 5")
@@ -202,7 +205,7 @@ async def review_word(request: ReviewRequest):
 
 
 @router.get("/due")
-async def get_due_words(limit: int = Query(20, ge=1, le=100)):
+async def get_due_words(limit: int = Query(20, ge=1, le=100), current_user: dict = Depends(get_current_user)):
     """Get words due for review."""
     words = await db_manager.get_due_words(limit)
     summary = await db_manager.get_review_summary()
@@ -210,7 +213,7 @@ async def get_due_words(limit: int = Query(20, ge=1, le=100)):
 
 
 @router.get("/review/summary")
-async def get_review_summary():
+async def get_review_summary(current_user: dict = Depends(get_current_user)):
     """Get compact review queue summary."""
     return await db_manager.get_review_summary()
 
@@ -232,7 +235,7 @@ async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le
 
 
 @router.get("/stats")
-async def get_vocabulary_stats():
+async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
     """Get rich vocabulary and review statistics."""
     async with db_manager.get_connection() as conn:
         due_expr = db_manager._normalized_datetime_expr("next_review")
@@ -341,7 +344,7 @@ async def get_vocabulary_stats():
 
 
 @router.delete("/{saved_id}")
-async def delete_saved_word(saved_id: str):
+async def delete_saved_word(saved_id: str, current_user: dict = Depends(get_current_user)):
     """Remove a word from vocabulary."""
     async with db_manager.get_connection() as conn:
         await conn.execute("DELETE FROM word_reviews WHERE saved_word_id = ?", (saved_id,))
