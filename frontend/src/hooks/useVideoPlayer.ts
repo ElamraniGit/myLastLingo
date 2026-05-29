@@ -367,7 +367,7 @@ export function useVideoPlayer() {
     const iv = setInterval(() => {
       const current = Number(playerRef.current?.getCurrentTime?.());
       if (Number.isFinite(current)) syncPlaybackState(current);
-    }, 80);
+    }, 40);
     return () => clearInterval(iv);
   }, [currentVideo?.id, playerState.playing, playerRef, syncPlaybackState]);
 

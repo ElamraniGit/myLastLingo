@@ -178,7 +178,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
       ref={ref}
       onClick={onSeek}
       dir="ltr"
-      className={`group relative rounded-xl px-3 py-2.5 cursor-pointer transition-all duration-200 border ${
+      className={`group relative rounded-xl px-3 py-2.5 cursor-pointer border ${
         isActive
           ? 'bg-blue-500/8 border-blue-500/20 shadow-sm'
           : 'border-transparent hover:bg-slate-800/70 hover:border-slate-700/50'
@@ -214,7 +214,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
                   key={i}
                   onClick={(e) => { e.stopPropagation(); if (c) onWordClick(c); }}
                   style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-                  className={`${font.row} cursor-pointer select-none px-0.5 rounded transition-colors duration-100 ${
+                  className={`${font.row} cursor-pointer select-none px-0.5 rounded ${
                     isActive
                       ? 'text-slate-100 hover:text-blue-300 hover:bg-blue-500/15'
                       : 'text-slate-500 hover:text-slate-200 hover:bg-slate-700/60'
@@ -252,7 +252,7 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }:
     <span
       onClick={onClick}
       style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-all duration-75 ${
+      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded ${
         isCurrentWord
           ? 'text-blue-300 font-semibold bg-blue-500/20'
           : isActiveSentence

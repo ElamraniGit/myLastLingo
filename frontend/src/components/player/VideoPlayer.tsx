@@ -69,7 +69,7 @@ export default function VideoPlayer() {
           volume={volume}
           width="100%"
           height="100%"
-          progressInterval={80}
+          progressInterval={50}
           onProgress={onProgress}
           onDuration={onDuration}
           onReady={onReady}
