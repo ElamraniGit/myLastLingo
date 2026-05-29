@@ -93,8 +93,8 @@ export default function LibraryView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Library</h1>
-          <p className="text-slate-500 text-sm mt-0.5">{sources.length} source{sources.length === 1 ? '' : 's'}</p>
+          <h1 className="text-2xl font-bold text-heading">Library</h1>
+          <p className="text-muted text-sm mt-0.5">{sources.length} source{sources.length === 1 ? '' : 's'}</p>
         </div>
         <Button onClick={() => setAddMode('choose')} variant="primary" size="sm">
           + Add Source
@@ -104,13 +104,13 @@ export default function LibraryView() {
       {/* Sources list */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-line border-t-blue-500 rounded-full animate-spin" />
         </div>
       ) : sources.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">📖</div>
-          <h2 className="text-lg font-semibold text-white mb-2">Your library is empty</h2>
-          <p className="text-slate-400 text-sm max-w-xs mx-auto mb-6">
+          <h2 className="text-lg font-semibold text-heading mb-2">Your library is empty</h2>
+          <p className="text-body text-sm max-w-xs mx-auto mb-6">
             Add YouTube videos or text content to start learning English
           </p>
           <Button onClick={() => setAddMode('choose')} variant="primary">Add your first source</Button>
@@ -119,37 +119,37 @@ export default function LibraryView() {
         <div className="space-y-2">
           {sources.map(s => (
             <div key={s.id}
-              className="bg-slate-800/50 border border-slate-700/40 rounded-xl overflow-hidden hover:border-slate-600 transition-all group">
+              className="bg-card/50 border border-line/40 rounded-xl overflow-hidden hover:border-line transition-all group">
               <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={() => openSource(s)}>
                 {/* Thumbnail or icon */}
                 {s.source_type === 'youtube' && s.thumbnail_url ? (
-                  <img src={s.thumbnail_url} alt="" className="w-20 h-12 rounded-lg object-cover bg-slate-700 flex-shrink-0" />
+                  <img src={s.thumbnail_url} alt="" className="w-20 h-12 rounded-lg object-cover bg-elevated flex-shrink-0" />
                 ) : (
-                  <div className="w-20 h-12 rounded-lg bg-slate-700/60 flex items-center justify-center flex-shrink-0">
+                  <div className="w-20 h-12 rounded-lg bg-elevated/60 flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">{SOURCE_ICONS[s.source_type] || '📄'}</span>
                   </div>
                 )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 line-clamp-1">{s.title}</p>
+                  <p className="text-sm font-medium text-heading line-clamp-1">{s.title}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-400">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-elevated/60 text-body">
                       {SOURCE_LABELS[s.source_type] || s.source_type}
                     </span>
-                    {s.channel && <span className="text-xs text-slate-500">{s.channel}</span>}
-                    {s.duration ? <span className="text-xs text-slate-600">{fmtDuration(s.duration)}</span> : null}
-                    {(s.word_count ?? 0) > 0 && <span className="text-xs text-slate-600">{s.word_count} words</span>}
-                    {s.created_at && <span className="text-xs text-slate-600">{fmtDate(s.created_at)}</span>}
+                    {s.channel && <span className="text-xs text-muted">{s.channel}</span>}
+                    {s.duration ? <span className="text-xs text-faint">{fmtDuration(s.duration)}</span> : null}
+                    {(s.word_count ?? 0) > 0 && <span className="text-xs text-faint">{s.word_count} words</span>}
+                    {s.created_at && <span className="text-xs text-faint">{fmtDate(s.created_at)}</span>}
                   </div>
                   {s.source_type !== 'youtube' && s.content && (
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">{s.content}</p>
+                    <p className="text-xs text-muted mt-1 line-clamp-1">{s.content}</p>
                   )}
                 </div>
 
                 {/* Delete */}
                 <button onClick={e => { e.stopPropagation(); deleteSource(s.id); }}
-                  className="p-2 rounded-lg text-slate-700 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
+                  className="p-2 rounded-lg text-faint hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
                   🗑
                 </button>
               </div>
@@ -243,18 +243,18 @@ function AddSourceModal({
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={close} />
 
       {/* Modal */}
-      <div className="fixed inset-x-4 bottom-4 top-auto z-50 bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto
+      <div className="fixed inset-x-4 bottom-4 top-auto z-50 bg-surface border border-line/50 rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto
                       sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <h2 className="text-lg font-bold text-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line-s">
+          <h2 className="text-lg font-bold text-heading">
             {mode === 'choose' && 'Add Source'}
             {mode === 'youtube' && '🎬 YouTube Video'}
             {mode === 'text' && '📄 Text Content'}
             {mode === 'paste' && '📋 Paste Text'}
           </h2>
-          <button onClick={close} className="p-2 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300">✕</button>
+          <button onClick={close} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body">✕</button>
         </div>
 
         <div className="px-5 py-4 space-y-4">
@@ -262,32 +262,32 @@ function AddSourceModal({
           {/* ── Choose type ────────────────────────────────────── */}
           {mode === 'choose' && (
             <div className="space-y-3">
-              <p className="text-sm text-slate-400">What would you like to add?</p>
+              <p className="text-sm text-body">What would you like to add?</p>
 
               <button onClick={() => setMode('youtube')}
-                className="w-full flex items-center gap-4 p-4 bg-slate-800/60 border border-slate-700/40 rounded-xl hover:border-blue-500/30 hover:bg-blue-500/5 transition-all text-left">
+                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-blue-500/30 hover:bg-blue-500/5 transition-all text-left">
                 <span className="text-3xl">🎬</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">YouTube Video</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Paste a YouTube URL to extract subtitles</p>
+                  <p className="text-sm font-semibold text-heading">YouTube Video</p>
+                  <p className="text-xs text-muted mt-0.5">Paste a YouTube URL to extract subtitles</p>
                 </div>
               </button>
 
               <button onClick={() => setMode('paste')}
-                className="w-full flex items-center gap-4 p-4 bg-slate-800/60 border border-slate-700/40 rounded-xl hover:border-purple-500/30 hover:bg-purple-500/5 transition-all text-left">
+                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-purple-500/30 hover:bg-purple-500/5 transition-all text-left">
                 <span className="text-3xl">📋</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">Paste Text</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Paste any English text, story, or article</p>
+                  <p className="text-sm font-semibold text-heading">Paste Text</p>
+                  <p className="text-xs text-muted mt-0.5">Paste any English text, story, or article</p>
                 </div>
               </button>
 
               <button onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center gap-4 p-4 bg-slate-800/60 border border-slate-700/40 rounded-xl hover:border-green-500/30 hover:bg-green-500/5 transition-all text-left">
+                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-green-500/30 hover:bg-green-500/5 transition-all text-left">
                 <span className="text-3xl">📁</span>
                 <div>
-                  <p className="text-sm font-semibold text-white">Upload Text File</p>
-                  <p className="text-xs text-slate-500 mt-0.5">.txt file with English content</p>
+                  <p className="text-sm font-semibold text-heading">Upload Text File</p>
+                  <p className="text-xs text-muted mt-0.5">.txt file with English content</p>
                 </div>
               </button>
               <input ref={fileRef} type="file" accept=".txt,.text" onChange={handleFile} className="hidden" />
@@ -298,12 +298,12 @@ function AddSourceModal({
           {mode === 'youtube' && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-300 mb-1.5 block">YouTube URL</label>
+                <label className="text-sm font-medium text-body mb-1.5 block">YouTube URL</label>
                 <input
                   type="text" value={url}
                   onChange={e => { setUrl(e.target.value); setError(''); }}
                   placeholder="https://youtube.com/watch?v=..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   autoFocus
                 />
               </div>
@@ -318,25 +318,25 @@ function AddSourceModal({
           {(mode === 'paste' || mode === 'text') && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-300 mb-1.5 block">Title</label>
+                <label className="text-sm font-medium text-body mb-1.5 block">Title</label>
                 <input
                   type="text" value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. 'The Little Prince - Chapter 1'"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-300 mb-1.5 block">
-                  Content <span className="text-slate-500 font-normal">({text.split(/\s+/).filter(Boolean).length} words)</span>
+                <label className="text-sm font-medium text-body mb-1.5 block">
+                  Content <span className="text-muted font-normal">({text.split(/\s+/).filter(Boolean).length} words)</span>
                 </label>
                 <textarea
                   value={text}
                   onChange={e => { setText(e.target.value); setError(''); }}
                   placeholder="Paste your English text here..."
                   rows={8}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-y"
+                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-y"
                 />
               </div>
               <div className="flex gap-2">

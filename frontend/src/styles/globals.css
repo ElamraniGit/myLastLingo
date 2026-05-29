@@ -3,8 +3,61 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light theme (default) ──────────────────────────────────── */
   :root {
-    --color-bg: 15 23 42;
+    --bg-primary:    255 255 255;     /* white */
+    --bg-secondary:  248 250 252;     /* slate-50 */
+    --bg-card:       241 245 249;     /* slate-100 */
+    --bg-elevated:   226 232 240;     /* slate-200 */
+    --bg-input:      241 245 249;     /* slate-100 */
+
+    --text-primary:  15 23 42;        /* slate-900 */
+    --text-secondary: 71 85 105;      /* slate-500 */
+    --text-muted:    148 163 184;     /* slate-400 */
+    --text-faint:    203 213 225;     /* slate-300 */
+
+    --border:        203 213 225;     /* slate-300 */
+    --border-subtle: 226 232 240;     /* slate-200 */
+
+    --accent:        59 130 246;      /* blue-500 */
+    --accent-soft:   59 130 246;      /* blue-500 at /10 */
+  }
+
+  /* ── Dark theme ─────────────────────────────────────────────── */
+  .dark {
+    --bg-primary:    2 6 23;          /* slate-950 */
+    --bg-secondary:  15 23 42;        /* slate-900 */
+    --bg-card:       30 41 59;        /* slate-800 */
+    --bg-elevated:   51 65 85;        /* slate-700 */
+    --bg-input:      30 41 59;        /* slate-800 */
+
+    --text-primary:  241 245 249;     /* slate-100 */
+    --text-secondary: 148 163 184;    /* slate-400 */
+    --text-muted:    100 116 139;     /* slate-500 */
+    --text-faint:    51 65 85;        /* slate-700 */
+
+    --border:        51 65 85;        /* slate-700 */
+    --border-subtle: 30 41 59;        /* slate-800 */
+
+    --accent:        59 130 246;
+    --accent-soft:   59 130 246;
+  }
+
+  /* ── Auto-detect system preference ──────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --bg-primary:    2 6 23;
+      --bg-secondary:  15 23 42;
+      --bg-card:       30 41 59;
+      --bg-elevated:   51 65 85;
+      --bg-input:      30 41 59;
+      --text-primary:  241 245 249;
+      --text-secondary: 148 163 184;
+      --text-muted:    100 116 139;
+      --text-faint:    51 65 85;
+      --border:        51 65 85;
+      --border-subtle: 30 41 59;
+    }
   }
 
   * {
@@ -20,9 +73,12 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    background-color: rgb(var(--bg-primary));
+    color: rgb(var(--text-primary));
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto,
       'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
     direction: ltr;
     text-align: left;
@@ -30,13 +86,19 @@
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-600; }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--bg-elevated));
+    border-radius: 999px;
+  }
 
-  ::selection { @apply bg-blue-500/30 text-white; }
+  ::selection {
+    background-color: rgb(var(--accent) / 0.3);
+    color: rgb(var(--text-primary));
+  }
 
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-blue-500;
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
   }
 }
 
@@ -63,17 +125,29 @@
   .scrollbar-thin  { scrollbar-width: thin; }
   .scrollbar-none  { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
+
+  /* ── Theme-aware utility classes ─────────────────────────────── */
+  .bg-base       { background-color: rgb(var(--bg-primary)); }
+  .bg-surface    { background-color: rgb(var(--bg-secondary)); }
+  .bg-card       { background-color: rgb(var(--bg-card)); }
+  .bg-elevated   { background-color: rgb(var(--bg-elevated)); }
+  .bg-input      { background-color: rgb(var(--bg-input)); }
+
+  .text-heading   { color: rgb(var(--text-primary)); }
+  .text-body      { color: rgb(var(--text-secondary)); }
+  .text-muted     { color: rgb(var(--text-muted)); }
+  .text-faint     { color: rgb(var(--text-faint)); }
+
+  .border-default { border-color: rgb(var(--border)); }
+  .border-subtle  { border-color: rgb(var(--border-subtle)); }
 }
 
 @layer components {
   .glass {
-    @apply bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 shadow-xl;
-  }
-
-  .word-token {
-    @apply cursor-pointer inline-block px-0.5 rounded transition-all duration-100 select-none;
-    direction: ltr;
-    unicode-bidi: isolate;
+    background-color: rgb(var(--bg-card) / 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(var(--border) / 0.5);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
   }
 
   .flashcard-wrap  { perspective: 1000px; }
@@ -84,15 +158,4 @@
   .flashcard-inner.flipped { transform: rotateY(180deg); }
   .flashcard-face  { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .flashcard-back  { transform: rotateY(180deg); }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
-}
-.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
-
-.segment-active {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.2);
 }

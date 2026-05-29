@@ -30,14 +30,14 @@ export default function ProfileView() {
     <div className="max-w-xl mx-auto px-4 py-6 space-y-5">
       {/* Back + tabs */}
       <div className="flex items-center gap-2">
-        <button onClick={() => setPage('player')} className="p-2 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 flex-shrink-0">
+        <button onClick={() => setPage('player')} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body flex-shrink-0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <div className="flex-1 flex gap-1 bg-slate-800/50 rounded-xl p-1">
+        <div className="flex-1 flex gap-1 bg-card/50 rounded-xl p-1">
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                tab === t.id ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'
+                tab === t.id ? 'bg-elevated text-heading' : 'text-muted hover:text-body'
               }`}>
               {t.icon}
               {t.label}
@@ -64,12 +64,12 @@ function ProfileTab() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col items-center text-center">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white shadow-xl mb-3"
+        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-heading shadow-xl mb-3"
           style={{ backgroundColor: user.avatar_color }}>
           {(user.display_name || user.username)[0].toUpperCase()}
         </div>
-        <h1 className="text-xl font-bold text-white">{user.display_name || user.username}</h1>
-        <p className="text-slate-500 text-sm">@{user.username}</p>
+        <h1 className="text-xl font-bold text-heading">{user.display_name || user.username}</h1>
+        <p className="text-muted text-sm">@{user.username}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -78,17 +78,17 @@ function ProfileTab() {
           { label: 'Learned', value: progress?.learned ?? 0, color: 'text-green-400' },
           { label: 'Videos', value: recentVideos.length, color: 'text-purple-400' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-card/50 border border-line/40 rounded-xl p-3 text-center">
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[11px] text-slate-500">{s.label}</p>
+            <p className="text-[11px] text-muted">{s.label}</p>
           </div>
         ))}
       </div>
 
       {user.created_at && (
-        <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl px-4 py-3 flex justify-between text-sm">
-          <span className="text-slate-500">Member since</span>
-          <span className="text-slate-300">{new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
+        <div className="bg-card/50 border border-line/40 rounded-xl px-4 py-3 flex justify-between text-sm">
+          <span className="text-muted">Member since</span>
+          <span className="text-body">{new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
         </div>
       )}
 
@@ -120,15 +120,15 @@ function ProgressTab() {
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-2">
         {stats.map(s => (
-          <div key={s.label} className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-card/50 border border-line/40 rounded-xl p-3 text-center">
             <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-slate-500">{s.label}</p>
+            <p className="text-[10px] text-muted">{s.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-200">Pipeline</h3>
+      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">Pipeline</h3>
         {[
           { l: 'Learning', v: summary?.learning ?? 0, c: 'bg-yellow-500' },
           { l: 'Reviewing', v: summary?.reviewing ?? 0, c: 'bg-blue-500' },
@@ -138,10 +138,10 @@ function ProgressTab() {
           return (
             <div key={r.l}>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-400">{r.l}</span>
-                <span className="text-slate-500">{r.v}</span>
+                <span className="text-body">{r.l}</span>
+                <span className="text-muted">{r.v}</span>
               </div>
-              <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
                 <div className={`h-full rounded-full ${r.c}`} style={{ width: `${Math.round((r.v / total) * 100)}%` }} />
               </div>
             </div>
@@ -150,15 +150,15 @@ function ProgressTab() {
       </div>
 
       {progress?.level_distribution && Object.keys(progress.level_distribution).length > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-slate-200 mb-3">Levels</h3>
+        <div className="bg-card/50 border border-line/40 rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-heading mb-3">Levels</h3>
           {Object.entries(progress.level_distribution).map(([level, count]) => (
             <div key={level} className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold text-slate-400 w-5">{level}</span>
-              <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <span className="text-xs font-bold text-body w-5">{level}</span>
+              <div className="flex-1 h-1.5 bg-elevated rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.round((Number(count) / Math.max(Object.values(progress.level_distribution!).reduce((a,b) => a + Number(b), 0), 1)) * 100)}%` }} />
               </div>
-              <span className="text-[10px] text-slate-500 w-5 text-right">{count}</span>
+              <span className="text-[10px] text-muted w-5 text-right">{count}</span>
             </div>
           ))}
         </div>
@@ -207,8 +207,8 @@ function SettingsTab() {
   return (
     <div className="space-y-5">
       {/* Profile edit */}
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-200">Edit Profile</h3>
+      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">Edit Profile</h3>
         <Input label="Display Name" value={form.display_name} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} />
         <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
         <Input label="Current Password" type="password" value={form.current_password} onChange={e => setForm(f => ({ ...f, current_password: e.target.value }))} placeholder="Only if changing password" />
@@ -218,21 +218,21 @@ function SettingsTab() {
       </div>
 
       {/* Playback */}
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-200">Playback</h3>
+      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">Playback</h3>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-400">Default speed</span>
+          <span className="text-sm text-body">Default speed</span>
           <div className="flex gap-1">
             {[0.75, 1, 1.25, 1.5].map(s => (
               <button key={s} onClick={() => setDefaultSpeed(s)}
-                className={`px-2 py-1 rounded-lg text-xs font-mono ${defaultSpeed === s ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                className={`px-2 py-1 rounded-lg text-xs font-mono ${defaultSpeed === s ? 'bg-blue-600 text-heading' : 'bg-elevated text-body'}`}>
                 {s}×
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-400">Pause on word click</span>
+          <span className="text-sm text-body">Pause on word click</span>
           <button onClick={() => setAutoPauseOnWord(!autoPauseOnWord)}
             className={`w-10 h-5 rounded-full transition-colors relative ${autoPauseOnWord ? 'bg-blue-600' : 'bg-slate-600'}`}>
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoPauseOnWord ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -241,9 +241,9 @@ function SettingsTab() {
       </div>
 
       {/* Appearance */}
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4">
+      <div className="bg-card/50 border border-line/40 rounded-xl p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-400">Dark mode</span>
+          <span className="text-sm text-body">Dark mode</span>
           <button onClick={toggleTheme}
             className={`w-10 h-5 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-600'}`}>
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -252,8 +252,8 @@ function SettingsTab() {
       </div>
 
       {/* Backend */}
-      <div className="bg-slate-800/50 border border-slate-700/40 rounded-xl p-4 flex items-center justify-between">
-        <span className="text-sm text-slate-400">Backend</span>
+      <div className="bg-card/50 border border-line/40 rounded-xl p-4 flex items-center justify-between">
+        <span className="text-sm text-body">Backend</span>
         <span className={`text-xs flex items-center gap-1.5 ${backendOk ? 'text-green-400' : 'text-red-400'}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${backendOk ? 'bg-green-500' : 'bg-red-500'}`} />
           {backendOk ? 'Online' : 'Offline'}

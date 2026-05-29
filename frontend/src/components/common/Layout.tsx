@@ -47,17 +47,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
 
   return (
-    <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
+    <div className="flex h-screen overflow-hidden bg-base">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 bg-slate-900/80 border-r border-slate-800 flex-shrink-0">
-        <div className="px-5 py-5 border-b border-slate-800">
+      <aside className="hidden lg:flex flex-col w-56 bg-surface/80 border-r border-line-s flex-shrink-0">
+        <div className="px-5 py-5 border-b border-line-s">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-black text-base">L</span>
+              <span className="text-heading font-black text-base">L</span>
             </div>
             <div>
-              <h1 className="font-bold text-white text-sm leading-none">LinguaLearn</h1>
-              <p className="text-slate-500 text-[11px] mt-0.5">English Learning</p>
+              <h1 className="font-bold text-heading text-sm leading-none">LinguaLearn</h1>
+              <p className="text-muted text-[11px] mt-0.5">English Learning</p>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 currentPage === item.id
                   ? 'bg-blue-600/15 text-blue-400'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  : 'text-body hover:text-heading hover:bg-card'
               }`}>
               {item.icon}
               {item.label}
@@ -75,16 +75,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         {user && (
-          <div className="px-3 py-4 border-t border-slate-800">
+          <div className="px-3 py-4 border-t border-line-s">
             <button onClick={() => setPage('profile')}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition-colors">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-card transition-colors">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-heading text-sm font-bold flex-shrink-0"
                 style={{ backgroundColor: user.avatar_color }}>
                 {(user.display_name || user.username)[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-slate-200 truncate">{user.display_name || user.username}</p>
-                <p className="text-[11px] text-slate-500">@{user.username}</p>
+                <p className="text-sm font-medium text-heading truncate">{user.display_name || user.username}</p>
+                <p className="text-[11px] text-muted">@{user.username}</p>
               </div>
             </button>
           </div>
@@ -95,16 +95,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Main */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile top bar */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-slate-900/90 border-b border-slate-800 backdrop-blur-sm flex-shrink-0">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-surface/90 border-b border-line-s backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-xs">L</span>
+              <span className="text-heading font-black text-xs">L</span>
             </div>
-            <span className="font-bold text-white text-sm">LinguaLearn</span>
+            <span className="font-bold text-heading text-sm">LinguaLearn</span>
           </div>
           {user && (
             <button onClick={() => setPage('profile')}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-heading text-sm font-bold shadow-md"
               style={{ backgroundColor: user.avatar_color }}>
               {(user.display_name || user.username)[0].toUpperCase()}
             </button>
@@ -114,11 +114,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto">{children}</div>
 
         {/* Mobile bottom nav — 4 items only */}
-        <nav className="lg:hidden flex items-center bg-slate-900/95 border-t border-slate-800 px-2 pb-safe flex-shrink-0">
+        <nav className="lg:hidden flex items-center bg-surface/95 border-t border-line-s px-2 pb-safe flex-shrink-0">
           {NAV.map((item) => (
             <button key={item.id} onClick={() => setPage(item.id)}
               className={`flex-1 flex flex-col items-center gap-1 py-2.5 transition-colors ${
-                currentPage === item.id ? 'text-blue-400' : 'text-slate-500'
+                currentPage === item.id ? 'text-blue-400' : 'text-muted'
               }`}>
               {item.icon}
               <span className="text-[10px] font-medium leading-none">{item.label}</span>
@@ -136,7 +136,7 @@ function BackendStatus() {
     fetch(`${BACKEND_ORIGIN}/health`).then(r => setOk(r.ok)).catch(() => setOk(false));
   }, []);
   return (
-    <div className="flex items-center gap-2 text-[11px] text-slate-600">
+    <div className="flex items-center gap-2 text-[11px] text-faint">
       <span className={`w-1.5 h-1.5 rounded-full ${ok === null ? 'bg-yellow-500 animate-pulse' : ok ? 'bg-green-500' : 'bg-red-500'}`} />
       <span>{ok === null ? 'Connecting…' : ok ? 'Online' : 'Offline'}</span>
     </div>

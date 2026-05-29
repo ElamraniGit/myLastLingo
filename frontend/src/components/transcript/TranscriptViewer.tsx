@@ -47,9 +47,9 @@ function StatusBanner() {
 
   if (transcriptStatus === 'idle') return (
     <div className="flex flex-col items-center justify-center h-full py-16 px-6 text-center" dir="ltr">
-      <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center mb-4 text-2xl">📝</div>
-      <p className="text-base font-semibold text-slate-200 mb-1">No subtitles loaded</p>
-      <p className="text-sm text-slate-500 mb-5 max-w-xs leading-relaxed">
+      <div className="w-14 h-14 rounded-2xl bg-card flex items-center justify-center mb-4 text-2xl">📝</div>
+      <p className="text-base font-semibold text-heading mb-1">No subtitles loaded</p>
+      <p className="text-sm text-muted mb-5 max-w-xs leading-relaxed">
         Extract subtitles from YouTube captions, or use local Whisper AI as fallback.
       </p>
       <Button onClick={extractTranscript} variant="primary">Extract Subtitles</Button>
@@ -58,17 +58,17 @@ function StatusBanner() {
 
   if (transcriptStatus === 'loading') return (
     <div className="flex flex-col items-center justify-center h-full py-16 text-center" dir="ltr">
-      <div className="w-10 h-10 border-[3px] border-slate-700 border-t-blue-500 rounded-full animate-spin mb-5" />
-      <p className="text-base font-semibold text-slate-200 mb-1">Fetching subtitles…</p>
-      <p className="text-sm text-slate-500">Checking YouTube captions</p>
+      <div className="w-10 h-10 border-[3px] border-line border-t-blue-500 rounded-full animate-spin mb-5" />
+      <p className="text-base font-semibold text-heading mb-1">Fetching subtitles…</p>
+      <p className="text-sm text-muted">Checking YouTube captions</p>
     </div>
   );
 
   if (transcriptStatus === 'processing') return (
     <div className="flex flex-col items-center justify-center h-full py-16 text-center px-6" dir="ltr">
-      <div className="w-10 h-10 border-[3px] border-slate-700 border-t-purple-500 rounded-full animate-spin mb-5" />
-      <p className="text-base font-semibold text-slate-200 mb-1">Transcribing with Whisper AI…</p>
-      <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+      <div className="w-10 h-10 border-[3px] border-line border-t-purple-500 rounded-full animate-spin mb-5" />
+      <p className="text-base font-semibold text-heading mb-1">Transcribing with Whisper AI…</p>
+      <p className="text-sm text-muted max-w-xs leading-relaxed">
         No YouTube captions found — running local speech-to-text. This may take a few minutes.
       </p>
     </div>
@@ -77,10 +77,10 @@ function StatusBanner() {
   if (transcriptStatus === 'error') return (
     <div className="flex flex-col items-center justify-center h-full py-16 px-6 text-center" dir="ltr">
       <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4 text-2xl">⚠️</div>
-      <p className="text-base font-semibold text-slate-200 mb-1">Subtitle extraction failed</p>
-      <p className="text-sm text-slate-500 mb-5 max-w-xs leading-relaxed">
+      <p className="text-base font-semibold text-heading mb-1">Subtitle extraction failed</p>
+      <p className="text-sm text-muted mb-5 max-w-xs leading-relaxed">
         This video may not have captions. Install{' '}
-        <code className="text-slate-400 bg-slate-800 px-1 rounded">faster-whisper</code>{' '}
+        <code className="text-body bg-card px-1 rounded">faster-whisper</code>{' '}
         for local transcription.
       </p>
       <Button onClick={extractTranscript} variant="outline" size="sm">Try Again</Button>
@@ -120,11 +120,11 @@ export default function TranscriptViewer() {
 
   return (
     <div className="flex flex-col h-full" dir="ltr">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-line-s flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-sm leading-none">📝</span>
-          <span className="text-sm font-semibold text-slate-200">Subtitles</span>
-          <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full ml-1">
+          <span className="text-sm font-semibold text-heading">Subtitles</span>
+          <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
         </div>
@@ -179,7 +179,7 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
       className={`group relative rounded-xl px-3 py-2.5 cursor-pointer border ${
         isActive
           ? 'bg-blue-500/8 border-blue-500/20 shadow-sm'
-          : 'border-transparent hover:bg-slate-800/70 hover:border-slate-700/50'
+          : 'border-transparent hover:bg-card/70 hover:border-line/50'
       }`}
     >
       {isActive && (
@@ -214,8 +214,8 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
                   style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
                   className={`${font.row} cursor-pointer select-none px-0.5 rounded ${
                     isActive
-                      ? 'text-slate-100 hover:text-blue-300 hover:bg-blue-500/15'
-                      : 'text-slate-500 hover:text-slate-200 hover:bg-slate-700/60'
+                      ? 'text-heading hover:text-blue-300 hover:bg-blue-500/15'
+                      : 'text-muted hover:text-heading hover:bg-elevated/60'
                   }`}
                 >
                   {w}
@@ -225,10 +225,10 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
       </div>
 
       <div className="mt-1.5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-        <span className={`${font.meta} text-slate-600 tabular-nums`}>
+        <span className={`${font.meta} text-faint tabular-nums`}>
           {fmtTime(segment.start)} → {fmtTime(segment.end)}
         </span>
-        <span className={`${font.meta} text-slate-700`}>
+        <span className={`${font.meta} text-faint`}>
           {(segment.end - segment.start).toFixed(1)}s
         </span>
       </div>
@@ -254,8 +254,8 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }:
         isCurrentWord
           ? 'text-blue-300 font-semibold bg-blue-500/20'
           : isActiveSentence
-          ? 'text-slate-100 hover:text-blue-300 hover:bg-blue-500/15'
-          : 'text-slate-500 hover:text-slate-200 hover:bg-slate-700/60'
+          ? 'text-heading hover:text-blue-300 hover:bg-blue-500/15'
+          : 'text-muted hover:text-heading hover:bg-elevated/60'
       }`}
     >
       {word.word}

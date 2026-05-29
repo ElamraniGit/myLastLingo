@@ -157,9 +157,11 @@ export const useStore = create<AppState>()(
       setCurrentPage: (page) => set({ currentPage: page }),
 
       // ── Theme ────────────────────────────────────────────────────────────
-      theme: 'dark',
+      theme: 'auto',
       toggleTheme: () =>
-        set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+        set((s) => ({
+          theme: s.theme === 'auto' ? 'dark' : s.theme === 'dark' ? 'light' : 'auto',
+        })),
 
       // ── Video / Player ───────────────────────────────────────────────────
       currentVideo: null,

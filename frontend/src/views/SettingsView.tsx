@@ -88,21 +88,21 @@ export default function SettingsView() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Customize your learning experience</p>
+        <h1 className="text-2xl font-bold text-heading">Settings</h1>
+        <p className="text-body text-sm mt-0.5">Customize your learning experience</p>
       </div>
 
       {/* Profile */}
       {user && (
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+        <div className="bg-card/60 border border-line/50 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line/50 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-heading font-bold"
               style={{ backgroundColor: user.avatar_color }}>
               {(user.display_name || user.username)[0].toUpperCase()}
             </div>
             <div>
-              <p className="font-semibold text-white">{user.display_name || user.username}</p>
-              <p className="text-xs text-slate-500">@{user.username}</p>
+              <p className="font-semibold text-heading">{user.display_name || user.username}</p>
+              <p className="text-xs text-muted">@{user.username}</p>
             </div>
           </div>
           <div className="p-5 space-y-4">
@@ -119,8 +119,8 @@ export default function SettingsView() {
               onChange={(e) => setProfileForm((f) => ({ ...f, email: e.target.value }))}
               placeholder="your@email.com"
             />
-            <div className="border-t border-slate-700/50 pt-4">
-              <p className="text-xs text-slate-500 mb-3">Change Password (optional)</p>
+            <div className="border-t border-line/50 pt-4">
+              <p className="text-xs text-muted mb-3">Change Password (optional)</p>
               <div className="space-y-3">
                 <Input
                   label="Current Password"
@@ -149,15 +149,15 @@ export default function SettingsView() {
       )}
 
       {/* Playback settings */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
-          <h3 className="font-semibold text-slate-200">🎬 Playback</h3>
+      <div className="bg-card/60 border border-line/50 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-line/50">
+          <h3 className="font-semibold text-heading">🎬 Playback</h3>
         </div>
         <div className="divide-y divide-slate-700/30">
           <div className="flex items-center justify-between px-5 py-4 gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-300">Default Speed</p>
-              <p className="text-xs text-slate-500">Playback speed for new videos</p>
+              <p className="text-sm font-medium text-body">Default Speed</p>
+              <p className="text-xs text-muted">Playback speed for new videos</p>
             </div>
             <div className="flex gap-1 flex-wrap justify-end">
               {SPEEDS.map((s) => (
@@ -165,7 +165,7 @@ export default function SettingsView() {
                   key={s}
                   onClick={() => setDefaultSpeed(s)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
-                    defaultSpeed === s ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                    defaultSpeed === s ? 'bg-blue-600 text-heading' : 'bg-elevated text-body hover:bg-slate-600'
                   }`}
                 >
                   {s}×
@@ -176,8 +176,8 @@ export default function SettingsView() {
 
           <div className="px-5 py-4 space-y-3">
             <div>
-              <p className="text-sm font-medium text-slate-300">Default Video Quality</p>
-              <p className="text-xs text-slate-500">Used when a new YouTube video starts</p>
+              <p className="text-sm font-medium text-body">Default Video Quality</p>
+              <p className="text-xs text-muted">Used when a new YouTube video starts</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {QUALITY_OPTIONS.map((option) => (
@@ -187,14 +187,14 @@ export default function SettingsView() {
                   className={`text-left px-3 py-3 rounded-xl border transition-all ${
                     defaultVideoQuality === option.value
                       ? 'bg-blue-600/15 border-blue-500/40 text-blue-300'
-                      : 'bg-slate-900/40 border-slate-700 text-slate-300 hover:border-slate-600'
+                      : 'bg-surface/40 border-line text-body hover:border-line'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm">{option.label}</span>
                     {defaultVideoQuality === option.value && <span className="text-xs">✓</span>}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{option.hint}</p>
+                  <p className="text-xs text-muted mt-1">{option.hint}</p>
                 </button>
               ))}
             </div>
@@ -202,8 +202,8 @@ export default function SettingsView() {
 
           <div className="flex items-center justify-between px-5 py-4">
             <div>
-              <p className="text-sm font-medium text-slate-300">Auto-pause on word click</p>
-              <p className="text-xs text-slate-500">Pause video when you tap a word</p>
+              <p className="text-sm font-medium text-body">Auto-pause on word click</p>
+              <p className="text-xs text-muted">Pause video when you tap a word</p>
             </div>
             <button
               onClick={() => setAutoPauseOnWord(!autoPauseOnWord)}
@@ -216,15 +216,15 @@ export default function SettingsView() {
       </div>
 
       {/* Appearance */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
-          <h3 className="font-semibold text-slate-200">🎨 Appearance</h3>
+      <div className="bg-card/60 border border-line/50 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-line/50">
+          <h3 className="font-semibold text-heading">🎨 Appearance</h3>
         </div>
         <div className="divide-y divide-slate-700/30">
           <div className="flex items-center justify-between px-5 py-4">
             <div>
-              <p className="text-sm font-medium text-slate-300">Dark Mode</p>
-              <p className="text-xs text-slate-500">Current: {theme} mode</p>
+              <p className="text-sm font-medium text-body">Dark Mode</p>
+              <p className="text-xs text-muted">Current: {theme} mode</p>
             </div>
             <button
               onClick={toggleTheme}
@@ -236,8 +236,8 @@ export default function SettingsView() {
 
           <div className="px-5 py-4 space-y-3">
             <div>
-              <p className="text-sm font-medium text-slate-300">Subtitle Text Size</p>
-              <p className="text-xs text-slate-500">Changes the subtitle/transcript reading size</p>
+              <p className="text-sm font-medium text-body">Subtitle Text Size</p>
+              <p className="text-xs text-muted">Changes the subtitle/transcript reading size</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {FONT_OPTIONS.map((option) => {
@@ -256,7 +256,7 @@ export default function SettingsView() {
                     className={`rounded-xl border px-3 py-3 transition-all ${
                       transcriptFontSize === option.value
                         ? 'bg-blue-600/15 border-blue-500/40 text-blue-300'
-                        : 'bg-slate-900/40 border-slate-700 text-slate-300 hover:border-slate-600'
+                        : 'bg-surface/40 border-line text-body hover:border-line'
                     }`}
                   >
                     <div className={`font-semibold ${sizeClass}`}>{option.preview}</div>
@@ -270,33 +270,33 @@ export default function SettingsView() {
       </div>
 
       {/* Backend status */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
-          <h3 className="font-semibold text-slate-200">🖥 Backend</h3>
+      <div className="bg-card/60 border border-line/50 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-line/50">
+          <h3 className="font-semibold text-heading">🖥 Backend</h3>
         </div>
         <div className="px-5 py-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">Status</span>
+            <span className="text-sm text-body">Status</span>
             <span className={`text-sm font-medium flex items-center gap-1.5 ${backendOk ? 'text-green-400' : 'text-red-400'}`}>
               <span className={`w-2 h-2 rounded-full ${backendOk ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
               {backendOk === null ? 'Checking…' : backendOk ? 'Online' : 'Offline'}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">API</span>
-            <span className="text-xs text-slate-500 font-mono">{backendLabel}</span>
+            <span className="text-sm text-body">API</span>
+            <span className="text-xs text-muted font-mono">{backendLabel}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">Mode</span>
+            <span className="text-sm text-body">Mode</span>
             <span className="text-xs text-green-400">100% Local</span>
           </div>
         </div>
       </div>
 
       {/* About */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
-          <h3 className="font-semibold text-slate-200">ℹ️ About</h3>
+      <div className="bg-card/60 border border-line/50 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-line/50">
+          <h3 className="font-semibold text-heading">ℹ️ About</h3>
         </div>
         <div className="px-5 py-4 space-y-2">
           {[
@@ -306,8 +306,8 @@ export default function SettingsView() {
             ['Privacy', '100% private, no data sent'],
           ].map(([k, v]) => (
             <div key={k} className="flex items-center justify-between">
-              <span className="text-sm text-slate-400">{k}</span>
-              <span className="text-sm text-slate-300">{v}</span>
+              <span className="text-sm text-body">{k}</span>
+              <span className="text-sm text-body">{v}</span>
             </div>
           ))}
         </div>

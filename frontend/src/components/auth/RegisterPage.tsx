@@ -41,7 +41,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-base px-4 py-12">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
@@ -50,13 +50,13 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm relative">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-xl shadow-blue-500/20">
-            <span className="text-white text-2xl font-black">L</span>
+            <span className="text-heading text-2xl font-black">L</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-slate-400 text-sm mt-1">Start your learning journey today</p>
+          <h1 className="text-2xl font-bold text-heading">Create Account</h1>
+          <p className="text-body text-sm mt-1">Start your learning journey today</p>
         </div>
 
-        <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+        <div className="bg-card/60 backdrop-blur-xl border border-line/50 rounded-2xl p-6 shadow-2xl">
           {authError && (
             <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between">
               <p className="text-sm text-red-400">{authError}</p>
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-300">Password *</label>
+              <label className="text-sm font-medium text-body">Password *</label>
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
@@ -100,10 +100,10 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={(e) => update('password', e.target.value)}
                   required
-                  className={`w-full bg-slate-800 border rounded-xl px-4 py-3 pr-12 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all ${errors.password ? 'border-red-500/60' : 'border-slate-600'}`}
+                  className={`w-full bg-card border rounded-xl px-4 py-3 pr-12 text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all ${errors.password ? 'border-red-500/60' : 'border-line'}`}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body">
                   {showPass ? '🙈' : '👁'}
                 </button>
               </div>
@@ -125,8 +125,8 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-700/50 text-center">
-            <p className="text-sm text-slate-400">
+          <div className="mt-6 pt-5 border-t border-line/50 text-center">
+            <p className="text-sm text-body">
               Already have an account?{' '}
               <button onClick={() => setPage('login')} className="text-blue-400 hover:text-blue-300 font-medium">
                 Sign in
@@ -135,7 +135,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-6">
+        <p className="text-center text-xs text-faint mt-6">
           All data stays on your device — no cloud required
         </p>
       </div>

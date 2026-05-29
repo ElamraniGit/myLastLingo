@@ -68,16 +68,16 @@ export default function VocabularyView() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white">My Words</h1>
-        <p className="text-slate-500 text-sm mt-0.5">{savedWords.length} saved · Tap any word for full details</p>
+        <h1 className="text-2xl font-bold text-heading">My Words</h1>
+        <p className="text-muted text-sm mt-0.5">{savedWords.length} saved · Tap any word for full details</p>
       </div>
 
       {/* Due banner */}
       {(summary?.due_now ?? 0) > 0 && (
         <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-white">{summary!.due_now} word{summary!.due_now === 1 ? '' : 's'} due</p>
-            <p className="text-xs text-slate-400 mt-0.5">Review now to keep your memory fresh</p>
+            <p className="text-sm font-semibold text-heading">{summary!.due_now} word{summary!.due_now === 1 ? '' : 's'} due</p>
+            <p className="text-xs text-body mt-0.5">Review now to keep your memory fresh</p>
           </div>
           <Button onClick={() => setPage('flashcards')} variant="primary" size="sm">Review</Button>
         </div>
@@ -91,9 +91,9 @@ export default function VocabularyView() {
           { l: 'Reviewing', v: summary?.reviewing ?? 0, c: 'text-purple-400' },
           { l: 'Learned', v: summary?.learned ?? 0, c: 'text-green-400' },
         ].map(s => (
-          <div key={s.l} className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center">
+          <div key={s.l} className="bg-card/60 border border-line/40 rounded-xl p-3 text-center">
             <p className={`text-lg font-bold ${s.c}`}>{s.v}</p>
-            <p className="text-[10px] text-slate-500">{s.l}</p>
+            <p className="text-[10px] text-muted">{s.l}</p>
           </div>
         ))}
       </div>
@@ -104,7 +104,7 @@ export default function VocabularyView() {
           type="text" value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search words..."
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          className="w-full bg-card border border-line rounded-xl px-4 py-2.5 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
         />
         <div className="flex gap-1.5 flex-wrap">
           {[
@@ -114,12 +114,12 @@ export default function VocabularyView() {
             { id: 'learned', label: 'Learned' },
           ].map(f => (
             <button key={f.label} onClick={() => setStatus(f.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${status === f.id ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-500 hover:text-slate-300 bg-slate-800/50'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${status === f.id ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-muted hover:text-body bg-card/50'}`}>
               {f.label}
             </button>
           ))}
           <select value={sort} onChange={e => setSort(e.target.value as any)}
-            className="ml-auto bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-300">
+            className="ml-auto bg-card border border-line rounded-lg px-2 py-1.5 text-xs text-body">
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
             <option value="alphabetical">A-Z</option>
@@ -132,45 +132,45 @@ export default function VocabularyView() {
       {/* Word list */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-line border-t-blue-500 rounded-full animate-spin" />
         </div>
       ) : savedWords.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-4xl mb-4">📚</p>
-          <p className="text-slate-400">No words saved yet. Start learning from a video!</p>
+          <p className="text-body">No words saved yet. Start learning from a video!</p>
         </div>
       ) : (
         <div className="space-y-2">
           {savedWords.map(w => (
             <div key={w.id}
               onClick={() => openWord(w)}
-              className="bg-slate-800/50 border border-slate-700/40 rounded-xl px-4 py-3 cursor-pointer hover:border-slate-600 transition-all active:scale-[0.99] group">
+              className="bg-card/50 border border-line/40 rounded-xl px-4 py-3 cursor-pointer hover:border-line transition-all active:scale-[0.99] group">
               <div className="flex items-center gap-3">
                 {/* Word info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-base font-semibold text-white">{w.word}</span>
+                    <span className="text-base font-semibold text-heading">{w.word}</span>
                     {w.level && <LevelBadge level={w.level as any} />}
                     <span className={`text-[10px] px-1.5 py-0.5 rounded border ${STATUS_STYLES[w.status] || ''}`}>{w.status}</span>
                   </div>
                   {w.meaning_ar && (
-                    <p className="text-sm text-slate-400 truncate" style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
+                    <p className="text-sm text-body truncate" style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
                       {w.meaning_ar}
                     </p>
                   )}
                   {!w.meaning_ar && w.meaning_en && (
-                    <p className="text-xs text-slate-500 truncate">{w.meaning_en}</p>
+                    <p className="text-xs text-muted truncate">{w.meaning_en}</p>
                   )}
                 </div>
                 {/* Right side */}
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[10px] text-slate-600">{fmtRelative(w.next_review)}</span>
+                  <span className="text-[10px] text-faint">{fmtRelative(w.next_review)}</span>
                   <button onClick={e => { e.stopPropagation(); speak(w.word); }}
-                    className="p-1.5 rounded-lg text-slate-600 hover:text-blue-400 hover:bg-slate-700/50 transition-colors opacity-0 group-hover:opacity-100">
+                    className="p-1.5 rounded-lg text-faint hover:text-blue-400 hover:bg-elevated/50 transition-colors opacity-0 group-hover:opacity-100">
                     🔊
                   </button>
                   <button onClick={e => { e.stopPropagation(); deleteWord(w.id); }}
-                    className="p-1.5 rounded-lg text-slate-700 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+                    className="p-1.5 rounded-lg text-faint hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
                     🗑
                   </button>
                 </div>

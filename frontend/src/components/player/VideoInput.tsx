@@ -49,8 +49,8 @@ export default function VideoInput() {
         <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mx-auto mb-5 flex items-center justify-center shadow-2xl shadow-blue-500/30">
           <span className="text-4xl">🎬</span>
         </div>
-        <h2 className="text-3xl font-bold text-white mb-2">Learn English</h2>
-        <p className="text-slate-400 text-base">Paste a YouTube URL and start learning with interactive subtitles</p>
+        <h2 className="text-3xl font-bold text-heading mb-2">Learn English</h2>
+        <p className="text-body text-base">Paste a YouTube URL and start learning with interactive subtitles</p>
       </div>
       <form onSubmit={handleSubmit} className="w-full space-y-3">
         <div className="flex gap-2">
@@ -59,15 +59,15 @@ export default function VideoInput() {
             value={url}
             onChange={(e) => { setUrl(e.target.value); setErrorMsg(''); setStatus('idle'); }}
             placeholder="https://youtube.com/watch?v=..."
-            className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
+            className="flex-1 bg-card border border-line rounded-xl px-4 py-3.5 text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-sm"
             dir="ltr"
           />
           <Button type="submit" variant="primary" loading={status==='loading'} className="px-6 whitespace-nowrap">
             Start ▶
           </Button>
         </div>
-        <p className="text-xs text-slate-500 px-1">
-          Default playback quality: <span className="text-slate-300 font-medium">{defaultVideoQuality === 'auto' ? 'Auto' : defaultVideoQuality}</span>
+        <p className="text-xs text-muted px-1">
+          Default playback quality: <span className="text-body font-medium">{defaultVideoQuality === 'auto' ? 'Auto' : defaultVideoQuality}</span>
         </p>
         {errorMsg && (
           <div className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl">
@@ -77,26 +77,26 @@ export default function VideoInput() {
       </form>
       <div className="flex flex-wrap justify-center gap-2 mt-8">
         {['📝 Synced subtitles','🔍 Click any word','🔊 Pronunciation','💾 Save vocabulary','🔁 Spaced repetition','📵 Works offline'].map((f) => (
-          <span key={f} className="px-3 py-1.5 bg-slate-800/80 border border-slate-700/50 rounded-full text-xs text-slate-400">{f}</span>
+          <span key={f} className="px-3 py-1.5 bg-card/80 border border-line/50 rounded-full text-xs text-body">{f}</span>
         ))}
       </div>
       {recentVideos.length > 0 && (
         <div className="w-full mt-10">
-          <h3 className="text-sm font-semibold text-slate-400 mb-3 px-1">Recent Videos</h3>
+          <h3 className="text-sm font-semibold text-body mb-3 px-1">Recent Videos</h3>
           <div className="space-y-2">
             {recentVideos.slice(0, 5).map((video) => (
               <button key={video.id} onClick={() => { setCurrentVideo(video); setPage('player'); }}
-                className="w-full flex items-center gap-3 p-3 bg-slate-800/60 border border-slate-700/50 rounded-xl hover:bg-slate-700/60 transition-all text-left group">
+                className="w-full flex items-center gap-3 p-3 bg-card/60 border border-line/50 rounded-xl hover:bg-elevated/60 transition-all text-left group">
                 {video.thumbnail_url ? (
-                  <img src={video.thumbnail_url} alt="" className="w-16 h-10 rounded-lg object-cover flex-shrink-0 bg-slate-700" />
+                  <img src={video.thumbnail_url} alt="" className="w-16 h-10 rounded-lg object-cover flex-shrink-0 bg-elevated" />
                 ) : (
-                  <div className="w-16 h-10 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0"><span className="text-slate-500">🎬</span></div>
+                  <div className="w-16 h-10 rounded-lg bg-elevated flex items-center justify-center flex-shrink-0"><span className="text-muted">🎬</span></div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-200 line-clamp-1">{video.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{video.channel}</p>
+                  <p className="text-sm font-medium text-heading line-clamp-1">{video.title}</p>
+                  <p className="text-xs text-muted mt-0.5">{video.channel}</p>
                 </div>
-                <span className="text-slate-600">▶</span>
+                <span className="text-faint">▶</span>
               </button>
             ))}
           </div>

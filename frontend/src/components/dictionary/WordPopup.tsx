@@ -26,7 +26,7 @@ const POS: Record<string, { color: string; label: string }> = {
 
 function posStyle(pos?: string) {
   const key = (pos || '').toLowerCase();
-  return POS[key] ?? { color: 'bg-slate-700/50 text-slate-400 border-slate-600', label: pos || '' };
+  return POS[key] ?? { color: 'bg-elevated/50 text-body border-line', label: pos || '' };
 }
 
 /* ── TTS helper ──────────────────────────────────────────────── */
@@ -47,7 +47,7 @@ function Section({ title, icon, children, className = '' }: {
     <div className={`mt-5 ${className}`}>
       <div className="flex items-center gap-1.5 mb-2.5">
         <span className="text-sm">{icon}</span>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
+        <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">{title}</h3>
       </div>
       {children}
     </div>
@@ -120,8 +120,8 @@ export default function WordPopup() {
       {/* ── Sheet ─────────────────────────────────────────────── */}
       <div
         ref={sheetRef}
-        className={`fixed z-50 bg-slate-900 shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out
-          bottom-0 left-0 right-0 max-h-[88vh] rounded-t-3xl border-t border-slate-700/50
+        className={`fixed z-50 bg-surface shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out
+          bottom-0 left-0 right-0 max-h-[88vh] rounded-t-3xl border-t border-line/50
           lg:left-auto lg:right-0 lg:top-0 lg:bottom-0 lg:max-h-full lg:w-[420px] lg:rounded-t-none lg:rounded-l-3xl lg:border-t-0 lg:border-l
           ${visible
             ? 'translate-y-0 lg:translate-y-0 lg:translate-x-0 opacity-100'
@@ -129,8 +129,8 @@ export default function WordPopup() {
           }`}
       >
         {/* Handle (mobile) */}
-        <div className="flex justify-center pt-3 pb-1 lg:hidden sticky top-0 bg-slate-900 z-10">
-          <div className="w-10 h-1 bg-slate-700 rounded-full" />
+        <div className="flex justify-center pt-3 pb-1 lg:hidden sticky top-0 bg-surface z-10">
+          <div className="w-10 h-1 bg-elevated rounded-full" />
         </div>
 
         <div className="px-5 pb-8 pt-2">
@@ -139,7 +139,7 @@ export default function WordPopup() {
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                <h2 className="text-3xl font-extrabold text-white tracking-tight">{w.word}</h2>
+                <h2 className="text-3xl font-extrabold text-heading tracking-tight">{w.word}</h2>
                 <LevelBadge level={(w.level || 'B1') as CEFRLevel} />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -149,7 +149,7 @@ export default function WordPopup() {
                   </span>
                 )}
                 {w.pronunciation && (
-                  <span className="text-sm text-slate-400 font-mono">{w.pronunciation}</span>
+                  <span className="text-sm text-body font-mono">{w.pronunciation}</span>
                 )}
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function WordPopup() {
               </button>
               <button
                 onClick={handleClose}
-                className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-all"
+                className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-card text-muted hover:text-body transition-all"
               >
                 ✕
               </button>
@@ -175,7 +175,7 @@ export default function WordPopup() {
           {w.meaning_ar && (
             <div className="mt-4 bg-gradient-to-r from-blue-500/8 to-purple-500/8 border border-blue-500/15 rounded-2xl px-4 py-3.5">
               <p className="text-[11px] text-blue-400/70 uppercase tracking-wider mb-1">الترجمة العربية</p>
-              <p className="text-xl font-bold text-slate-100"
+              <p className="text-xl font-bold text-heading"
                  style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate',
                           fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
                 {w.meaning_ar}
@@ -186,7 +186,7 @@ export default function WordPopup() {
           {/* ── Main Definition ──────────────────────────────── */}
           {w.meaning_en && (
             <Section title="Definition" icon="📖">
-              <p className="text-[15px] text-slate-200 leading-relaxed">{w.meaning_en}</p>
+              <p className="text-[15px] text-heading leading-relaxed">{w.meaning_en}</p>
             </Section>
           )}
 
@@ -195,15 +195,15 @@ export default function WordPopup() {
             <Section title="Other Meanings" icon="📚">
               <div className="space-y-2.5">
                 {definitions.slice(1, 5).map((d, i) => (
-                  <div key={i} className="bg-slate-800/50 rounded-xl px-3.5 py-3 border border-slate-700/30">
+                  <div key={i} className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
                     {d.part_of_speech && (
                       <span className={`text-[10px] px-2 py-0.5 rounded font-semibold border mb-1.5 inline-block ${posStyle(d.part_of_speech).color}`}>
                         {d.part_of_speech}
                       </span>
                     )}
-                    <p className="text-sm text-slate-300 leading-relaxed">{d.definition}</p>
+                    <p className="text-sm text-body leading-relaxed">{d.definition}</p>
                     {d.example && (
-                      <p className="text-xs text-slate-500 mt-1.5 italic">"{d.example}"</p>
+                      <p className="text-xs text-muted mt-1.5 italic">"{d.example}"</p>
                     )}
                   </div>
                 ))}
@@ -216,7 +216,7 @@ export default function WordPopup() {
             <Section title="How to Use" icon="💡">
               <div className="space-y-1.5">
                 {howToUse.map((tip, i) => (
-                  <p key={i} className="text-sm text-slate-300 leading-relaxed">{tip}</p>
+                  <p key={i} className="text-sm text-body leading-relaxed">{tip}</p>
                 ))}
               </div>
             </Section>
@@ -225,8 +225,8 @@ export default function WordPopup() {
           {/* ── Context Sentence ─────────────────────────────── */}
           {wordPopupSentence && (
             <Section title="In Context" icon="🎬">
-              <div className="bg-slate-800/40 rounded-xl px-4 py-3 border border-slate-700/30">
-                <p className="text-sm text-slate-300 leading-relaxed">
+              <div className="bg-card/40 rounded-xl px-4 py-3 border border-line/30">
+                <p className="text-sm text-body leading-relaxed">
                   {wordPopupSentence.split(new RegExp(`(\\b${w.word}\\b)`, 'i')).map((part: string, i: number) =>
                     part.toLowerCase() === w.word.toLowerCase()
                       ? <mark key={i} className="bg-blue-500/30 text-blue-300 rounded px-0.5 font-semibold">{part}</mark>
@@ -244,10 +244,10 @@ export default function WordPopup() {
                 {examples.slice(0, 3).map((ex, i) => (
                   <div key={i} className="flex items-start gap-2.5 group">
                     <span className="text-blue-500/70 mt-0.5 text-xs font-bold">{i + 1}</span>
-                    <p className="text-sm text-slate-400 leading-relaxed flex-1">{ex}</p>
+                    <p className="text-sm text-body leading-relaxed flex-1">{ex}</p>
                     <button
                       onClick={() => speak(ex)}
-                      className="flex-shrink-0 p-1.5 rounded-lg text-slate-600 hover:text-blue-400 hover:bg-slate-800 transition-all opacity-0 group-hover:opacity-100"
+                      className="flex-shrink-0 p-1.5 rounded-lg text-faint hover:text-blue-400 hover:bg-card transition-all opacity-0 group-hover:opacity-100"
                     >
                       🔊
                     </button>
@@ -288,9 +288,9 @@ export default function WordPopup() {
             <Section title="Conjugations" icon="🔄">
               <div className="grid grid-cols-2 gap-1.5">
                 {Object.entries(conjugations).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center px-3 py-2 bg-slate-800/50 rounded-xl border border-slate-700/30">
-                    <span className="text-[11px] text-slate-500 capitalize">{k}</span>
-                    <span className="text-xs text-slate-200 font-medium">{v}</span>
+                  <div key={k} className="flex justify-between items-center px-3 py-2 bg-card/50 rounded-xl border border-line/30">
+                    <span className="text-[11px] text-muted capitalize">{k}</span>
+                    <span className="text-xs text-heading font-medium">{v}</span>
                   </div>
                 ))}
               </div>

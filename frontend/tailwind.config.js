@@ -10,26 +10,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Slate is the base — just use Tailwind's built-in slate palette
+        // Theme-aware colors using CSS custom properties
+        base:      'rgb(var(--bg-primary) / <alpha-value>)',
+        surface:   'rgb(var(--bg-secondary) / <alpha-value>)',
+        card:      'rgb(var(--bg-card) / <alpha-value>)',
+        elevated:  'rgb(var(--bg-elevated) / <alpha-value>)',
+        'input-bg':'rgb(var(--bg-input) / <alpha-value>)',
+        heading:   'rgb(var(--text-primary) / <alpha-value>)',
+        body:      'rgb(var(--text-secondary) / <alpha-value>)',
+        muted:     'rgb(var(--text-muted) / <alpha-value>)',
+        faint:     'rgb(var(--text-faint) / <alpha-value>)',
+        line:      'rgb(var(--border) / <alpha-value>)',
+        'line-s':  'rgb(var(--border-subtle) / <alpha-value>)',
       },
-      screens: {
-        xs: '375px',
-      },
-      animation: {
-        'spin-slow': 'spin 2s linear infinite',
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'slide-up': 'slideUp 0.25s ease-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: 0 },
-          '100%': { opacity: 1 },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(12px)', opacity: 0 },
-          '100%': { transform: 'translateY(0)', opacity: 1 },
-        },
-      },
+      screens: { xs: '375px' },
     },
   },
   plugins: [],

@@ -38,21 +38,21 @@ export default function PlayerView() {
 
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden">
-      <div className="flex-shrink-0 bg-slate-950 lg:w-[55%] lg:h-full lg:overflow-hidden">
+      <div className="flex-shrink-0 bg-base lg:w-[55%] lg:h-full lg:overflow-hidden">
         <div className="flex items-center gap-3 px-4 pt-3 pb-1">
-          <button onClick={() => resetPlayer()} className="p-2 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 flex-shrink-0">
+          <button onClick={() => resetPlayer()} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body flex-shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-100 line-clamp-1">{currentVideo.title}</p>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-sm font-semibold text-heading line-clamp-1">{currentVideo.title}</p>
+            <p className="text-xs text-muted mt-0.5">
               {currentVideo.channel}{currentVideo.duration > 0 && <> · {fmtDuration(currentVideo.duration)}</>}
             </p>
           </div>
         </div>
         <div className="px-4 pb-2"><VideoPlayer /></div>
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden border-t lg:border-t-0 lg:border-l border-slate-800">
+      <div className="flex-1 min-h-0 overflow-hidden border-t lg:border-t-0 lg:border-l border-line-s">
         <TranscriptViewer />
       </div>
       <WordPopup />
@@ -87,10 +87,10 @@ function HomeDashboard() {
       {/* Welcome */}
       <div className="text-center pt-2">
         <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-xl">
-          <span className="text-white text-2xl font-black">L</span>
+          <span className="text-heading text-2xl font-black">L</span>
         </div>
-        <h1 className="text-2xl font-bold text-white">Welcome back!</h1>
-        <p className="text-slate-500 text-sm mt-1">Continue learning English</p>
+        <h1 className="text-2xl font-bold text-heading">Welcome back!</h1>
+        <p className="text-muted text-sm mt-1">Continue learning English</p>
       </div>
 
       {/* Review CTA */}
@@ -101,29 +101,29 @@ function HomeDashboard() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">{dueCount} word{dueCount === 1 ? '' : 's'} ready to review</p>
-            <p className="text-xs text-slate-400 mt-0.5">Tap to start a quick session</p>
+            <p className="text-sm font-semibold text-heading">{dueCount} word{dueCount === 1 ? '' : 's'} ready to review</p>
+            <p className="text-xs text-body mt-0.5">Tap to start a quick session</p>
           </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-600"><path d="M9 18l6-6-6-6"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-faint"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       )}
 
       {/* Quick add */}
       <div className="flex gap-2">
         <button onClick={() => setPage('library')}
-          className="flex-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center hover:border-slate-600 transition-colors">
+          className="flex-1 bg-card/60 border border-line/40 rounded-xl p-3 text-center hover:border-line transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400 mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-          <p className="text-xs text-slate-400">Add Source</p>
+          <p className="text-xs text-body">Add Source</p>
         </button>
         <button onClick={() => setPage('vocabulary')}
-          className="flex-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center hover:border-slate-600 transition-colors">
+          className="flex-1 bg-card/60 border border-line/40 rounded-xl p-3 text-center hover:border-line transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-400 mx-auto mb-1"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <p className="text-xs text-slate-400">My Words</p>
+          <p className="text-xs text-body">My Words</p>
         </button>
         <button onClick={() => setPage('flashcards')}
-          className="flex-1 bg-slate-800/60 border border-slate-700/40 rounded-xl p-3 text-center hover:border-slate-600 transition-colors">
+          className="flex-1 bg-card/60 border border-line/40 rounded-xl p-3 text-center hover:border-line transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 mx-auto mb-1"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>
-          <p className="text-xs text-slate-400">Review</p>
+          <p className="text-xs text-body">Review</p>
         </button>
       </div>
 
@@ -131,24 +131,24 @@ function HomeDashboard() {
       {recentWords.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-sm font-semibold text-slate-200">Recent Words</h2>
+            <h2 className="text-sm font-semibold text-heading">Recent Words</h2>
             <button onClick={() => setPage('vocabulary')} className="text-xs text-blue-400 hover:text-blue-300">See all →</button>
           </div>
           <div className="space-y-1.5">
             {recentWords.map(w => (
               <button key={w.id} onClick={() => lookupWord(w.word, w.sentence || '')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 bg-slate-800/40 border border-slate-700/30 rounded-xl hover:border-slate-600 transition-colors text-left">
+                className="w-full flex items-center gap-3 px-3 py-2.5 bg-card/40 border border-line/30 rounded-xl hover:border-line transition-colors text-left">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{w.word}</span>
+                    <span className="text-sm font-medium text-heading">{w.word}</span>
                     {w.level && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">{w.level}</span>}
                   </div>
                   {w.meaning_ar && (
-                    <p className="text-xs text-slate-500 mt-0.5 truncate" style={{ direction: 'rtl', textAlign: 'right' }}>{w.meaning_ar}</p>
+                    <p className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl', textAlign: 'right' }}>{w.meaning_ar}</p>
                   )}
                 </div>
                 <button onClick={e => { e.stopPropagation(); speak(w.word); }}
-                  className="p-1.5 rounded-lg text-slate-600 hover:text-blue-400">
+                  className="p-1.5 rounded-lg text-faint hover:text-blue-400">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 </button>
               </button>
@@ -161,7 +161,7 @@ function HomeDashboard() {
       {sources.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-sm font-semibold text-slate-200">Recent Sources</h2>
+            <h2 className="text-sm font-semibold text-heading">Recent Sources</h2>
             <button onClick={() => setPage('library')} className="text-xs text-blue-400 hover:text-blue-300">See all →</button>
           </div>
           <div className="space-y-1.5">
@@ -174,17 +174,17 @@ function HomeDashboard() {
                     setPage('library');
                   }
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 bg-slate-800/40 border border-slate-700/30 rounded-xl hover:border-slate-600 transition-colors text-left">
+                className="w-full flex items-center gap-3 px-3 py-2.5 bg-card/40 border border-line/30 rounded-xl hover:border-line transition-colors text-left">
                 {s.thumbnail_url ? (
-                  <img src={s.thumbnail_url} alt="" className="w-14 h-9 rounded-lg object-cover bg-slate-700 flex-shrink-0" />
+                  <img src={s.thumbnail_url} alt="" className="w-14 h-9 rounded-lg object-cover bg-elevated flex-shrink-0" />
                 ) : (
-                  <div className="w-14 h-9 rounded-lg bg-slate-700/50 flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-9 rounded-lg bg-elevated/50 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm">{s.source_type === 'youtube' ? '🎬' : '📄'}</span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-500">{s.channel || (s.word_count ? `${s.word_count} words` : s.source_type)}</p>
+                  <p className="text-sm text-heading truncate">{s.title}</p>
+                  <p className="text-[11px] text-muted">{s.channel || (s.word_count ? `${s.word_count} words` : s.source_type)}</p>
                 </div>
               </button>
             ))}

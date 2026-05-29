@@ -135,8 +135,8 @@ export default function FlashcardsView() {
   /* ── Loading ─────────────────────────────────────────────────── */
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="w-10 h-10 border-[3px] border-slate-700 border-t-blue-500 rounded-full animate-spin mb-5" />
-      <p className="text-lg font-bold text-white">Loading review session…</p>
+      <div className="w-10 h-10 border-[3px] border-line border-t-blue-500 rounded-full animate-spin mb-5" />
+      <p className="text-lg font-bold text-heading">Loading review session…</p>
     </div>
   );
 
@@ -144,8 +144,8 @@ export default function FlashcardsView() {
   if (!current) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
       <div className="text-6xl mb-5">{completed ? '✅' : '🎉'}</div>
-      <h2 className="text-2xl font-bold text-white mb-2">{completed ? 'Session complete!' : 'All caught up!'}</h2>
-      <p className="text-slate-400 max-w-sm mb-6">
+      <h2 className="text-2xl font-bold text-heading mb-2">{completed ? 'Session complete!' : 'All caught up!'}</h2>
+      <p className="text-body max-w-sm mb-6">
         {completed ? `You reviewed ${done} card${done === 1 ? '' : 's'} this session.` : 'No words are due right now.'}
       </p>
       {summary && (
@@ -166,11 +166,11 @@ export default function FlashcardsView() {
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-white">Review</h1>
+          <h1 className="text-xl font-bold text-heading">Review</h1>
           <div className="flex gap-1.5">
             {(['flashcards', 'quiz'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === m ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === m ? 'bg-blue-600 text-heading' : 'bg-card text-body hover:text-heading'}`}>
                 {m === 'flashcards' ? '🃏 Cards' : '❓ Quiz'}
               </button>
             ))}
@@ -178,10 +178,10 @@ export default function FlashcardsView() {
         </div>
         {/* Progress bar */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-card rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-xs text-slate-500 tabular-nums">{done}/{total}</span>
+          <span className="text-xs text-muted tabular-nums">{done}/{total}</span>
         </div>
       </div>
 
@@ -195,29 +195,29 @@ export default function FlashcardsView() {
               onClick={() => setFlipped(v => !v)}
             >
               {/* FRONT */}
-              <div className="bg-slate-800/60 border border-slate-700/50 rounded-3xl p-8 min-h-[320px] flex flex-col items-center justify-center text-center"
+              <div className="bg-card/60 border border-line/50 rounded-3xl p-8 min-h-[320px] flex flex-col items-center justify-center text-center"
                    style={{ backfaceVisibility: 'hidden' }}>
                 <LevelBadge level={(current.level || 'B1') as any} />
-                <h2 className="text-4xl font-extrabold text-white mt-4">{current.word}</h2>
-                {current.pronunciation && <p className="text-slate-400 font-mono text-lg mt-2">{current.pronunciation}</p>}
+                <h2 className="text-4xl font-extrabold text-heading mt-4">{current.word}</h2>
+                {current.pronunciation && <p className="text-body font-mono text-lg mt-2">{current.pronunciation}</p>}
                 <button onClick={e => { e.stopPropagation(); speak(current.word); }}
                   className="mt-5 p-3 rounded-2xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-colors text-lg">🔊</button>
                 {current.meaning_en && (
-                  <p className="text-sm text-slate-500 mt-5 max-w-xs leading-relaxed italic">
+                  <p className="text-sm text-muted mt-5 max-w-xs leading-relaxed italic">
                     💡 {current.meaning_en.length > 80 ? current.meaning_en.slice(0, 80) + '…' : current.meaning_en}
                   </p>
                 )}
-                <p className="text-xs text-slate-600 mt-6">Tap to reveal ↻</p>
+                <p className="text-xs text-faint mt-6">Tap to reveal ↻</p>
               </div>
 
               {/* BACK — clean: translation + definition + example only */}
-              <div className="absolute inset-0 bg-slate-800/60 border border-slate-700/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-y-auto"
+              <div className="absolute inset-0 bg-card/60 border border-line/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-y-auto"
                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                 {/* Arabic translation */}
                 {current.meaning_ar ? (
                   <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl px-6 py-4 mb-5 w-full">
                     <p className="text-[11px] text-blue-400/60 uppercase tracking-wider mb-1">الترجمة</p>
-                    <p className="text-2xl font-bold text-white" style={{ direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
+                    <p className="text-2xl font-bold text-heading" style={{ direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
                       {current.meaning_ar}
                     </p>
                   </div>
@@ -226,16 +226,16 @@ export default function FlashcardsView() {
                 {/* Definition */}
                 {current.meaning_en && (
                   <div className="mb-5 w-full">
-                    <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-1.5">Definition</p>
-                    <p className="text-[15px] text-slate-200 leading-relaxed">{current.meaning_en}</p>
+                    <p className="text-[11px] text-muted uppercase tracking-wider mb-1.5">Definition</p>
+                    <p className="text-[15px] text-heading leading-relaxed">{current.meaning_en}</p>
                   </div>
                 )}
 
                 {/* One example */}
                 {(current.examples?.length ?? 0) > 0 && (
-                  <div className="bg-slate-900/50 border border-slate-700/40 rounded-xl px-4 py-3 w-full mb-4">
-                    <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-1">Example</p>
-                    <p className="text-sm text-slate-300 leading-relaxed italic">"{current.examples![0]}"</p>
+                  <div className="bg-surface/50 border border-line/40 rounded-xl px-4 py-3 w-full mb-4">
+                    <p className="text-[11px] text-muted uppercase tracking-wider mb-1">Example</p>
+                    <p className="text-sm text-body leading-relaxed italic">"{current.examples![0]}"</p>
                   </div>
                 )}
 
@@ -256,14 +256,14 @@ export default function FlashcardsView() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-center text-sm text-slate-500">How well did you know it?</p>
+              <p className="text-center text-sm text-muted">How well did you know it?</p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {RATINGS.map(r => (
                   <button key={r.value} disabled={busy} onClick={() => handleRate(r.value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border bg-slate-800/50 transition-all active:scale-95 disabled:opacity-50 ${r.color}`}>
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border bg-card/50 transition-all active:scale-95 disabled:opacity-50 ${r.color}`}>
                     <span className="text-xl">{r.emoji}</span>
-                    <span className="text-xs font-semibold text-slate-200">{r.label}</span>
-                    <span className="text-[10px] text-slate-500">{r.hint}</span>
+                    <span className="text-xs font-semibold text-heading">{r.label}</span>
+                    <span className="text-[10px] text-muted">{r.hint}</span>
                   </button>
                 ))}
               </div>
@@ -275,8 +275,8 @@ export default function FlashcardsView() {
       {/* ── QUIZ MODE ──────────────────────────────────────────── */}
       {mode === 'quiz' && (
         <>
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-3xl p-6 min-h-[320px]">
-            <p className="text-xs text-slate-500 uppercase tracking-wider text-center mb-4">
+          <div className="bg-card/60 border border-line/50 rounded-3xl p-6 min-h-[320px]">
+            <p className="text-xs text-muted uppercase tracking-wider text-center mb-4">
               {quizType === 'translation' && 'Choose the correct translation'}
               {quizType === 'synonym' && `Choose a synonym for "${current.word}"`}
               {quizType === 'definition' && 'Which definition matches this word?'}
@@ -285,12 +285,12 @@ export default function FlashcardsView() {
 
             {quizType !== 'fillblank' ? (
               <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-white">{current.word}</h2>
-                {current.pronunciation && <p className="text-slate-400 font-mono mt-1">{current.pronunciation}</p>}
+                <h2 className="text-3xl font-bold text-heading">{current.word}</h2>
+                {current.pronunciation && <p className="text-body font-mono mt-1">{current.pronunciation}</p>}
               </div>
             ) : (
-              <div className="bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 mb-6 text-center">
-                <p className="text-sm text-slate-300 leading-relaxed">
+              <div className="bg-surface/50 border border-line rounded-xl px-4 py-3 mb-6 text-center">
+                <p className="text-sm text-body leading-relaxed">
                   {current.sentence?.replace(new RegExp(`\\b${current.word}\\b`, 'gi'), '________') || `________ is used in English.`}
                 </p>
               </div>
@@ -306,15 +306,15 @@ export default function FlashcardsView() {
                 if (quizType === 'fillblank') label = c.word;
 
                 const cls = !answered
-                  ? 'border-slate-700 hover:border-slate-500 hover:bg-slate-800/80'
+                  ? 'border-line hover:border-line hover:bg-card/80'
                   : isCorrect ? 'border-green-500/40 bg-green-500/10'
                   : isThis ? 'border-red-500/40 bg-red-500/10'
-                  : 'border-slate-700/40 opacity-50';
+                  : 'border-line/40 opacity-50';
 
                 return (
                   <button key={c.id} disabled={answered} onClick={() => { setPicked(c.id); setAnswered(true); }}
-                    className={`rounded-xl border px-4 py-3 text-left transition-all text-sm text-slate-300 ${cls}`}>
-                    <span className="text-slate-600 mr-2">{i + 1}.</span>{label}
+                    className={`rounded-xl border px-4 py-3 text-left transition-all text-sm text-body ${cls}`}>
+                    <span className="text-faint mr-2">{i + 1}.</span>{label}
                   </button>
                 );
               })}
@@ -350,9 +350,9 @@ export default function FlashcardsView() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3 text-center">
-      <p className="text-xl font-bold text-white">{value}</p>
-      <p className="text-[11px] text-slate-500">{label}</p>
+    <div className="bg-card/60 border border-line/50 rounded-2xl p-3 text-center">
+      <p className="text-xl font-bold text-heading">{value}</p>
+      <p className="text-[11px] text-muted">{label}</p>
     </div>
   );
 }

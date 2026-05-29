@@ -213,7 +213,7 @@ export type AppPage =
   | 'login'
   | 'register';
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'auto' | 'dark' | 'light';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export interface AuthResponse {

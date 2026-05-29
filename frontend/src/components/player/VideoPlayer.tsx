@@ -84,12 +84,12 @@ export default function VideoPlayer() {
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
+          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-heading rounded-xl shadow transition-all active:scale-95 flex-shrink-0">
             {playing ? '⏸' : '▶'}
           </button>
-          <span className="text-white/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
+          <span className="text-heading/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
           <div className="flex-1" />
-          <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-white/50 hover:text-white hover:bg-white/10'}`}>🔁</button>
+          <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-heading/50 hover:text-heading hover:bg-white/10'}`}>🔁</button>
 
           <div className="relative">
             <button
@@ -98,13 +98,13 @@ export default function VideoPlayer() {
                 setSpeedOpen(false);
                 setVolOpen(false);
               }}
-              className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-medium"
+              className="text-heading/60 hover:text-heading px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-medium"
               title="Playback quality"
             >
               {QUALITY_LABELS[currentQuality] ?? currentQuality}
             </button>
             {qualityOpen && (
-              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[96px]">
+              <div className="absolute bottom-full right-0 mb-2 bg-card border border-line rounded-xl shadow-xl z-50 overflow-hidden min-w-[96px]">
                 {availableQualities.map((quality) => (
                   <button
                     key={quality}
@@ -112,7 +112,7 @@ export default function VideoPlayer() {
                       setQuality(quality);
                       setQualityOpen(false);
                     }}
-                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${currentQuality === quality ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}
+                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${currentQuality === quality ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-body hover:bg-elevated'}`}
                   >
                     {QUALITY_LABELS[quality] ?? quality}
                   </button>
@@ -122,21 +122,21 @@ export default function VideoPlayer() {
           </div>
 
           <div className="relative">
-            <button onClick={() => { setVolOpen(!volOpen); setSpeedOpen(false); setQualityOpen(false); }} className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-sm">
+            <button onClick={() => { setVolOpen(!volOpen); setSpeedOpen(false); setQualityOpen(false); }} className="p-2 rounded-lg text-heading/50 hover:text-heading hover:bg-white/10 text-sm">
               {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
             </button>
             {volOpen && (
-              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-xl z-50 w-32">
+              <div className="absolute bottom-full right-0 mb-2 bg-card border border-line rounded-xl p-3 shadow-xl z-50 w-32">
                 <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-blue-500" />
-                <p className="text-xs text-slate-400 text-center mt-1">{Math.round(volume * 100)}%</p>
+                <p className="text-xs text-body text-center mt-1">{Math.round(volume * 100)}%</p>
               </div>
             )}
           </div>
 
           <div className="relative">
-            <button onClick={() => { setSpeedOpen(!speedOpen); setVolOpen(false); setQualityOpen(false); }} className="text-white/60 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
+            <button onClick={() => { setSpeedOpen(!speedOpen); setVolOpen(false); setQualityOpen(false); }} className="text-heading/60 hover:text-heading px-2 py-1.5 rounded-lg hover:bg-white/10 text-xs font-mono">{speed}×</button>
             {speedOpen && (
-              <div className="absolute bottom-full right-0 mb-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden min-w-[80px]">
+              <div className="absolute bottom-full right-0 mb-2 bg-card border border-line rounded-xl shadow-xl z-50 overflow-hidden min-w-[80px]">
                 {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((s) => (
                   <button
                     key={s}
@@ -144,7 +144,7 @@ export default function VideoPlayer() {
                       setSpeed(s);
                       setSpeedOpen(false);
                     }}
-                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${speed === s ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-slate-300 hover:bg-slate-700'}`}
+                    className={`block w-full text-center px-4 py-2 text-sm transition-colors ${speed === s ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-body hover:bg-elevated'}`}
                   >
                     {s}×
                   </button>

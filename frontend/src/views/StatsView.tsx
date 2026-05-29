@@ -35,16 +35,16 @@ export default function StatsView() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">My Progress</h1>
-        <p className="text-slate-500 text-sm">Track your learning journey</p>
+        <h1 className="text-2xl font-bold text-heading">My Progress</h1>
+        <p className="text-muted text-sm">Track your learning journey</p>
       </div>
 
       {/* Due banner */}
       {(summary?.due_now ?? 0) > 0 && (
         <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-white">{summary!.due_now} cards due for review</p>
-            <p className="text-xs text-slate-400">Quick session strengthens retention</p>
+            <p className="text-sm font-semibold text-heading">{summary!.due_now} cards due for review</p>
+            <p className="text-xs text-body">Quick session strengthens retention</p>
           </div>
           <Button onClick={() => setPage('flashcards')} variant="primary" size="sm">Review</Button>
         </div>
@@ -53,17 +53,17 @@ export default function StatsView() {
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-2.5">
         {stats.map(s => (
-          <div key={s.label} className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-4 text-center">
+          <div key={s.label} className="bg-card/60 border border-line/40 rounded-2xl p-4 text-center">
             <span className="text-lg">{s.emoji}</span>
             <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">{s.label}</p>
+            <p className="text-[11px] text-muted mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Pipeline */}
-      <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-slate-200 mb-4">Review Pipeline</h2>
+      <div className="bg-card/60 border border-line/40 rounded-2xl p-5">
+        <h2 className="text-sm font-semibold text-heading mb-4">Review Pipeline</h2>
         <div className="space-y-3">
           {[
             { label: 'Never reviewed', value: summary?.never_reviewed ?? 0, color: 'bg-purple-500' },
@@ -76,10 +76,10 @@ export default function StatsView() {
             return (
               <div key={r.label}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-300">{r.label}</span>
-                  <span className="text-slate-500">{r.value} ({pct}%)</span>
+                  <span className="text-body">{r.label}</span>
+                  <span className="text-muted">{r.value} ({pct}%)</span>
                 </div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-elevated rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all duration-700 ${r.color}`} style={{ width: `${pct}%` }} />
                 </div>
               </div>
@@ -90,19 +90,19 @@ export default function StatsView() {
 
       {/* Word levels */}
       {progress?.level_distribution && Object.keys(progress.level_distribution).length > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-slate-200 mb-4">Word Levels</h2>
+        <div className="bg-card/60 border border-line/40 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-heading mb-4">Word Levels</h2>
           <div className="space-y-2">
             {Object.entries(progress.level_distribution).map(([level, count]) => {
               const total = Object.values(progress.level_distribution!).reduce((a, b) => a + Number(b), 0) || 1;
               const pct = Math.round((Number(count) / total) * 100);
               return (
                 <div key={level} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-slate-300 w-6">{level}</span>
-                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <span className="text-xs font-bold text-body w-6">{level}</span>
+                  <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${LEVEL_COLORS[level] ?? 'bg-slate-500'}`} style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="text-xs text-slate-500 w-8 text-right">{count}</span>
+                  <span className="text-xs text-muted w-8 text-right">{count}</span>
                 </div>
               );
             })}
@@ -112,12 +112,12 @@ export default function StatsView() {
 
       {/* Hardest words */}
       {(progress?.hardest_words?.length ?? 0) > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-slate-200 mb-3">Hardest Words</h2>
+        <div className="bg-card/60 border border-line/40 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-heading mb-3">Hardest Words</h2>
           <div className="space-y-2">
             {progress!.hardest_words!.map(w => (
               <div key={w.word} className="flex items-center justify-between text-sm">
-                <span className="text-slate-200 font-medium">{w.word}</span>
+                <span className="text-heading font-medium">{w.word}</span>
                 <span className="text-xs text-red-400">{w.lapses} lapses · {w.reviewed_count} reviews</span>
               </div>
             ))}
@@ -127,19 +127,19 @@ export default function StatsView() {
 
       {/* Recent videos */}
       {recentVideos.length > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-2xl p-5">
-          <h2 className="text-sm font-semibold text-slate-200 mb-3">Recent Videos</h2>
+        <div className="bg-card/60 border border-line/40 rounded-2xl p-5">
+          <h2 className="text-sm font-semibold text-heading mb-3">Recent Videos</h2>
           <div className="space-y-2">
             {recentVideos.slice(0, 5).map(v => (
               <div key={v.id} className="flex items-center gap-3">
                 {v.thumbnail_url ? (
-                  <img src={v.thumbnail_url} alt="" className="w-12 h-8 rounded-lg object-cover bg-slate-700" />
+                  <img src={v.thumbnail_url} alt="" className="w-12 h-8 rounded-lg object-cover bg-elevated" />
                 ) : (
-                  <div className="w-12 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-xs">🎬</div>
+                  <div className="w-12 h-8 rounded-lg bg-elevated flex items-center justify-center text-xs">🎬</div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 truncate">{v.title}</p>
-                  <p className="text-xs text-slate-500">{v.channel}</p>
+                  <p className="text-sm text-heading truncate">{v.title}</p>
+                  <p className="text-xs text-muted">{v.channel}</p>
                 </div>
               </div>
             ))}
@@ -150,7 +150,7 @@ export default function StatsView() {
       {/* Tips */}
       <div className="bg-blue-500/5 border border-blue-500/15 rounded-2xl p-4">
         <h3 className="text-xs font-semibold text-blue-400 mb-2">💡 Tips</h3>
-        <ul className="space-y-1 text-xs text-slate-400">
+        <ul className="space-y-1 text-xs text-body">
           <li>• Review cards daily for best retention</li>
           <li>• Try quiz mode to test yourself differently</li>
           <li>• Click any saved word to see full details</li>

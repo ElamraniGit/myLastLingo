@@ -20,11 +20,11 @@ export function Button({
     'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none';
 
   const variants = {
-    primary:   'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20',
-    secondary: 'bg-slate-700 text-slate-100 hover:bg-slate-600 border border-slate-600',
-    ghost:     'text-slate-400 hover:text-white hover:bg-slate-700/50',
+    primary:   'bg-blue-600 text-heading hover:bg-blue-500 shadow-lg shadow-blue-500/20',
+    secondary: 'bg-elevated text-heading hover:bg-slate-600 border border-line',
+    ghost:     'text-body hover:text-heading hover:bg-elevated/50',
     danger:    'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20',
-    outline:   'border border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:border-slate-500',
+    outline:   'border border-line text-body hover:bg-elevated/50 hover:border-line',
   };
 
   const sizes = {

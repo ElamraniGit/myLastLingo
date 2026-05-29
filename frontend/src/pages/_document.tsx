@@ -17,7 +17,7 @@ export default function Document() {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
         <link rel="icon" type="image/svg+xml" href="/icons/icon-192x192.svg" />
       </Head>
-      <body className="bg-slate-950 text-slate-100 min-h-screen">
+      <body className="bg-base text-heading min-h-screen">
         <Main />
         <NextScript />
       </body>
