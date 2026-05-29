@@ -50,8 +50,7 @@ function meaning(w: SavedWord) { return w.meaning_ar?.trim() || w.meaning_en?.tr
 /* ════════════════════════════════════════════════════════════════ */
 
 export default function FlashcardsView() {
-  const { loadDueWords, reviewWord, loadReviewSummary, loadStats, loadVocabulary } = useDictionary();
-  const { setSelectedWord, setWordPopupOpen, setWordPopupSentence } = useStore();
+  const { loadDueWords, reviewWord, loadReviewSummary, loadStats, loadVocabulary, lookupWord } = useDictionary();
 
   const [queue, setQueue] = useState<SavedWord[]>([]);
   const [pool, setPool] = useState<SavedWord[]>([]);
@@ -127,13 +126,11 @@ export default function FlashcardsView() {
     } finally { setBusy(false); }
   }, [current, busy, reviewWord, loadStats]);
 
-  /* ── Open full word popup ────────────────────────────────────── */
+  /* ── Open full word popup (fetches complete data from API) ──── */
   const openWordDetail = useCallback(() => {
     if (!current) return;
-    setSelectedWord(current as any);
-    setWordPopupSentence(current.sentence || '');
-    setWordPopupOpen(true);
-  }, [current, setSelectedWord, setWordPopupOpen, setWordPopupSentence]);
+    lookupWord(current.word, current.sentence || '');
+  }, [current, lookupWord]);
 
   /* ── Loading ─────────────────────────────────────────────────── */
   if (loading) return (
@@ -213,44 +210,38 @@ export default function FlashcardsView() {
                 <p className="text-xs text-slate-600 mt-6">Tap to reveal ↻</p>
               </div>
 
-              {/* BACK */}
-              <div className="absolute inset-0 bg-slate-800/60 border border-slate-700/50 rounded-3xl p-6 overflow-y-auto"
+              {/* BACK — clean: translation + definition + example only */}
+              <div className="absolute inset-0 bg-slate-800/60 border border-slate-700/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-y-auto"
                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                 {/* Arabic translation */}
-                {current.meaning_ar && (
-                  <div className="bg-blue-500/8 border border-blue-500/15 rounded-2xl px-4 py-3 mb-4">
-                    <p className="text-xl font-bold text-white" style={{ direction: 'rtl', textAlign: 'center', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
+                {current.meaning_ar ? (
+                  <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl px-6 py-4 mb-5 w-full">
+                    <p className="text-[11px] text-blue-400/60 uppercase tracking-wider mb-1">الترجمة</p>
+                    <p className="text-2xl font-bold text-white" style={{ direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
                       {current.meaning_ar}
                     </p>
                   </div>
-                )}
+                ) : null}
+
                 {/* Definition */}
-                {current.meaning_en && <p className="text-sm text-slate-300 leading-relaxed mb-3">📖 {current.meaning_en}</p>}
-                {/* Example */}
+                {current.meaning_en && (
+                  <div className="mb-5 w-full">
+                    <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-1.5">Definition</p>
+                    <p className="text-[15px] text-slate-200 leading-relaxed">{current.meaning_en}</p>
+                  </div>
+                )}
+
+                {/* One example */}
                 {(current.examples?.length ?? 0) > 0 && (
-                  <div className="bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 mb-3">
-                    <p className="text-xs text-slate-500 mb-1">Example</p>
-                    <p className="text-sm text-slate-300">"{current.examples![0]}"</p>
+                  <div className="bg-slate-900/50 border border-slate-700/40 rounded-xl px-4 py-3 w-full mb-4">
+                    <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-1">Example</p>
+                    <p className="text-sm text-slate-300 leading-relaxed italic">"{current.examples![0]}"</p>
                   </div>
                 )}
-                {/* Synonyms */}
-                {(current.synonyms?.length ?? 0) > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    <span className="text-xs text-slate-500">Synonyms:</span>
-                    {current.synonyms!.slice(0, 5).map(s => (
-                      <span key={s} className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-lg">{s}</span>
-                    ))}
-                  </div>
-                )}
-                {/* Context */}
-                {current.sentence && (
-                  <div className="bg-slate-900/30 border border-slate-700/30 rounded-xl px-3 py-2.5 mb-3">
-                    <p className="text-xs text-slate-500 mb-1">From video</p>
-                    <p className="text-sm text-slate-400">{current.sentence}</p>
-                  </div>
-                )}
+
+                {/* View full details button */}
                 <button onClick={e => { e.stopPropagation(); openWordDetail(); }}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors mt-1">
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors mt-2 px-4 py-2 rounded-lg hover:bg-blue-500/10">
                   📖 View full details →
                 </button>
               </div>

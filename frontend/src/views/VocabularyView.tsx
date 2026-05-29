@@ -39,8 +39,7 @@ function fmtRelative(v?: string) {
 
 export default function VocabularyView() {
   const { savedWords, setPage } = useStore();
-  const { setSelectedWord, setWordPopupOpen, setWordPopupSentence } = useStore();
-  const { loadVocabulary, loadStats, loadReviewSummary, deleteWord } = useDictionary();
+  const { loadVocabulary, loadStats, loadReviewSummary, deleteWord, lookupWord } = useDictionary();
 
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState('');
@@ -62,10 +61,9 @@ export default function VocabularyView() {
   useEffect(() => { load(); }, [load]);
 
   const openWord = useCallback((w: SavedWord) => {
-    setSelectedWord(w as any);
-    setWordPopupSentence(w.sentence || '');
-    setWordPopupOpen(true);
-  }, [setSelectedWord, setWordPopupOpen, setWordPopupSentence]);
+    // Fetch full word data from API (with definitions, how_to_use, etc.)
+    lookupWord(w.word, w.sentence || '');
+  }, [lookupWord]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
