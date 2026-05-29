@@ -8,7 +8,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_ROOT/frontend"
 
-PORT="${LINGUALEARN_FRONTEND_PORT:-3000}"
+export PORT="${LINGUALEARN_FRONTEND_PORT:-3000}"
 
 # ── Kill old frontend processes ──────────────────────────────────
 echo "🔍 Checking port ${PORT}..."
@@ -22,4 +22,4 @@ pkill -f "node.*next" 2>/dev/null && sleep 1 || true
 
 echo "🌐 Starting LinguaLearn frontend on http://127.0.0.1:${PORT}"
 
-exec PORT="$PORT" npm run dev
+exec npm run dev

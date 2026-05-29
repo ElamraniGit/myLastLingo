@@ -56,50 +56,60 @@ fi
 pkill -f "uvicorn.*backend.main" 2>/dev/null && echo "   Killed via pkill" && sleep 1 || true
 
 # Final check: try to bind the port with Python
-python3 -c "
-import socket, sys
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-try:
-    s.bind(('${HOST}', ${PORT}))
-    s.close()
-    print('   ✅ Port ${PORT} is free.')
-except OSError:
-    print('   ❌ Port ${PORT} is STILL busy. Trying harder...')
-    # Nuclear option: kill everything on that port via /proc
-    import os, re
-    for pid_dir in os.listdir('/proc'):
-        if not pid_dir.isdigit():
-            continue
-        try:
-            fd_dir = f'/proc/{pid_dir}/fd'
-            for fd in os.listdir(fd_dir):
-                link = os.readlink(f'{fd_dir}/{fd}')
-                if 'socket' in link:
-                    pass
-            # Check cmdline
-            with open(f'/proc/{pid_dir}/cmdline', 'r') as f:
-                cmd = f.read()
-            if 'uvicorn' in cmd or ('python' in cmd and 'backend' in cmd):
-                pid = int(pid_dir)
-                if pid != os.getpid() and pid != os.getppid():
-                    os.kill(pid, 9)
-                    print(f'   Killed PID {pid} ({cmd[:60]})')
-        except (PermissionError, FileNotFoundError, ProcessLookupError, OSError):
-            pass
-    import time; time.sleep(1)
-    # Verify again
-    s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+python3 << PYEOF
+import socket, sys, os, signal, time
+
+host = "${HOST}"
+port = ${PORT}
+
+def try_bind():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        s2.bind(('${HOST}', ${PORT}))
-        s2.close()
-        print('   ✅ Port ${PORT} is now free.')
+        s.bind((host, port))
+        s.close()
+        return True
     except OSError:
-        print('   ❌ Could not free port ${PORT}. Please run manually:')
-        print('      kill \$(ps | grep uvicorn | awk \"{print \\\$1}\")')
-        sys.exit(1)
-" || exit 1
+        s.close()
+        return False
+
+if try_bind():
+    print(f"   ✅ Port {port} is free.")
+    sys.exit(0)
+
+print(f"   ❌ Port {port} is STILL busy. Scanning /proc...")
+
+my_pid = os.getpid()
+my_ppid = os.getppid()
+
+for entry in os.listdir("/proc"):
+    if not entry.isdigit():
+        continue
+    pid = int(entry)
+    if pid in (my_pid, my_ppid):
+        continue
+    try:
+        with open(f"/proc/{pid}/cmdline", "r") as f:
+            cmd = f.read()
+        if "uvicorn" in cmd and "backend" in cmd:
+            os.kill(pid, signal.SIGKILL)
+            print(f"   Killed PID {pid}")
+    except (PermissionError, FileNotFoundError, ProcessLookupError, OSError):
+        pass
+
+time.sleep(1)
+
+if try_bind():
+    print(f"   ✅ Port {port} is now free.")
+else:
+    print(f"   ❌ Could not free port {port}.")
+    print(f"   Try: pkill -f uvicorn")
+    sys.exit(1)
+PYEOF
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 echo ""
 echo "🚀 Starting LinguaLearn backend on http://${HOST}:${PORT}"
