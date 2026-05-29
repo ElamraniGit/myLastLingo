@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
-import { libraryApi, videosApi, ApiError } from '@/lib/api';
+import { libraryApi, videosApi, dictionaryApi, vocabularyApi, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 
 /* ── Types ─────────────────────────────────────────────────────── */
@@ -23,7 +23,7 @@ interface Source {
   created_at?: string;
 }
 
-type AddMode = null | 'choose' | 'youtube' | 'text' | 'paste';
+type AddMode = null | 'choose' | 'youtube' | 'text' | 'paste' | 'word';
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 function fmtDate(v?: string) {
@@ -253,6 +253,7 @@ function AddSourceModal({
             {mode === 'youtube' && '🎬 YouTube Video'}
             {mode === 'text' && '📄 Text Content'}
             {mode === 'paste' && '📋 Paste Text'}
+            {mode === 'word' && '🔤 Add a Word'}
           </h2>
           <button onClick={close} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body">✕</button>
         </div>
@@ -291,6 +292,15 @@ function AddSourceModal({
                 </div>
               </button>
               <input ref={fileRef} type="file" accept=".txt,.text" onChange={handleFile} className="hidden" />
+
+              <button onClick={() => setMode('word')}
+                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all text-left">
+                <span className="text-3xl">🔤</span>
+                <div>
+                  <p className="text-sm font-semibold text-heading">Add a Word</p>
+                  <p className="text-xs text-muted mt-0.5">Look up any English word and save it</p>
+                </div>
+              </button>
             </div>
           )}
 
@@ -348,6 +358,11 @@ function AddSourceModal({
             </div>
           )}
 
+          {/* ── Word lookup ──────────────────────────────────── */}
+          {mode === 'word' && (
+            <WordLookupPanel onClose={close} onAdded={onAdded} setError={setError} />
+          )}
+
           {/* Error */}
           {error && (
             <div className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl">
@@ -359,3 +374,137 @@ function AddSourceModal({
     </>
   );
 }
+
+
+/* ── Word Lookup Panel ──────────────────────────────────────────── */
+function WordLookupPanel({ onClose, onAdded, setError }: {
+  onClose: () => void;
+  onAdded: () => void;
+  setError: (e: string) => void;
+}) {
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [wordData, setWordData] = useState<any>(null);
+  const [saved, setSaved] = useState(false);
+
+  const lookup = async () => {
+    const w = input.trim().toLowerCase();
+    if (!w || w.length < 2) { setError('Enter a valid English word'); return; }
+    setBusy(true); setError('');
+    try {
+      const data = await dictionaryApi.lookup(w);
+      setWordData(data);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Word not found');
+    }
+    setBusy(false);
+  };
+
+  const saveWord = async () => {
+    if (!wordData || saved) return;
+    setBusy(true);
+    try {
+      await vocabularyApi.save(wordData.word);
+      setSaved(true);
+      onAdded();
+    } catch (e) {
+      setError('Failed to save word');
+    }
+    setBusy(false);
+  };
+
+  const speak = (t: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85;
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Input */}
+      <div>
+        <label className="text-sm font-medium text-body mb-1.5 block">English Word</label>
+        <div className="flex gap-2">
+          <input
+            type="text" value={input}
+            onChange={e => { setInput(e.target.value); setWordData(null); setSaved(false); setError(''); }}
+            onKeyDown={e => { if (e.key === 'Enter') lookup(); }}
+            placeholder="e.g. opportunity"
+            className="flex-1 bg-input-bg border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            autoFocus
+          />
+          <Button onClick={lookup} loading={busy} variant="primary">Look up</Button>
+        </div>
+      </div>
+
+      {/* Result */}
+      {wordData && (
+        <div className="bg-surface/50 border border-line/40 rounded-xl p-4 space-y-3">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-heading">{wordData.word}</h3>
+                {wordData.level && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-semibold">{wordData.level}</span>
+                )}
+              </div>
+              {wordData.pronunciation && (
+                <p className="text-xs text-muted font-mono mt-0.5">{wordData.pronunciation}</p>
+              )}
+            </div>
+            <button onClick={() => speak(wordData.word)}
+              className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400">
+              🔊
+            </button>
+          </div>
+
+          {/* Arabic */}
+          {wordData.meaning_ar && (
+            <div className="bg-blue-500/8 border border-blue-500/15 rounded-lg px-3 py-2">
+              <p className="text-base font-semibold text-heading" style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
+                {wordData.meaning_ar}
+              </p>
+            </div>
+          )}
+
+          {/* Definition */}
+          {wordData.meaning_en && (
+            <p className="text-sm text-body leading-relaxed">{wordData.meaning_en}</p>
+          )}
+
+          {/* Example */}
+          {wordData.examples?.length > 0 && (
+            <div className="bg-surface/40 border border-line/30 rounded-lg px-3 py-2">
+              <p className="text-[11px] text-muted mb-0.5">Example</p>
+              <p className="text-sm text-body italic">"{wordData.examples[0]}"</p>
+            </div>
+          )}
+
+          {/* Synonyms */}
+          {wordData.synonyms?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[11px] text-muted">Synonyms:</span>
+              {wordData.synonyms.slice(0, 5).map((s: string) => (
+                <span key={s} className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-lg">{s}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Save button */}
+          <Button onClick={saveWord} loading={busy} variant={saved ? 'secondary' : 'primary'} className="w-full">
+            {saved ? '✓ Saved to vocabulary' : '+ Save to my words'}
+          </Button>
+        </div>
+      )}
+
+      {/* Back button */}
+      {!wordData && (
+        <Button onClick={() => onClose()} variant="outline" className="w-full">← Back</Button>
+      )}
+    </div>
+  );
+}
+
