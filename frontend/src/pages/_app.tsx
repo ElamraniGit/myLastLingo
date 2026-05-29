@@ -96,9 +96,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="manifest" href="/manifest.json" />
       </Head>
       <Layout>
-        <div key={currentPage} className="h-full">
-          {renderPage()}
-        </div>
+        {renderPage()}
         <InstallPrompt />
       </Layout>
     </>

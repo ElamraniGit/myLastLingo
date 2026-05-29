@@ -50,6 +50,7 @@ function meaning(w: SavedWord) { return w.meaning_ar?.trim() || w.meaning_en?.tr
 /* ════════════════════════════════════════════════════════════════ */
 
 export default function FlashcardsView() {
+  const currentPage = useStore.getState().currentPage;
   const { loadDueWords, reviewWord, loadReviewSummary, loadStats, loadVocabulary, lookupWord } = useDictionary();
 
   const [queue, setQueue] = useState<SavedWord[]>([]);
@@ -83,7 +84,8 @@ export default function FlashcardsView() {
     setFlipped(false); setCompleted(false); setDone(0); setLoading(false);
   }, [loadDueWords, loadReviewSummary, loadVocabulary]);
 
-  useEffect(() => { reload(); loadStats(); }, [reload, loadStats]);
+  const activePage = useStore((s) => s.currentPage);
+  useEffect(() => { if (activePage === 'flashcards') { reload(); loadStats(); } }, [activePage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Setup quiz choices when card changes ────────────────────── */
   useEffect(() => {

@@ -52,6 +52,7 @@ export default function LibraryView() {
   const { setCurrentVideo, setPage, addRecentVideo } = useStore();
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
+  const currentPage = useStore((s) => s.currentPage);
   const [addMode, setAddMode] = useState<AddMode>(null);
 
   /* ── Load sources ────────────────────────────────────────────── */
@@ -64,7 +65,7 @@ export default function LibraryView() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (currentPage === 'library') load(); }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Open source ─────────────────────────────────────────────── */
   const openSource = useCallback((s: Source) => {

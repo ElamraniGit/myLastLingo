@@ -38,7 +38,7 @@ function fmtRelative(v?: string) {
 }
 
 export default function VocabularyView() {
-  const { savedWords, setPage } = useStore();
+  const { savedWords, setPage, currentPage } = useStore();
   const { loadVocabulary, loadStats, loadReviewSummary, deleteWord, lookupWord } = useDictionary();
 
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -58,7 +58,7 @@ export default function VocabularyView() {
     setLoading(false);
   }, [status, search, sort, loadVocabulary, loadReviewSummary, loadStats]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (currentPage === 'vocabulary') load(); }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openWord = useCallback((w: SavedWord) => {
     // Fetch full word data from API (with definitions, how_to_use, etc.)
