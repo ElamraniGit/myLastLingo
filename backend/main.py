@@ -80,13 +80,14 @@ async def lifespan(app: FastAPI):
         d.mkdir(parents=True, exist_ok=True)
 
     # Inject db into modules
-    from backend.app.api import videos, transcripts, dictionary, vocabulary, player, auth
+    from backend.app.api import videos, transcripts, dictionary, vocabulary, player, auth, library
     videos.init_api(db_manager)
     transcripts.init_api(db_manager)
     dictionary.init_api(db_manager)
     vocabulary.init_api(db_manager)
     player.init_api(db_manager)
     auth.init_api(db_manager)
+    library.init_api(db_manager)
 
     logger.info("LinguaLearn started successfully")
     yield

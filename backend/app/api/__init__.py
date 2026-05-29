@@ -7,6 +7,7 @@ from .dictionary import router as dictionary_router
 from .vocabulary import router as vocabulary_router
 from .player import router as player_router
 from .auth import router as auth_router
+from .library import router as library_router
 
 router = APIRouter()
 
@@ -16,3 +17,4 @@ router.include_router(transcripts_router, prefix="/transcripts", tags=["Transcri
 router.include_router(dictionary_router, prefix="/dictionary", tags=["Dictionary"])
 router.include_router(vocabulary_router, prefix="/vocabulary", tags=["Vocabulary"])
 router.include_router(player_router, prefix="/player", tags=["Player"])
+router.include_router(library_router, prefix="/library", tags=["Library"])

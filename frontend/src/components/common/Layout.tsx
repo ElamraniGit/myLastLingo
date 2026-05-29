@@ -9,6 +9,7 @@ import type { AppPage } from '@/types';
 
 const NAV: { id: AppPage; label: string; emoji: string }[] = [
   { id: 'player',     label: 'Learn',    emoji: '🎬' },
+  { id: 'library',    label: 'Library',  emoji: '📖' },
   { id: 'vocabulary', label: 'Words',    emoji: '📚' },
   { id: 'flashcards', label: 'Review',   emoji: '🔄' },
   { id: 'stats',      label: 'Progress', emoji: '📊' },

@@ -208,6 +208,7 @@ export type AppPage =
   | 'flashcards'
   | 'stats'
   | 'settings'
+  | 'library'
   | 'profile'
   | 'login'
   | 'register';

@@ -20,6 +20,7 @@ import FlashcardsView from '@/views/FlashcardsView';
 import StatsView from '@/views/StatsView';
 import SettingsView from '@/views/SettingsView';
 import ProfileView from '@/views/ProfileView';
+import LibraryView from '@/views/LibraryView';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -71,6 +72,8 @@ export default function App({ Component, pageProps }: AppProps) {
         return <FlashcardsView />;
       case 'stats':
         return <StatsView />;
+      case 'library':
+        return <LibraryView />;
       case 'settings':
         return <SettingsView />;
       case 'profile':

@@ -180,6 +180,17 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_words_word ON words(word)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_saved_words_user ON saved_words(status, next_review)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_video ON sessions(video_id)")
+
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS text_sources (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                source_type TEXT DEFAULT 'text',
+                content TEXT NOT NULL,
+                word_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_word_reviews_saved ON word_reviews(saved_word_id)")
 
     async def _run_migrations(self, conn: aiosqlite.Connection):

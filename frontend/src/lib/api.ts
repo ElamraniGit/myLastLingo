@@ -190,6 +190,19 @@ export const playerApi = {
   getState: (videoId: string) => req<any>(`/player/state/${videoId}`),
 };
 
+export const libraryApi = {
+  listSources: (page = 1, limit = 50) =>
+    req<any>(\`/library/sources?page=\${page}&limit=\${limit}\`),
+
+  addText: (title: string, content: string, source_type = 'text') =>
+    req<any>('/library/text', { method: 'POST', body: { title, content, source_type } }),
+
+  getText: (id: string) => req<any>(\`/library/text/\${id}\`),
+
+  deleteSource: (id: string) =>
+    req<any>(\`/library/source/\${id}\`, { method: 'DELETE' }),
+};
+
 export const healthApi = {
   check: async () => {
     const res = await fetch(`${BACKEND_ORIGIN}/health`);
