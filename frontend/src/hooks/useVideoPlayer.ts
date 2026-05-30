@@ -10,6 +10,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { transcriptsApi, playerApi } from '@/lib/api';
+import { awardXP } from '@/components/common/XPBar';
 import type { TranscriptSegment, VideoQuality } from '@/types';
 
 const sharedPlayerRef: { current: any } = { current: null };
@@ -407,11 +408,17 @@ export function useVideoPlayer() {
 
   useEffect(() => {
     if (!currentVideo || !playerState.playing) return;
+    let watchMinutes = 0;
     const iv = setInterval(() => {
       playerApi.saveState({
         ...playerStateRef.current,
         video_id: currentVideo.id,
       }).catch(() => {});
+      // Award XP every ~60s of watching (4 x 15s intervals)
+      watchMinutes++;
+      if (watchMinutes % 4 === 0) {
+        awardXP('watch_minute');
+      }
     }, 15000);
     return () => clearInterval(iv);
   }, [currentVideo?.id, playerState.playing]);

@@ -8,6 +8,7 @@ import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
 import { BACKEND_ORIGIN } from '@/lib/api';
 import type { AppPage } from '@/types';
+import XPBar from './XPBar';
 
 /* ── SVG Icons (clean, modern, inline) ──────────────────────────── */
 const Icons = {
@@ -108,13 +109,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <span className="font-bold text-heading text-sm">LinguaLearn</span>
           </div>
-          {user && (
-            <button onClick={() => setPage('profile')}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-heading text-sm font-bold shadow-md"
-              style={{ backgroundColor: user.avatar_color }}>
-              {(user.display_name || user.username)[0].toUpperCase()}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <XPBar />
+            {user && (
+              <button onClick={() => setPage('profile')}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-heading text-sm font-bold shadow-md"
+                style={{ backgroundColor: user.avatar_color }}>
+                {(user.display_name || user.username)[0].toUpperCase()}
+              </button>
+            )}
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">{children}</div>

@@ -9,6 +9,7 @@ from .player import router as player_router
 from .auth import router as auth_router
 from .library import router as library_router
 from .chat import router as chat_router
+from .xp import router as xp_router
 
 router = APIRouter()
 
@@ -20,3 +21,4 @@ router.include_router(vocabulary_router, prefix="/vocabulary", tags=["Vocabulary
 router.include_router(player_router, prefix="/player", tags=["Player"])
 router.include_router(library_router, prefix="/library", tags=["Library"])
 router.include_router(chat_router, prefix="/chat", tags=["Chat"])
+router.include_router(xp_router, prefix="/xp", tags=["XP"])

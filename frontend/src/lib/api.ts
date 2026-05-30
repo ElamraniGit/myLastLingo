@@ -203,6 +203,13 @@ export const libraryApi = {
     req<any>(`/library/source/${id}`, { method: 'DELETE' }),
 };
 
+export const xpApi = {
+  addXP: (action: string, amount?: number) =>
+    req<any>('/xp/add', { method: 'POST', body: { action, amount } }),
+
+  getStatus: () => req<any>('/xp/status'),
+};
+
 export const chatApi = {
   sendMessage: (message: string, conversation_id?: string) =>
     req<any>('/chat/message', {

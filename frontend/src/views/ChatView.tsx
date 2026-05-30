@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { chatApi, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
+import { awardXP } from '@/components/common/XPBar';
 import { Input } from '@/components/ui/Input';
 
 interface Message {
@@ -73,6 +74,7 @@ export default function ChatView() {
     try {
       const res = await chatApi.sendMessage(msg, convId || undefined);
       setMessages(prev => [...prev, { role: 'assistant', content: res.reply }]);
+      awardXP('chat_message');
       if (res.conversation_id) setConvId(res.conversation_id);
     } catch (e) {
       const errMsg = e instanceof ApiError ? e.message : 'Failed to send message';

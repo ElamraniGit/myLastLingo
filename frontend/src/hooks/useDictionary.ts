@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { dictionaryApi, vocabularyApi } from '@/lib/api';
+import { awardXP } from '@/components/common/XPBar';
 import type { VocabularyListParams } from '@/types';
 
 export function useDictionary() {
@@ -56,6 +57,7 @@ export function useDictionary() {
       await vocabularyApi.save(word, videoId, sentence, context);
       const data = await vocabularyApi.list();
       if (data?.words) setSavedWords(data.words);
+      awardXP('save_word');
       return true;
     } catch {
       return false;
@@ -89,6 +91,7 @@ export function useDictionary() {
 
   const reviewWord = useCallback(async (savedWordId: string, quality: number) => {
     const result = await vocabularyApi.review(savedWordId, quality);
+    awardXP(quality >= 4 ? 'review_perfect' : 'review_word');
     try {
       const due = await vocabularyApi.due();
       if (due?.words) setDueWords(due.words);

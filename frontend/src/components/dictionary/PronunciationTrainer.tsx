@@ -13,6 +13,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
+import { awardXP } from '@/components/common/XPBar';
 
 interface Props {
   word: string;
@@ -126,11 +127,9 @@ export default function PronunciationTrainer({ word, pronunciation, onClose }: P
       // Final result
       if (event.results[event.results.length - 1].isFinal) {
         const score = calculateScore(word, heard);
-        setAttempts(prev => [{
-          heard: heard.trim(),
-          score,
-          correct: score >= 80,
-        }, ...prev].slice(0, 10));
+        const result = { heard: heard.trim(), score, correct: score >= 80 };
+        setAttempts(prev => [result, ...prev].slice(0, 10));
+        if (score >= 80) awardXP('pronunciation');
         setListening(false);
       }
     };

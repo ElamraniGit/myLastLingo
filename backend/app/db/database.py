@@ -194,6 +194,30 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_chat_user ON chat_messages(user_id, conversation_id)")
 
         await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_xp (
+                id TEXT PRIMARY KEY,
+                user_id TEXT UNIQUE NOT NULL,
+                total_xp INTEGER DEFAULT 0,
+                level INTEGER DEFAULT 1,
+                streak_days INTEGER DEFAULT 0,
+                daily_xp INTEGER DEFAULT 0,
+                last_active_date TEXT DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS xp_log (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                xp_earned INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_xp_user ON user_xp(user_id)")
+
+        await conn.execute("""
             CREATE TABLE IF NOT EXISTS text_sources (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
