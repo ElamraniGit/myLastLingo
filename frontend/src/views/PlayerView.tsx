@@ -191,7 +191,11 @@ function HomeDashboard() {
 
       {/* Empty state */}
       {recentWords.length === 0 && sources.length === 0 && (
-        <VideoInput />
+        <div className="text-center py-8">
+          <p className="text-3xl mb-3">📚</p>
+          <p className="text-heading font-semibold mb-1">Start learning!</p>
+          <p className="text-muted text-sm">Add a video or word from the Library</p>
+        </div>
       )}
 
       <WordPopup />
