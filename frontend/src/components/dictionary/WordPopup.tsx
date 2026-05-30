@@ -10,6 +10,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
+import PronunciationTrainer from './PronunciationTrainer';
 
 /* ── Part-of-speech colors ───────────────────────────────────── */
 const POS: Record<string, { color: string; label: string }> = {
@@ -62,6 +63,7 @@ export default function WordPopup() {
   const { closeWordPopup, saveWord } = useDictionary();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPronunciation, setShowPronunciation] = useState(false);
   const [visible, setVisible] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +77,7 @@ export default function WordPopup() {
   }, [wordPopupOpen, selectedWord]);
 
   // Reset saved state on new word
-  useEffect(() => { setSaved(false); }, [selectedWord?.word]);
+  useEffect(() => { setSaved(false); setShowPronunciation(false); }, [selectedWord?.word]);
 
   const handleClose = useCallback(() => {
     setVisible(false);
@@ -161,6 +163,13 @@ export default function WordPopup() {
                 title="Pronounce"
               >
                 <span className="text-lg">🔊</span>
+              </button>
+              <button
+                onClick={() => setShowPronunciation(true)}
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-green-500/15 hover:bg-green-500/25 text-green-400 transition-all active:scale-90"
+                title="Practice pronunciation"
+              >
+                <span className="text-lg">🎤</span>
               </button>
               <button
                 onClick={handleClose}
@@ -310,6 +319,14 @@ export default function WordPopup() {
           </div>
         </div>
       </div>
+      {/* Pronunciation Trainer */}
+      {showPronunciation && (
+        <PronunciationTrainer
+          word={w.word}
+          pronunciation={w.pronunciation}
+          onClose={() => setShowPronunciation(false)}
+        />
+      )}
     </>
   );
 }
