@@ -126,7 +126,8 @@ async def get_text_source(source_id: str, current_user: dict = Depends(get_curre
     """Get full text source content."""
     async with db_manager.get_connection() as conn:
         async with conn.execute(
-            "SELECT * FROM text_sources WHERE id = ?", (source_id,)
+            "SELECT * FROM text_sources WHERE id = ? AND (user_id = ? OR user_id = '')",
+            (source_id, current_user["sub"]),
         ) as cur:
             row = await cur.fetchone()
 
@@ -142,7 +143,7 @@ async def delete_source(source_id: str, current_user: dict = Depends(get_current
     async with db_manager.get_connection() as conn:
         # Try text first
         async with conn.execute(
-            "SELECT id FROM text_sources WHERE id = ?", (source_id,)
+            "SELECT id FROM text_sources WHERE id = ? AND (user_id = ? OR user_id = '')", (source_id, current_user["sub"])
         ) as cur:
             if await cur.fetchone():
                 await conn.execute("DELETE FROM text_sources WHERE id = ?", (source_id,))
@@ -150,7 +151,7 @@ async def delete_source(source_id: str, current_user: dict = Depends(get_current
 
         # Try video
         async with conn.execute(
-            "SELECT id FROM videos WHERE id = ?", (source_id,)
+            "SELECT id FROM videos WHERE id = ? AND (user_id = ? OR user_id = '')", (source_id, current_user["sub"])
         ) as cur:
             if await cur.fetchone():
                 await conn.execute("DELETE FROM transcripts WHERE video_id = ?", (source_id,))

@@ -153,7 +153,7 @@ async def list_videos(
 
 
 @router.get("/{video_id}")
-async def get_video(video_id: str):
+async def get_video(video_id: str, current_user: dict = Depends(get_current_user)):
     """Get video details."""
     video = await db_manager.get_video(video_id)
     if not video:
@@ -162,7 +162,7 @@ async def get_video(video_id: str):
 
 
 @router.delete("/{video_id}")
-async def delete_video(video_id: str):
+async def delete_video(video_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a video and its associated data."""
     video = await db_manager.get_video(video_id)
     if not video:

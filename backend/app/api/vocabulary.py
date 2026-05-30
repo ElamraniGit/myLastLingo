@@ -174,7 +174,7 @@ async def get_vocabulary_filters(current_user: dict = Depends(get_current_user))
 
 
 @router.patch("/{saved_id}")
-async def update_saved_word(saved_id: str, request: UpdateSavedWordRequest):
+async def update_saved_word(saved_id: str, request: UpdateSavedWordRequest, current_user: dict = Depends(get_current_user)):
     """Update tags / notes / favorite metadata for a saved word."""
     updated = await db_manager.update_saved_word_metadata(
         saved_id,
