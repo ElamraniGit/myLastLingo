@@ -125,6 +125,8 @@ interface AppState {
   setAutoPauseOnWord: (v: boolean) => void;
 
   // ── Actions ───────────────────────────────────────────────────────────────
+  currentTextId: string | null;
+  setCurrentTextId: (id: string | null) => void;
   resetPlayer: () => void;
 }
 
@@ -258,6 +260,8 @@ export const useStore = create<AppState>()(
       setAutoPauseOnWord: (v) => set({ autoPauseOnWord: v }),
 
       // ── Actions ──────────────────────────────────────────────────────────
+      currentTextId: null,
+      setCurrentTextId: (id) => set({ currentTextId: id }),
       resetPlayer: () =>
         set({
           currentVideo: null,

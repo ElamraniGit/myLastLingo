@@ -74,10 +74,9 @@ export default function LibraryView() {
       addRecentVideo(s as any);
       setPage('player');
     } else {
-      // For text sources — navigate to player with text mode
-      // For now show the content (future: text reader view)
-      setCurrentVideo({ ...s, youtube_id: '' } as any);
-      setPage('player');
+      // Open in text reader
+      useStore.setState({ currentTextId: s.id });
+      setPage('textreader');
     }
   }, [setCurrentVideo, addRecentVideo, setPage]);
 

@@ -210,6 +210,7 @@ export type AppPage =
   | 'settings'
   | 'library'
   | 'chat'
+  | 'textreader'
   | 'profile'
   | 'login'
   | 'register';
