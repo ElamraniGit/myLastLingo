@@ -38,11 +38,34 @@ export function useReview() {
           message: data?.message as string | undefined,
           mode: data?.mode as 'due' | 'practice' | undefined,
           can_practice: !!data?.can_practice,
+          error: undefined as string | undefined,
         };
-      } catch (e) {
+      } catch (e: any) {
         console.error('startSession failed', e);
         setSession(null);
-        return { session: null, summary: null, message: 'فشل تحميل الجلسة', mode: undefined, can_practice: false };
+        // Surface the real reason so users can act on it.
+        const status = e?.status;
+        const msg = e?.message || 'فشل تحميل الجلسة';
+        let userMessage: string;
+        if (status === 404) {
+          userMessage = '❌ نقطة API غير موجودة (404). يبدو أن الـ backend يعمل بنسخة قديمة. أعد تشغيله بعد سحب آخر التحديثات: git pull → python run.py';
+        } else if (status === 401 || status === 403) {
+          userMessage = '🔒 الجلسة منتهية. سجّل الدخول مجدداً.';
+        } else if (status === 0 || status === 408) {
+          userMessage = '🔌 لا يمكن الاتصال بـ backend. تأكد أن python run.py يعمل على المنفذ 8080.';
+        } else if (status >= 500) {
+          userMessage = `💥 خطأ في الخادم (${status}): ${msg}`;
+        } else {
+          userMessage = `⚠️ ${msg}${status ? ` (${status})` : ''}`;
+        }
+        return {
+          session: null,
+          summary: null,
+          message: userMessage,
+          mode: undefined,
+          can_practice: false,
+          error: userMessage,
+        };
       } finally {
         setLoading(false);
       }

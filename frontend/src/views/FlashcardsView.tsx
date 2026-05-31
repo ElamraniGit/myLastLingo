@@ -100,6 +100,7 @@ export default function FlashcardsView() {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [canPractice, setCanPractice] = useState(false);
   const [currentMode, setCurrentMode] = useState<'due' | 'practice' | null>(null);
   const [reloadKey, setReloadKey] = useState(0); // force re-trigger of boot effect
@@ -111,6 +112,7 @@ export default function FlashcardsView() {
   const bootSmart = useCallback(async () => {
     setSessionComplete(false);
     setEmptyMessage(null);
+    setErrorMessage(null);
     setCanPractice(false);
     setIdx(0);
     setCorrectCount(0);
@@ -118,13 +120,14 @@ export default function FlashcardsView() {
     setAnswered(false);
     setFeedback(null);
     sessionStartAt.current = Date.now();
-    const { session: s, message, mode, can_practice } = await startSession({
+    const { session: s, message, mode, can_practice, error } = await startSession({
       max_questions: 10,
       focus_difficult: focusDifficult,
       include_all: practiceMode,
       sort: practiceMode ? practiceSort : 'smart',
     });
     setCurrentMode(mode || null);
+    if (error) setErrorMessage(error);
     if (!s || s.questions.length === 0) {
       setEmptyMessage(message || 'لا توجد كلمات مستحقة للمراجعة الآن.');
       setCanPractice(can_practice);
@@ -277,6 +280,42 @@ export default function FlashcardsView() {
 
     return (
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+        {/* Hard-error banner — visible above everything when API fails */}
+        {errorMessage && (
+          <div className="bg-red-500/10 border border-red-500/40 rounded-2xl p-4 space-y-2">
+            <p className="text-red-300 text-sm font-semibold">⚠️ تعذر بدء الجلسة</p>
+            <p className="text-red-200 text-xs leading-relaxed whitespace-pre-wrap">{errorMessage}</p>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(
+                      (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1')
+                        .replace(/\/api\/v1\/?$/, '') + '/health',
+                    );
+                    const data = await res.json().catch(() => ({}));
+                    alert(
+                      `✓ Backend متاح\nStatus: ${res.status}\nVersion: ${data.version || 'unknown'}\n\nالآن جرّب الضغط على "تحقّق مجدداً" مرة أخرى.`,
+                    );
+                  } catch (e) {
+                    alert(
+                      '✗ لا يمكن الوصول للـ backend\n\n' +
+                        'افتح terminal آخر ونفّذ:\n' +
+                        '  cd ~/myLastLingo\n' +
+                        '  python run.py\n\n' +
+                        'إذا كان يعمل بالفعل، أعد تشغيله بعد:\n' +
+                        '  git pull origin feat/smart-review-system',
+                    );
+                  }
+                }}
+                className="text-[11px] px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-colors"
+              >
+                🩺 فحص الـ Backend
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="text-center">
           <div className="text-6xl mb-3">{isEmpty ? '✨' : '🎉'}</div>
           <h2 className="text-2xl font-bold text-heading mb-1">
