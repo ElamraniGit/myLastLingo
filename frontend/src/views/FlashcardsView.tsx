@@ -20,6 +20,7 @@ import { useReview } from '@/hooks/useReview';
 import { useDictionary } from '@/hooks/useDictionary';
 import { Button } from '@/components/ui/Button';
 import { LevelBadge } from '@/components/ui/Badge';
+import ReviewDashboard from '@/components/review/ReviewDashboard';
 import { speak as ttsSpeak } from '@/lib/tts';
 import type {
   QuizQuestion,
@@ -95,6 +96,7 @@ export default function FlashcardsView() {
 
   const [focusDifficult, setFocusDifficult] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const currentQ: QuizQuestion | null = session?.questions?.[idx] ?? null;
   const currentFc: SavedWord | null = dueWords[fcIdx] ?? null;
@@ -291,8 +293,23 @@ export default function FlashcardsView() {
           <div className="flex gap-1.5">
             <ModeBtn active={mode === 'smart'} onClick={() => setMode('smart')} icon="❓" label="ذكي" />
             <ModeBtn active={mode === 'flashcards'} onClick={() => setMode('flashcards')} icon="🃏" label="بطاقات" />
+            <button
+              onClick={() => setShowDashboard((v) => !v)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                showDashboard ? 'bg-purple-600 text-heading' : 'bg-card text-body hover:text-heading'
+              }`}
+              title="الإحصائيات"
+            >
+              📊
+            </button>
           </div>
         </div>
+
+        {showDashboard && (
+          <div className="mb-4">
+            <ReviewDashboard />
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-2 bg-card rounded-full overflow-hidden">
             <div

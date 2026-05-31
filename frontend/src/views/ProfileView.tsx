@@ -10,6 +10,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { authApi, BACKEND_ORIGIN } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import ReviewDashboard from '@/components/review/ReviewDashboard';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
 
 type Tab = 'profile' | 'progress' | 'settings';
@@ -118,6 +119,9 @@ function ProgressTab() {
 
   return (
     <div className="space-y-5">
+      {/* Smart Review analytics */}
+      <ReviewDashboard />
+
       <div className="grid grid-cols-3 gap-2">
         {stats.map(s => (
           <div key={s.label} className="bg-card/50 border border-line/40 rounded-xl p-3 text-center">
