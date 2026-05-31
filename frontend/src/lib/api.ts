@@ -194,6 +194,38 @@ export const vocabularyApi = {
   delete: (savedId: string) => req<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
 };
 
+// ─── Smart Review System ──────────────────────────────────────────────────
+export const reviewApi = {
+  startSession: (opts: { max_questions?: number; include_new?: boolean; focus_difficult?: boolean } = {}) =>
+    req<any>('/review/session/start', {
+      method: 'POST',
+      body: {
+        max_questions: opts.max_questions ?? 10,
+        include_new: opts.include_new ?? true,
+        focus_difficult: opts.focus_difficult ?? false,
+      },
+    }),
+
+  submitAnswer: (payload: {
+    saved_word_id: string;
+    question_type: string;
+    is_correct: boolean;
+    picked_label?: string;
+    response_ms?: number;
+    rate_card?: boolean;
+  }) => req<any>('/review/session/answer', { method: 'POST', body: payload }),
+
+  rateFlashcard: (savedWordId: string, rating: 1 | 2 | 3 | 4, responseMs = 0) =>
+    req<any>('/review/flashcard/rate', {
+      method: 'POST',
+      body: { saved_word_id: savedWordId, rating, response_ms: responseMs },
+    }),
+
+  dashboard: () => req<any>('/review/dashboard'),
+  daily: () => req<any>('/review/daily'),
+  forecast: (days = 14) => req<any>(`/review/forecast?days=${days}`),
+};
+
 export const playerApi = {
   saveState: (state: any) => req<any>('/player/state', { method: 'POST', body: state }),
 

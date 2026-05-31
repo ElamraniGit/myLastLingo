@@ -123,6 +123,16 @@ export interface SavedWord {
   next_review?: string;
   last_reviewed?: string;
   created_at?: string;
+  // ── Smart Review fields ──
+  stage?: LearningStage;
+  mastery_score?: number;
+  correct_count?: number;
+  incorrect_count?: number;
+  total_attempts?: number;
+  avg_response_ms?: number;
+  is_leech?: boolean;
+  fsrs_stability?: number;
+  fsrs_difficulty?: number;
 }
 
 export interface PlayerState {
@@ -198,6 +208,73 @@ export interface ReviewHistoryItem {
   saved_word_id: string;
   quality: number;
   reviewed_at: string;
+}
+
+// ─── Smart Review System ─────────────────────────────────────────────────
+export type LearningStage = 'new' | 'learning' | 'familiar' | 'mastered';
+
+export type QuizQuestionType =
+  | 'en_to_ar'
+  | 'ar_to_en'
+  | 'fill_blank'
+  | 'definition_match'
+  | 'synonym_match'
+  | 'listening';
+
+export interface QuizChoice {
+  id: string;
+  label: string;
+  is_correct: boolean;
+}
+
+export interface QuizQuestion {
+  id: string;
+  saved_word_id: string;
+  word: string;
+  type: QuizQuestionType;
+  prompt: string;
+  prompt_meta: Record<string, any>;
+  choices: QuizChoice[];
+  correct_choice_id: string;
+  explanation: string;
+  hint?: string;
+  audio_word?: string;
+}
+
+export interface QuizSession {
+  id: string;
+  created_at: string;
+  total: number;
+  questions: QuizQuestion[];
+}
+
+export type FsrsRating = 1 | 2 | 3 | 4; // Again / Hard / Good / Easy
+
+export interface ReviewDashboard {
+  stats: {
+    total: number;
+    mastered: number;
+    familiar: number;
+    learning: number;
+    new_count: number;
+    leeches: number;
+    avg_mastery: number;
+    avg_response_ms: number;
+    new_per_day_7d: Record<string, number>;
+    reviews_per_day_7d: Record<string, number>;
+  };
+  errors: {
+    by_type: Array<{ error_type: string; n: number }>;
+    top_missed_words: Array<{ id: string; word: string; misses: number }>;
+    window_days: number;
+  };
+  forecast: { days: number; per_day: Record<string, number> };
+  retention_rate: {
+    window_days: number;
+    quiz_accuracy: number;
+    flashcard_recall: number;
+    quiz_attempts: number;
+  };
 }
 
 // ─── App Navigation ───────────────────────────────────────────────────────────
