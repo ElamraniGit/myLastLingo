@@ -1,358 +1,623 @@
 /**
- * Flashcards & Quiz review — unified with the new dictionary system.
- * Features:
- *   - 3D card flip animation (front: word + hint, back: full info)
- *   - Quiz mode: translation, synonym, definition, fill-blank
- *   - Swipe-like rating (Again / Hard / Good / Easy)
- *   - Session progress tracking
- *   - Keyboard shortcuts
+ * Smart Review View — unified flashcards + interleaved quiz session.
+ *
+ * Pedagogy:
+ *   • Active Recall      — answer is always hidden until the user commits.
+ *   • Retrieval Practice — distractors are mined from the user's real pool.
+ *   • Interleaving       — question types alternate within a single session.
+ *   • Context-Based      — fill-blank uses the original source sentence.
+ *   • Desirable Difficulty — adaptive question type based on mastery score.
+ *   • Spaced Repetition  — every answer drives FSRS (Stability/Difficulty).
+ *
+ * Modes:
+ *   • "smart"      — interleaved quiz (default; calls /review/session)
+ *   • "flashcards" — classic Anki-style flip with Again/Hard/Good/Easy
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useDictionary } from '@/hooks/useDictionary';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '@/store/appStore';
-import { LevelBadge } from '@/components/ui/Badge';
+import { useReview } from '@/hooks/useReview';
+import { useDictionary } from '@/hooks/useDictionary';
 import { Button } from '@/components/ui/Button';
-import type { SavedWord, ReviewSummary } from '@/types';
+import { LevelBadge } from '@/components/ui/Badge';
 import { speak as ttsSpeak } from '@/lib/tts';
+import type {
+  QuizQuestion,
+  QuizSession,
+  SavedWord,
+  FsrsRating,
+} from '@/types';
 
-/* ── Constants ─────────────────────────────────────────────────── */
-const RATINGS = [
-  { value: 0, key: '1', label: 'Again', emoji: '🔁', hint: '10 min',   color: 'border-red-500/40 hover:bg-red-500/10' },
-  { value: 2, key: '2', label: 'Hard',  emoji: '😓', hint: '30 min',   color: 'border-orange-500/40 hover:bg-orange-500/10' },
-  { value: 3, key: '3', label: 'Good',  emoji: '🙂', hint: '1+ day',   color: 'border-blue-500/40 hover:bg-blue-500/10' },
-  { value: 5, key: '4', label: 'Easy',  emoji: '🚀', hint: 'fast grad', color: 'border-green-500/40 hover:bg-green-500/10' },
-] as const;
-
-type QuizType = 'translation' | 'synonym' | 'definition' | 'fillblank';
-
-const QUIZ_TYPES: { id: QuizType; label: string }[] = [
-  { id: 'translation', label: 'Choose the correct translation' },
-  { id: 'synonym', label: 'Choose the synonym' },
-  { id: 'definition', label: 'Choose the correct definition' },
-  { id: 'fillblank', label: 'Which word fits the sentence?' },
+/* ── Constants ──────────────────────────────────────────────────────── */
+const RATINGS: Array<{
+  value: FsrsRating;
+  key: string;
+  label: string;
+  emoji: string;
+  hint: string;
+  color: string;
+}> = [
+  { value: 1, key: '1', label: 'Again', emoji: '🔁', hint: '10 دقائق', color: 'border-red-500/40 hover:bg-red-500/10' },
+  { value: 2, key: '2', label: 'Hard', emoji: '😓', hint: '30 دقيقة', color: 'border-orange-500/40 hover:bg-orange-500/10' },
+  { value: 3, key: '3', label: 'Good', emoji: '🙂', hint: 'يوم+', color: 'border-blue-500/40 hover:bg-blue-500/10' },
+  { value: 4, key: '4', label: 'Easy', emoji: '🚀', hint: '4 أيام+', color: 'border-green-500/40 hover:bg-green-500/10' },
 ];
 
-function speak(t: string) {
-  // Natural neural voice for word pronunciation (browser fallback if offline)
-  const rate = (t || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
-  ttsSpeak(t, { rate });
+const QUESTION_TYPE_LABEL: Record<string, string> = {
+  en_to_ar: 'اختر الترجمة الصحيحة',
+  ar_to_en: 'اختر الكلمة الإنجليزية',
+  fill_blank: 'أكمل الفراغ',
+  definition_match: 'أي كلمة يصفها هذا التعريف؟',
+  synonym_match: 'اختر المرادف',
+  listening: 'استمع ثم اختر',
+};
+
+function speakWord(text: string) {
+  const rate = (text || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
+  ttsSpeak(text, { rate });
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const c = [...arr];
-  for (let i = c.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [c[i], c[j]] = [c[j], c[i]]; }
-  return c;
-}
-
-function meaning(w: SavedWord) { return w.meaning_ar?.trim() || w.meaning_en?.trim() || w.word; }
-
-/* ════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════ */
 
 export default function FlashcardsView() {
-  const currentPage = useStore.getState().currentPage;
-  const { loadDueWords, reviewWord, loadReviewSummary, loadStats, loadVocabulary, lookupWord } = useDictionary();
+  const activePage = useStore((s) => s.currentPage);
 
-  const [queue, setQueue] = useState<SavedWord[]>([]);
-  const [pool, setPool] = useState<SavedWord[]>([]);
-  const [summary, setSummary] = useState<ReviewSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [flipped, setFlipped] = useState(false);
-  const [mode, setMode] = useState<'flashcards' | 'quiz'>('flashcards');
-  const [done, setDone] = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const {
+    session,
+    setSession,
+    loading,
+    startSession,
+    submitAnswer,
+    rateFlashcard,
+    loadDashboard,
+    dashboard,
+  } = useReview();
+  const { loadDueWords, lookupWord, loadStats } = useDictionary();
 
-  // Quiz state
-  const [quizType, setQuizType] = useState<QuizType>('translation');
-  const [choices, setChoices] = useState<SavedWord[]>([]);
+  // Mode: smart (interleaved quiz) | flashcards (classic flip)
+  const [mode, setMode] = useState<'smart' | 'flashcards'>('smart');
+
+  // Smart-quiz state
+  const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string; error?: string } | null>(null);
+  const startedAt = useRef<number>(0);
+  const sessionStartAt = useRef<number>(0);
 
-  const current = queue[0] ?? null;
-  const total = done + queue.length;
-  const pct = total > 0 ? (done / total) * 100 : 0;
+  // Flashcard state
+  const [dueWords, setDueWords] = useState<SavedWord[]>([]);
+  const [fcIdx, setFcIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const fcStartedAt = useRef<number>(0);
 
-  /* ── Load queue ──────────────────────────────────────────────── */
-  const reload = useCallback(async () => {
-    setLoading(true);
-    const [d, s, v] = await Promise.all([
-      loadDueWords(40), loadReviewSummary().catch(() => null),
-      loadVocabulary({ page: 1, limit: 200 }).catch(() => ({ words: [] })),
-    ]);
-    setQueue(d?.words || []); setSummary(s || d?.summary || null); setPool(v?.words || []);
-    setFlipped(false); setCompleted(false); setDone(0); setLoading(false);
-  }, [loadDueWords, loadReviewSummary, loadVocabulary]);
+  const [focusDifficult, setFocusDifficult] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
 
-  const activePage = useStore((s) => s.currentPage);
-  useEffect(() => { if (activePage === 'flashcards') { reload(); loadStats(); } }, [activePage]); // eslint-disable-line react-hooks/exhaustive-deps
+  const currentQ: QuizQuestion | null = session?.questions?.[idx] ?? null;
+  const currentFc: SavedWord | null = dueWords[fcIdx] ?? null;
 
-  /* ── Setup quiz choices when card changes ────────────────────── */
+  /* ── Boot ─────────────────────────────────────────────────────── */
+  const bootSmart = useCallback(async () => {
+    setSessionComplete(false);
+    setIdx(0);
+    setCorrectCount(0);
+    setPicked(null);
+    setAnswered(false);
+    setFeedback(null);
+    sessionStartAt.current = Date.now();
+    const { session: s } = await startSession({ max_questions: 10, focus_difficult: focusDifficult });
+    if (!s || s.questions.length === 0) setSessionComplete(true);
+    startedAt.current = Date.now();
+    loadDashboard().catch(() => null);
+  }, [startSession, loadDashboard, focusDifficult]);
+
+  const bootFlashcards = useCallback(async () => {
+    setSessionComplete(false);
+    setFcIdx(0);
+    setFlipped(false);
+    const data = await loadDueWords(20);
+    setDueWords(data?.words || []);
+    fcStartedAt.current = Date.now();
+    if (!data?.words?.length) setSessionComplete(true);
+  }, [loadDueWords]);
+
   useEffect(() => {
-    if (!current) return;
-    const others = shuffle(pool.filter(w => w.id !== current.id && meaning(w) !== meaning(current))).slice(0, 3);
-    setChoices(shuffle([current, ...others]));
-    setPicked(null); setAnswered(false); setFlipped(false);
-    // Pick random quiz type
-    const types: QuizType[] = ['translation'];
-    if ((current.synonyms?.length ?? 0) > 0) types.push('synonym');
-    if (current.meaning_en) types.push('definition');
-    if (current.sentence) types.push('fillblank');
-    setQuizType(types[Math.floor(Math.random() * types.length)]);
-  }, [current?.id, pool]);
+    if (activePage !== 'flashcards') return;
+    if (mode === 'smart') bootSmart();
+    else bootFlashcards();
+  }, [activePage, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ── Keyboard shortcuts ──────────────────────────────────────── */
+  /* ── Keyboard shortcuts ───────────────────────────────────────── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!current || busy || mode !== 'flashcards') return;
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setFlipped(v => !v); return; }
-      if (!flipped) return;
-      const r = RATINGS.find(x => x.key === e.key);
-      if (r) { e.preventDefault(); handleRate(r.value); }
+      if (mode === 'smart' && currentQ && !answered) {
+        const n = parseInt(e.key, 10);
+        if (n >= 1 && n <= currentQ.choices.length) {
+          e.preventDefault();
+          handlePick(currentQ.choices[n - 1].id);
+        }
+      } else if (mode === 'flashcards' && currentFc) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          setFlipped((v) => !v);
+        } else if (flipped) {
+          const r = RATINGS.find((x) => x.key === e.key);
+          if (r) {
+            e.preventDefault();
+            handleRate(r.value);
+          }
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [current?.id, flipped, busy, mode]);
+  }, [mode, currentQ?.id, currentFc?.id, flipped, answered]); // eslint-disable-line
 
-  /* ── Rate ─────────────────────────────────────────────────────── */
-  const handleRate = useCallback(async (quality: number) => {
-    if (!current || busy) return;
-    setBusy(true);
-    try {
-      const res = await reviewWord(current.id, quality);
-      setSummary(res?.summary || null);
-      setDone(v => v + 1);
-      setQueue(prev => { const n = prev.slice(1); if (!n.length) setCompleted(true); return n; });
-      setFlipped(false); setPicked(null); setAnswered(false);
-      await loadStats();
-    } finally { setBusy(false); }
-  }, [current, busy, reviewWord, loadStats]);
+  /* ── Smart quiz answer ────────────────────────────────────────── */
+  const handlePick = useCallback(
+    async (choiceId: string) => {
+      if (!currentQ || answered) return;
+      setPicked(choiceId);
+      setAnswered(true);
+      const chosen = currentQ.choices.find((c) => c.id === choiceId)!;
+      const responseMs = Date.now() - startedAt.current;
 
-  /* ── Open full word popup (fetches complete data from API) ──── */
-  const openWordDetail = useCallback(() => {
-    if (!current) return;
-    lookupWord(current.word, current.sentence || '');
-  }, [current, lookupWord]);
-
-  /* ── Loading ─────────────────────────────────────────────────── */
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="w-10 h-10 border-[3px] border-line border-t-blue-500 rounded-full animate-spin mb-5" />
-      <p className="text-lg font-bold text-heading">Loading review session…</p>
-    </div>
+      try {
+        const res = await submitAnswer({
+          saved_word_id: currentQ.saved_word_id,
+          question_type: currentQ.type,
+          is_correct: !!chosen.is_correct,
+          picked_label: chosen.label,
+          response_ms: responseMs,
+          rate_card: true,
+        });
+        if (chosen.is_correct) setCorrectCount((c) => c + 1);
+        setFeedback({
+          correct: !!chosen.is_correct,
+          explanation: currentQ.explanation,
+          error: res?.error_reason ?? undefined,
+        });
+        loadStats().catch(() => null);
+      } catch {
+        setFeedback({ correct: !!chosen.is_correct, explanation: currentQ.explanation });
+      }
+    },
+    [currentQ, answered, submitAnswer, loadStats],
   );
 
-  /* ── Empty / Completed ───────────────────────────────────────── */
-  if (!current) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-      <div className="text-6xl mb-5">{completed ? '✅' : '🎉'}</div>
-      <h2 className="text-2xl font-bold text-heading mb-2">{completed ? 'Session complete!' : 'All caught up!'}</h2>
-      <p className="text-body max-w-sm mb-6">
-        {completed ? `You reviewed ${done} card${done === 1 ? '' : 's'} this session.` : 'No words are due right now.'}
-      </p>
-      {summary && (
-        <div className="grid grid-cols-2 gap-3 w-full max-w-xs mb-6">
-          <Stat label="Due" value={summary.due_now} />
-          <Stat label="Learning" value={summary.learning} />
-          <Stat label="Reviewing" value={summary.reviewing} />
-          <Stat label="Learned" value={summary.learned} />
+  const nextQuestion = useCallback(() => {
+    if (!session) return;
+    if (idx + 1 >= session.questions.length) {
+      setSessionComplete(true);
+      loadDashboard().catch(() => null);
+      return;
+    }
+    setIdx((i) => i + 1);
+    setPicked(null);
+    setAnswered(false);
+    setFeedback(null);
+    startedAt.current = Date.now();
+  }, [idx, session, loadDashboard]);
+
+  /* ── Flashcard rating ─────────────────────────────────────────── */
+  const handleRate = useCallback(
+    async (rating: FsrsRating) => {
+      if (!currentFc || busy) return;
+      setBusy(true);
+      const responseMs = Date.now() - fcStartedAt.current;
+      try {
+        await rateFlashcard(currentFc.id, rating, responseMs);
+        const next = fcIdx + 1;
+        if (next >= dueWords.length) {
+          setSessionComplete(true);
+          loadDashboard().catch(() => null);
+        } else {
+          setFcIdx(next);
+          setFlipped(false);
+          fcStartedAt.current = Date.now();
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [currentFc, busy, rateFlashcard, fcIdx, dueWords.length, loadDashboard],
+  );
+
+  /* ── Loading ──────────────────────────────────────────────────── */
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 border-[3px] border-line border-t-blue-500 rounded-full animate-spin mb-5" />
+        <p className="text-lg font-bold text-heading">جارٍ تجهيز جلسة المراجعة…</p>
+      </div>
+    );
+  }
+
+  /* ── Empty / Completed ────────────────────────────────────────── */
+  if (sessionComplete || (mode === 'smart' && !currentQ) || (mode === 'flashcards' && !currentFc)) {
+    const total = mode === 'smart' ? session?.questions?.length ?? 0 : dueWords.length;
+    const acc = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    const minutes = Math.max(1, Math.round((Date.now() - (sessionStartAt.current || Date.now())) / 60000));
+
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+        <div className="text-center">
+          <div className="text-6xl mb-3">{total > 0 ? '🎉' : '✨'}</div>
+          <h2 className="text-2xl font-bold text-heading mb-1">
+            {total > 0 ? 'انتهت الجلسة!' : 'كل الكلمات محدّثة!'}
+          </h2>
+          <p className="text-body">
+            {total > 0
+              ? `${correctCount}/${total} صحيحة · ${acc}% · ~${minutes} دقيقة`
+              : 'لا توجد كلمات مستحقة للمراجعة الآن.'}
+          </p>
         </div>
-      )}
-      <Button onClick={() => reload()} variant="outline">Refresh Queue</Button>
-    </div>
-  );
 
-  /* ── Main UI ─────────────────────────────────────────────────── */
+        {dashboard && (
+          <div className="grid grid-cols-2 gap-3">
+            <Stat label="متقنة" value={dashboard.stats.mastered} icon="🏆" />
+            <Stat label="مألوفة" value={dashboard.stats.familiar} icon="📚" />
+            <Stat label="قيد التعلم" value={dashboard.stats.learning} icon="🌱" />
+            <Stat label="معدل الاحتفاظ" value={`${Math.round((dashboard.retention_rate?.flashcard_recall || 0) * 100)}%`} icon="🎯" />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2">
+          <Button onClick={() => (mode === 'smart' ? bootSmart() : bootFlashcards())} variant="primary">
+            🔁 جلسة جديدة
+          </Button>
+          <Button onClick={() => setMode(mode === 'smart' ? 'flashcards' : 'smart')} variant="outline">
+            {mode === 'smart' ? '🃏 تبديل لبطاقات Anki' : '❓ تبديل لاختبار ذكي'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Header (shared) ──────────────────────────────────────────── */
+  const total = mode === 'smart' ? session?.questions?.length ?? 0 : dueWords.length;
+  const cur = mode === 'smart' ? idx + 1 : fcIdx + 1;
+  const pct = total ? (cur / total) * 100 : 0;
+
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
-      {/* Header */}
+      {/* Mode toggle + progress */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-heading">Review</h1>
+          <h1 className="text-xl font-bold text-heading">المراجعة الذكية</h1>
           <div className="flex gap-1.5">
-            {(['flashcards', 'quiz'] as const).map(m => (
-              <button key={m} onClick={() => setMode(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === m ? 'bg-blue-600 text-heading' : 'bg-card text-body hover:text-heading'}`}>
-                {m === 'flashcards' ? '🃏 Cards' : '❓ Quiz'}
+            <ModeBtn active={mode === 'smart'} onClick={() => setMode('smart')} icon="❓" label="ذكي" />
+            <ModeBtn active={mode === 'flashcards'} onClick={() => setMode('flashcards')} icon="🃏" label="بطاقات" />
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-2 bg-card rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="text-xs text-muted tabular-nums">
+            {cur}/{total}
+          </span>
+        </div>
+        {mode === 'smart' && (
+          <label className="flex items-center gap-2 mt-2 text-xs text-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={focusDifficult}
+              onChange={(e) => setFocusDifficult(e.target.checked)}
+              className="rounded"
+            />
+            ركّز على الكلمات الصعبة (Leeches)
+          </label>
+        )}
+      </div>
+
+      {/* SMART QUIZ */}
+      {mode === 'smart' && currentQ && (
+        <SmartQuestionCard
+          q={currentQ}
+          picked={picked}
+          answered={answered}
+          feedback={feedback}
+          onPick={handlePick}
+          onNext={nextQuestion}
+          onSpeak={() => currentQ.audio_word && speakWord(currentQ.audio_word)}
+          onViewDetail={() => lookupWord(currentQ.word, currentQ.prompt_meta?.original_sentence || '')}
+        />
+      )}
+
+      {/* FLASHCARDS */}
+      {mode === 'flashcards' && currentFc && (
+        <FlashcardClassic
+          w={currentFc}
+          flipped={flipped}
+          onFlip={() => setFlipped((v) => !v)}
+          onRate={handleRate}
+          busy={busy}
+          onSpeak={() => speakWord(currentFc.word)}
+          onViewDetail={() => lookupWord(currentFc.word, currentFc.sentence || '')}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════ */
+/* ─── Smart Question Card ─────────────────────────────────────────── */
+
+function SmartQuestionCard({
+  q,
+  picked,
+  answered,
+  feedback,
+  onPick,
+  onNext,
+  onSpeak,
+  onViewDetail,
+}: {
+  q: QuizQuestion;
+  picked: string | null;
+  answered: boolean;
+  feedback: { correct: boolean; explanation: string; error?: string } | null;
+  onPick: (id: string) => void;
+  onNext: () => void;
+  onSpeak: () => void;
+  onViewDetail: () => void;
+}) {
+  const blankSentence = q.prompt_meta?.sentence_blanked as string | undefined;
+  const definition = q.prompt_meta?.definition as string | undefined;
+  const isRtlPrompt = q.prompt_meta?.direction === 'rtl';
+
+  return (
+    <div className="bg-card/60 border border-line/50 rounded-3xl p-6 min-h-[340px] space-y-5 animate-fadeIn">
+      {/* Question type badge */}
+      <div className="flex items-center justify-between">
+        <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[11px] font-semibold uppercase tracking-wider">
+          {QUESTION_TYPE_LABEL[q.type] || q.type}
+        </span>
+        <button
+          onClick={onSpeak}
+          className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-colors"
+          aria-label="نطق"
+        >
+          🔊
+        </button>
+      </div>
+
+      {/* Prompt */}
+      <div className="text-center py-2">
+        {blankSentence ? (
+          <p className="text-xl leading-relaxed text-heading">{blankSentence}</p>
+        ) : definition ? (
+          <p className="text-base text-body italic leading-relaxed">"{definition}"</p>
+        ) : (
+          <h2
+            className={`text-4xl font-extrabold text-heading ${isRtlPrompt ? 'text-right' : ''}`}
+            style={isRtlPrompt ? { direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" } : {}}
+          >
+            {q.prompt}
+          </h2>
+        )}
+      </div>
+
+      {/* Choices */}
+      <div className="grid gap-2.5">
+        {q.choices.map((c, i) => {
+          const isThis = picked === c.id;
+          let cls = 'border-line hover:border-blue-500/40 hover:bg-card/80';
+          if (answered) {
+            if (c.is_correct) cls = 'border-green-500/50 bg-green-500/10 text-green-200';
+            else if (isThis) cls = 'border-red-500/50 bg-red-500/10 text-red-200';
+            else cls = 'border-line/30 opacity-50';
+          }
+          return (
+            <button
+              key={c.id}
+              disabled={answered}
+              onClick={() => onPick(c.id)}
+              className={`rounded-xl border px-4 py-3 text-start transition-all text-[15px] text-body ${cls}`}
+            >
+              <span className="text-faint me-2 font-mono">{i + 1}.</span>
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Feedback */}
+      {answered && feedback && (
+        <div
+          className={`rounded-xl px-4 py-3 border text-sm space-y-1.5 ${
+            feedback.correct
+              ? 'bg-green-500/10 border-green-500/20 text-green-300'
+              : 'bg-red-500/10 border-red-500/20 text-red-300'
+          }`}
+        >
+          <p className="font-semibold">{feedback.correct ? '✓ إجابة صحيحة' : '✗ إجابة خاطئة'}</p>
+          <p className="text-body/90">{feedback.explanation}</p>
+          {feedback.error && <p className="text-xs opacity-80">💡 {feedback.error}</p>}
+        </div>
+      )}
+
+      {/* Actions */}
+      {answered && (
+        <div className="grid grid-cols-2 gap-3">
+          <Button onClick={onViewDetail} variant="outline">
+            📖 تفاصيل
+          </Button>
+          <Button onClick={onNext} variant="primary">
+            التالي →
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Classic Flashcard ───────────────────────────────────────────── */
+
+function FlashcardClassic({
+  w,
+  flipped,
+  onFlip,
+  onRate,
+  busy,
+  onSpeak,
+  onViewDetail,
+}: {
+  w: SavedWord;
+  flipped: boolean;
+  onFlip: () => void;
+  onRate: (r: FsrsRating) => void;
+  busy: boolean;
+  onSpeak: () => void;
+  onViewDetail: () => void;
+}) {
+  return (
+    <>
+      <div style={{ perspective: '1200px' }}>
+        <div
+          className="relative w-full transition-transform duration-500 cursor-pointer"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: flipped ? 'rotateY(180deg)' : 'rotateY(0)',
+          }}
+          onClick={onFlip}
+        >
+          {/* FRONT */}
+          <div
+            className="bg-card/60 border border-line/50 rounded-3xl p-8 min-h-[320px] flex flex-col items-center justify-center text-center"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <LevelBadge level={(w.level || 'B1') as any} />
+              {w.stage && <StageBadge stage={w.stage} />}
+              {typeof w.mastery_score === 'number' && (
+                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 text-[10px] font-bold">
+                  {w.mastery_score}/100
+                </span>
+              )}
+            </div>
+            <h2 className="text-4xl font-extrabold text-heading mt-3">{w.word}</h2>
+            {w.pronunciation && <p className="text-body font-mono text-lg mt-2">{w.pronunciation}</p>}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSpeak();
+              }}
+              className="mt-5 p-3 rounded-2xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-colors text-lg"
+            >
+              🔊
+            </button>
+            <p className="text-xs text-faint mt-6">اضغط للكشف ↻</p>
+          </div>
+
+          {/* BACK */}
+          <div
+            className="absolute inset-0 bg-card/60 border border-line/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-y-auto"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
+            {w.meaning_ar && (
+              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl px-6 py-4 mb-4 w-full">
+                <p className="text-[11px] text-blue-400/60 uppercase tracking-wider mb-1">الترجمة</p>
+                <p
+                  className="text-2xl font-bold text-heading"
+                  style={{ direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" }}
+                >
+                  {w.meaning_ar}
+                </p>
+              </div>
+            )}
+            {w.meaning_en && (
+              <div className="mb-4 w-full">
+                <p className="text-[11px] text-muted uppercase tracking-wider mb-1.5">Definition</p>
+                <p className="text-[15px] text-heading leading-relaxed">{w.meaning_en}</p>
+              </div>
+            )}
+            {(w.examples?.length ?? 0) > 0 && (
+              <div className="bg-surface/50 border border-line/40 rounded-xl px-4 py-3 w-full mb-3">
+                <p className="text-[11px] text-muted uppercase tracking-wider mb-1">Example</p>
+                <p className="text-sm text-body leading-relaxed italic">"{w.examples![0]}"</p>
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetail();
+              }}
+              className="text-xs text-blue-400 hover:text-blue-300 mt-2 px-4 py-2 rounded-lg hover:bg-blue-500/10"
+            >
+              📖 تفاصيل كاملة →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Rating buttons (only when flipped) */}
+      {!flipped ? (
+        <div className="flex justify-center gap-3">
+          <Button onClick={onFlip} variant="primary" className="px-8">
+            إظهار الإجابة
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-center text-sm text-muted">ما مدى معرفتك بها؟</p>
+          <div className="grid grid-cols-4 gap-2">
+            {RATINGS.map((r) => (
+              <button
+                key={r.value}
+                disabled={busy}
+                onClick={() => onRate(r.value)}
+                className={`flex flex-col items-center gap-1 p-3 rounded-2xl border bg-card/50 transition-all active:scale-95 disabled:opacity-50 ${r.color}`}
+              >
+                <span className="text-xl">{r.emoji}</span>
+                <span className="text-xs font-semibold text-heading">{r.label}</span>
+                <span className="text-[10px] text-muted">{r.hint}</span>
               </button>
             ))}
           </div>
         </div>
-        {/* Progress bar */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 bg-card rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-          </div>
-          <span className="text-xs text-muted tabular-nums">{done}/{total}</span>
-        </div>
-      </div>
-
-      {/* ── FLASHCARD MODE ─────────────────────────────────────── */}
-      {mode === 'flashcards' && (
-        <>
-          <div className="flashcard-wrap" style={{ perspective: '1200px' }}>
-            <div
-              className={`relative w-full transition-transform duration-500 cursor-pointer ${flipped ? 'flashcard-flipped' : ''}`}
-              style={{ transformStyle: 'preserve-3d', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0)' }}
-              onClick={() => setFlipped(v => !v)}
-            >
-              {/* FRONT */}
-              <div className="bg-card/60 border border-line/50 rounded-3xl p-8 min-h-[320px] flex flex-col items-center justify-center text-center"
-                   style={{ backfaceVisibility: 'hidden' }}>
-                <LevelBadge level={(current.level || 'B1') as any} />
-                <h2 className="text-4xl font-extrabold text-heading mt-4">{current.word}</h2>
-                {current.pronunciation && <p className="text-body font-mono text-lg mt-2">{current.pronunciation}</p>}
-                <button onClick={e => { e.stopPropagation(); speak(current.word); }}
-                  className="mt-5 p-3 rounded-2xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-colors text-lg">🔊</button>
-                {current.meaning_en && (
-                  <p className="text-sm text-muted mt-5 max-w-xs leading-relaxed italic">
-                    💡 {current.meaning_en.length > 80 ? current.meaning_en.slice(0, 80) + '…' : current.meaning_en}
-                  </p>
-                )}
-                <p className="text-xs text-faint mt-6">Tap to reveal ↻</p>
-              </div>
-
-              {/* BACK — clean: translation + definition + example only */}
-              <div className="absolute inset-0 bg-card/60 border border-line/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-y-auto"
-                   style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
-                {/* Arabic translation */}
-                {current.meaning_ar ? (
-                  <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl px-6 py-4 mb-5 w-full">
-                    <p className="text-[11px] text-blue-400/60 uppercase tracking-wider mb-1">الترجمة</p>
-                    <p className="text-2xl font-bold text-heading" style={{ direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
-                      {current.meaning_ar}
-                    </p>
-                  </div>
-                ) : null}
-
-                {/* Definition */}
-                {current.meaning_en && (
-                  <div className="mb-5 w-full">
-                    <p className="text-[11px] text-muted uppercase tracking-wider mb-1.5">Definition</p>
-                    <p className="text-[15px] text-heading leading-relaxed">{current.meaning_en}</p>
-                  </div>
-                )}
-
-                {/* One example */}
-                {(current.examples?.length ?? 0) > 0 && (
-                  <div className="bg-surface/50 border border-line/40 rounded-xl px-4 py-3 w-full mb-4">
-                    <p className="text-[11px] text-muted uppercase tracking-wider mb-1">Example</p>
-                    <p className="text-sm text-body leading-relaxed italic">"{current.examples![0]}"</p>
-                  </div>
-                )}
-
-                {/* View full details button */}
-                <button onClick={e => { e.stopPropagation(); openWordDetail(); }}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors mt-2 px-4 py-2 rounded-lg hover:bg-blue-500/10">
-                  📖 View full details →
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Rating buttons */}
-          {!flipped ? (
-            <div className="flex justify-center gap-3">
-              <Button onClick={() => setFlipped(true)} variant="primary" className="px-8">Show Answer</Button>
-              <Button onClick={() => speak(current.word)} variant="outline">🔊</Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-center text-sm text-muted">How well did you know it?</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {RATINGS.map(r => (
-                  <button key={r.value} disabled={busy} onClick={() => handleRate(r.value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border bg-card/50 transition-all active:scale-95 disabled:opacity-50 ${r.color}`}>
-                    <span className="text-xl">{r.emoji}</span>
-                    <span className="text-xs font-semibold text-heading">{r.label}</span>
-                    <span className="text-[10px] text-muted">{r.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
       )}
-
-      {/* ── QUIZ MODE ──────────────────────────────────────────── */}
-      {mode === 'quiz' && (
-        <>
-          <div className="bg-card/60 border border-line/50 rounded-3xl p-6 min-h-[320px]">
-            <p className="text-xs text-muted uppercase tracking-wider text-center mb-4">
-              {quizType === 'translation' && 'Choose the correct translation'}
-              {quizType === 'synonym' && `Choose a synonym for "${current.word}"`}
-              {quizType === 'definition' && 'Which definition matches this word?'}
-              {quizType === 'fillblank' && 'Which word fits the sentence?'}
-            </p>
-
-            {quizType !== 'fillblank' ? (
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-heading">{current.word}</h2>
-                {current.pronunciation && <p className="text-body font-mono mt-1">{current.pronunciation}</p>}
-              </div>
-            ) : (
-              <div className="bg-surface/50 border border-line rounded-xl px-4 py-3 mb-6 text-center">
-                <p className="text-sm text-body leading-relaxed">
-                  {current.sentence?.replace(new RegExp(`\\b${current.word}\\b`, 'gi'), '________') || `________ is used in English.`}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-2.5">
-              {choices.map((c, i) => {
-                const isThis = picked === c.id;
-                const isCorrect = c.id === current.id;
-                let label = meaning(c);
-                if (quizType === 'synonym') label = c.synonyms?.[0] || c.word;
-                if (quizType === 'definition') label = c.meaning_en || c.word;
-                if (quizType === 'fillblank') label = c.word;
-
-                const cls = !answered
-                  ? 'border-line hover:border-line hover:bg-card/80'
-                  : isCorrect ? 'border-green-500/40 bg-green-500/10'
-                  : isThis ? 'border-red-500/40 bg-red-500/10'
-                  : 'border-line/40 opacity-50';
-
-                return (
-                  <button key={c.id} disabled={answered} onClick={() => { setPicked(c.id); setAnswered(true); }}
-                    className={`rounded-xl border px-4 py-3 text-left transition-all text-sm text-body ${cls}`}>
-                    <span className="text-faint mr-2">{i + 1}.</span>{label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {answered && (
-              <div className={`mt-4 rounded-xl px-4 py-3 border text-sm ${picked === current.id ? 'bg-green-500/10 border-green-500/20 text-green-300' : 'bg-red-500/10 border-red-500/20 text-red-300'}`}>
-                {picked === current.id ? '✓ Correct!' : `✗ The answer is: ${meaning(current)}`}
-              </div>
-            )}
-          </div>
-
-          {!answered ? (
-            <div className="flex justify-center">
-              <Button onClick={() => speak(current.word)} variant="outline">🔊 Pronounce</Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <Button onClick={() => handleRate(picked === current.id ? 5 : 0)} disabled={busy}
-                variant={picked === current.id ? 'primary' : 'danger'}>
-                {picked === current.id ? '🚀 Easy' : '🔁 Again'}
-              </Button>
-              <Button onClick={() => handleRate(picked === current.id ? 3 : 2)} disabled={busy} variant="outline">
-                {picked === current.id ? '🙂 Good' : '😓 Hard'}
-              </Button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+    </>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+/* ─── Tiny atoms ──────────────────────────────────────────────────── */
+
+function ModeBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: string; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+        active ? 'bg-blue-600 text-heading' : 'bg-card text-body hover:text-heading'
+      }`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function StageBadge({ stage }: { stage: string }) {
+  const map: Record<string, { label: string; color: string }> = {
+    new: { label: 'جديدة', color: 'bg-slate-500/15 text-slate-300' },
+    learning: { label: 'قيد التعلم', color: 'bg-orange-500/15 text-orange-300' },
+    familiar: { label: 'مألوفة', color: 'bg-blue-500/15 text-blue-300' },
+    mastered: { label: 'متقنة', color: 'bg-green-500/15 text-green-300' },
+  };
+  const v = map[stage] || map.new;
+  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${v.color}`}>{v.label}</span>;
+}
+
+function Stat({ label, value, icon }: { label: string; value: number | string; icon?: string }) {
   return (
     <div className="bg-card/60 border border-line/50 rounded-2xl p-3 text-center">
+      {icon && <div className="text-lg mb-0.5">{icon}</div>}
       <p className="text-xl font-bold text-heading">{value}</p>
       <p className="text-[11px] text-muted">{label}</p>
     </div>
