@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: false,           // Disabled for Termux ARM compatibility
   images: {
     domains: ['i.ytimg.com', 'img.youtube.com', 'i3.ytimg.com'],
-    unoptimized: true,        // Saves CPU on mobile
+    unoptimized: true,        // Saves CPU on mobile / Termux
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080/api/v1',
@@ -16,6 +15,12 @@ const nextConfig = {
   // Skip ESLint during build
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  // Next 14: SWC minifier is default; no flag needed.
+  // Termux-friendly: disable file-system caching that can choke ARM devices
+  // and silence the optional native-binding warnings.
+  experimental: {
+    forceSwcTransforms: false,
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
