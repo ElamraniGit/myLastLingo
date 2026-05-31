@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { libraryApi, videosApi, dictionaryApi, vocabularyApi, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 /* ── Types ─────────────────────────────────────────────────────── */
 interface Source {
@@ -414,11 +415,8 @@ function WordLookupPanel({ onClose, onAdded, setError }: {
   };
 
   const speak = (t: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85;
-      window.speechSynthesis.speak(u);
-    }
+    const rate = (t || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
+    ttsSpeak(t, { rate });
   };
 
   return (

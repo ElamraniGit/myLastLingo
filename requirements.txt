@@ -24,6 +24,10 @@ yt-dlp>=2024.1.0
 # Multipart form support
 python-multipart>=0.0.6
 
+# Natural neural text-to-speech (free, via Microsoft Edge — no API key, no ffmpeg)
+# Powers human-like "Read Aloud" and word pronunciation.
+edge-tts>=6.1.0
+
 # ─────────────────────────────────────────────
 # OPTIONAL: Local Speech-to-Text (Whisper)
 # Uncomment to enable offline transcription fallback.

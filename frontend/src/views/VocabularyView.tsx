@@ -10,6 +10,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { SavedWord, VocabularyListParams, ReviewSummary } from '@/types';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 const STATUS_STYLES: Record<string, string> = {
   learning: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
@@ -18,10 +19,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 function speak(t: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85;
-  window.speechSynthesis.speak(u);
+  const rate = (t || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
+  ttsSpeak(t, { rate });
 }
 
 function fmtRelative(v?: string) {

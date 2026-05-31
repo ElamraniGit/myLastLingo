@@ -11,6 +11,7 @@ import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
 import PronunciationTrainer from './PronunciationTrainer';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 /* ── Part-of-speech colors ───────────────────────────────────── */
 const POS: Record<string, { color: string; label: string }> = {
@@ -30,14 +31,11 @@ function posStyle(pos?: string) {
   return POS[key] ?? { color: 'bg-elevated/50 text-body border-line', label: pos || '' };
 }
 
-/* ── TTS helper ──────────────────────────────────────────────── */
+/* ── TTS helper (natural neural voice + browser fallback) ─────── */
 function speak(text: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = 0.85;
-  window.speechSynthesis.speak(u);
+  // Words are read slightly slower for clarity; sentences at natural pace.
+  const rate = text.trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
+  ttsSpeak(text, { rate });
 }
 
 /* ── Section wrapper ─────────────────────────────────────────── */

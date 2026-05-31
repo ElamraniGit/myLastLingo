@@ -14,6 +14,7 @@ import { useStore } from '@/store/appStore';
 import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { SavedWord, ReviewSummary } from '@/types';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 /* ── Constants ─────────────────────────────────────────────────── */
 const RATINGS = [
@@ -33,10 +34,9 @@ const QUIZ_TYPES: { id: QuizType; label: string }[] = [
 ];
 
 function speak(t: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t); u.lang = 'en-US'; u.rate = 0.85;
-  window.speechSynthesis.speak(u);
+  // Natural neural voice for word pronunciation (browser fallback if offline)
+  const rate = (t || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
+  ttsSpeak(t, { rate });
 }
 
 function shuffle<T>(arr: T[]): T[] {

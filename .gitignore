@@ -29,6 +29,7 @@ logs/
 data/downloads/*
 data/cache/*
 data/temp/*
+data/tts_cache/*
 models/
 
 # Secret keys — never commit!

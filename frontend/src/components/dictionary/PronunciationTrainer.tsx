@@ -14,6 +14,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { awardXP } from '@/components/common/XPBar';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 interface Props {
   word: string;
@@ -67,19 +68,9 @@ function calculateScore(target: string, heard: string): number {
   return Math.max(0, Math.round((1 - distance / len) * 100));
 }
 
-function speak(text: string, rate = 0.8): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      resolve(); return;
-    }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = rate;
-    u.onend = () => resolve();
-    u.onerror = () => resolve();
-    window.speechSynthesis.speak(u);
-  });
+function speak(text: string, rate = 0.85): Promise<void> {
+  // Natural neural voice (model pronunciation), with browser fallback offline.
+  return ttsSpeak(text, { rate });
 }
 
 export default function PronunciationTrainer({ word, pronunciation, onClose }: Props) {

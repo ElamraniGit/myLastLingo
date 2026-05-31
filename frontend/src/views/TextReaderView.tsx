@@ -12,6 +12,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { Button } from '@/components/ui/Button';
 import WordPopup from '@/components/dictionary/WordPopup';
 import { awardXP } from '@/components/common/XPBar';
+import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
 
 interface TextSource {
   id: string;
@@ -20,30 +21,69 @@ interface TextSource {
   word_count?: number;
 }
 
+/**
+ * Split the word list into sentence-sized chunks. Reading chunk-by-chunk is
+ * far more reliable than handing one huge string to the TTS engine (Android /
+ * Termux browsers often fail silently on very long utterances) and lets us
+ * highlight the sentence currently being read.
+ * Each chunk tracks the word index range [start, end) it covers.
+ */
+function buildChunks(words: string[]): { text: string; start: number; end: number }[] {
+  const chunks: { text: string; start: number; end: number }[] = [];
+  let start = 0;
+  for (let i = 0; i < words.length; i++) {
+    const endsSentence = /[.!?;:]$/.test(words[i]);
+    const tooLong = i - start >= 22;
+    if (endsSentence || tooLong || i === words.length - 1) {
+      const end = i + 1;
+      chunks.push({ text: words.slice(start, end).join(' '), start, end });
+      start = end;
+    }
+  }
+  return chunks;
+}
+
 export default function TextReaderView() {
   const { currentTextId, setPage } = useStore();
   const { lookupWord } = useDictionary();
   const [source, setSource] = useState<TextSource | null>(null);
   const [loading, setLoading] = useState(true);
   const [reading, setReading] = useState(false);
-  const [currentWordIdx, setCurrentWordIdx] = useState(-1);
-  const [speed, setSpeed] = useState(0.85);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [currentChunk, setCurrentChunk] = useState(-1);
+  const [speed, setSpeed] = useState(1.0);
   const wordsRef = useRef<string[]>([]);
+  const chunksRef = useRef<{ text: string; start: number; end: number }[]>([]);
+  const readingRef = useRef(false);   // live flag (avoids stale closure during async loop)
+  const speedRef = useRef(1.0);
+
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+
+  // Auto-scroll the sentence being read into view
+  const activeWordRef = useRef<HTMLSpanElement | null>(null);
+  useEffect(() => {
+    if (currentChunk >= 0 && activeWordRef.current) {
+      activeWordRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [currentChunk]);
 
   // Load text content
   useEffect(() => {
     if (!currentTextId) { setLoading(false); return; }
     setLoading(true);
     libraryApi.getText(currentTextId)
-      .then(d => { setSource(d); wordsRef.current = (d.content || '').split(/\s+/); })
+      .then(d => {
+        setSource(d);
+        const words = (d.content || '').trim().split(/\s+/).filter(Boolean);
+        wordsRef.current = words;
+        chunksRef.current = buildChunks(words);
+      })
       .catch(() => setSource(null))
       .finally(() => setLoading(false));
   }, [currentTextId]);
 
   // Cleanup TTS on unmount
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    return () => { readingRef.current = false; stopSpeaking(); };
   }, []);
 
   const handleWordClick = useCallback((word: string) => {
@@ -53,70 +93,37 @@ export default function TextReaderView() {
     }
   }, [lookupWord]);
 
-  // ── Read Aloud ──────────────────────────────────────────────────
-  const startReading = useCallback((fromIndex = 0) => {
-    if (!source || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel();
-    const words = wordsRef.current;
-    const text = words.slice(fromIndex).join(' ');
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = speed;
-    utterance.pitch = 1.0;
-
-    // Try to find a natural-sounding voice
-    const voices = window.speechSynthesis.getVoices();
-    const natural = voices.find(v =>
-      v.lang.startsWith('en') && (
-        v.name.includes('Natural') ||
-        v.name.includes('Enhanced') ||
-        v.name.includes('Google') ||
-        v.name.includes('Samantha') ||
-        v.name.includes('Daniel')
-      )
-    ) || voices.find(v => v.lang.startsWith('en-US')) || voices[0];
-
-    if (natural) utterance.voice = natural;
-
-    // Track word boundaries for highlighting
-    let wordIndex = fromIndex;
-    utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        // Estimate which word we're on based on char index
-        const charIdx = event.charIndex;
-        let chars = 0;
-        for (let i = fromIndex; i < words.length; i++) {
-          if (chars >= charIdx) { wordIndex = i; break; }
-          chars += words[i].length + 1;
-        }
-        setCurrentWordIdx(wordIndex);
-      }
-    };
-
-    utterance.onend = () => {
-      setReading(false);
-      setCurrentWordIdx(-1);
-      awardXP('watch_minute');
-    };
-
-    utterance.onerror = () => {
-      setReading(false);
-      setCurrentWordIdx(-1);
-    };
-
-    utteranceRef.current = utterance;
-    setReading(true);
-    setCurrentWordIdx(fromIndex);
-    window.speechSynthesis.speak(utterance);
-  }, [source, speed]);
-
+  // ── Read Aloud (natural neural voice, chunk-by-chunk) ───────────
   const stopReading = useCallback(() => {
-    window.speechSynthesis?.cancel();
+    readingRef.current = false;
+    stopSpeaking();
     setReading(false);
-    setCurrentWordIdx(-1);
+    setCurrentChunk(-1);
   }, []);
+
+  const startReading = useCallback(async (fromChunk = 0) => {
+    const chunks = chunksRef.current;
+    if (!source || chunks.length === 0) return;
+
+    stopSpeaking();
+    readingRef.current = true;
+    setReading(true);
+
+    for (let i = fromChunk; i < chunks.length; i++) {
+      if (!readingRef.current) break;          // user pressed Stop
+      setCurrentChunk(i);
+      // Await each sentence; speak() always resolves (falls back to browser voice)
+      await ttsSpeak(chunks[i].text, { rate: speedRef.current });
+    }
+
+    if (readingRef.current) {
+      // Finished naturally
+      awardXP('watch_minute');
+    }
+    readingRef.current = false;
+    setReading(false);
+    setCurrentChunk(-1);
+  }, [source]);
 
   const toggleReading = useCallback(() => {
     if (reading) stopReading();
@@ -197,13 +204,16 @@ export default function TextReaderView() {
       <div className="flex-1 overflow-y-auto px-5 py-6">
         <div className="max-w-2xl mx-auto leading-[2] text-[17px]">
           {words.map((word, i) => {
-            const isActive = currentWordIdx === i;
+            const active = chunksRef.current[currentChunk];
+            const isActive = !!active && i >= active.start && i < active.end;
+            const isChunkStart = !!active && i === active.start;
             const cleanWord = word.replace(/[^a-zA-Z'-]/g, '');
             const isClickable = cleanWord.length >= 2;
 
             return (
               <React.Fragment key={i}>
                 <span
+                  ref={isChunkStart ? activeWordRef : undefined}
                   onClick={() => isClickable && handleWordClick(word)}
                   className={`inline-block px-0.5 py-px rounded cursor-pointer transition-colors ${
                     isActive
