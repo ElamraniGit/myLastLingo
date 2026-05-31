@@ -288,6 +288,80 @@ def test_error_classifier_unknown():
     assert c.type == ErrorType.UNKNOWN_WORD
 
 
+# ── v3: FSRS-Optimizer ──────────────────────────────────────────────────
+
+from backend.app.services.srs import optimizer as srs_opt
+from backend.app.services.srs.optimizer import ReviewRecord
+import random as _r
+
+
+def test_optimizer_skips_when_not_enough_data():
+    records = [
+        ReviewRecord(stability_before=5, elapsed_days=3, was_correct=True)
+        for _ in range(10)
+    ]
+    res = srs_opt.optimize(records)
+    assert res.converged is False
+    assert res.sample_size == 10
+    # Notes should explain in Arabic that data is insufficient
+    assert any("أقل" in n or "تابع" in n for n in res.notes)
+
+
+def test_optimizer_tunes_fast_forgetter_lower_intervals():
+    """A user who answers correctly only ~60% of the time should have
+    intervals shortened (w8 decreased, w11 increased) and a lower target."""
+    _r.seed(7)
+    records = [
+        ReviewRecord(stability_before=10, elapsed_days=8,
+                     was_correct=_r.random() < 0.6)
+        for _ in range(200)
+    ]
+    res = srs_opt.optimize(records)
+    assert res.converged is True
+    # Fast forgetter → request_retention should be ≤ 0.88
+    assert res.request_retention <= 0.88
+    # w8 should be lower than default (~1.49)
+    assert res.weights["w8"] < 1.49
+
+
+def test_optimizer_tunes_strong_rememberer_higher_intervals():
+    _r.seed(99)
+    records = [
+        ReviewRecord(stability_before=10, elapsed_days=8,
+                     was_correct=_r.random() < 0.96)
+        for _ in range(200)
+    ]
+    res = srs_opt.optimize(records)
+    assert res.converged is True
+    # Strong rememberer → request_retention should be ≥ 0.92
+    assert res.request_retention >= 0.92
+    # w8 should be higher than default
+    assert res.weights["w8"] > 1.49
+
+
+def test_optimizer_reports_meaningful_improvement():
+    """The improvement_pct should be > 0 once we have real data."""
+    _r.seed(42)
+    records = [
+        ReviewRecord(stability_before=10, elapsed_days=8,
+                     was_correct=_r.random() < 0.85)
+        for _ in range(150)
+    ]
+    res = srs_opt.optimize(records)
+    assert res.improvement_pct > 0.0
+    # Sanity check on weights bounds
+    assert 0.5 < res.weights["w8"] < 5.0
+    assert 0.5 < res.weights["w11"] < 5.0
+
+
+def test_optimizer_make_scheduler_round_trips():
+    weights = {f"w{i}": 1.5 for i in range(17)}
+    sched = srs_opt.make_scheduler(weights, request_retention=0.92)
+    assert sched.request_retention == 0.92
+    assert sched.w[8] == 1.5
+    assert sched.w[16] == 1.5
+
+
 if __name__ == "__main__":
     import sys, traceback
     tests = [v for k, v in list(globals().items()) if k.startswith("test_") and callable(v)]
