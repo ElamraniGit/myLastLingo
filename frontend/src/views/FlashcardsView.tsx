@@ -97,6 +97,8 @@ export default function FlashcardsView() {
   const [focusDifficult, setFocusDifficult] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0); // force re-trigger of boot effect
 
   const currentQ: QuizQuestion | null = session?.questions?.[idx] ?? null;
   const currentFc: SavedWord | null = dueWords[fcIdx] ?? null;
@@ -104,33 +106,51 @@ export default function FlashcardsView() {
   /* ── Boot ─────────────────────────────────────────────────────── */
   const bootSmart = useCallback(async () => {
     setSessionComplete(false);
+    setEmptyMessage(null);
     setIdx(0);
     setCorrectCount(0);
     setPicked(null);
     setAnswered(false);
     setFeedback(null);
     sessionStartAt.current = Date.now();
-    const { session: s } = await startSession({ max_questions: 10, focus_difficult: focusDifficult });
-    if (!s || s.questions.length === 0) setSessionComplete(true);
+    const { session: s, message } = await startSession({
+      max_questions: 10,
+      focus_difficult: focusDifficult,
+    });
+    if (!s || s.questions.length === 0) {
+      setEmptyMessage(message || 'لا توجد كلمات مستحقة للمراجعة الآن.');
+      setSessionComplete(true);
+    }
     startedAt.current = Date.now();
     loadDashboard().catch(() => null);
   }, [startSession, loadDashboard, focusDifficult]);
 
   const bootFlashcards = useCallback(async () => {
     setSessionComplete(false);
+    setEmptyMessage(null);
     setFcIdx(0);
     setFlipped(false);
+    setDueWords([]);
     const data = await loadDueWords(20);
-    setDueWords(data?.words || []);
+    const words = data?.words || [];
+    setDueWords(words);
     fcStartedAt.current = Date.now();
-    if (!data?.words?.length) setSessionComplete(true);
+    if (!words.length) {
+      setEmptyMessage('لا توجد كلمات مستحقة للمراجعة الآن.');
+      setSessionComplete(true);
+    }
   }, [loadDueWords]);
+
+  // Manual "new session" handler — forces full reset and re-boot
+  const startNewSession = useCallback(() => {
+    setReloadKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
     if (activePage !== 'flashcards') return;
     if (mode === 'smart') bootSmart();
     else bootFlashcards();
-  }, [activePage, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activePage, mode, reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Keyboard shortcuts ───────────────────────────────────────── */
   useEffect(() => {
@@ -239,23 +259,30 @@ export default function FlashcardsView() {
   }
 
   /* ── Empty / Completed ────────────────────────────────────────── */
-  if (sessionComplete || (mode === 'smart' && !currentQ) || (mode === 'flashcards' && !currentFc)) {
+  const noCurrent = mode === 'smart' ? !currentQ : !currentFc;
+  if (sessionComplete || noCurrent) {
     const total = mode === 'smart' ? session?.questions?.length ?? 0 : dueWords.length;
     const acc = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     const minutes = Math.max(1, Math.round((Date.now() - (sessionStartAt.current || Date.now())) / 60000));
+    const isEmpty = total === 0 || !!emptyMessage;
 
     return (
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
         <div className="text-center">
-          <div className="text-6xl mb-3">{total > 0 ? '🎉' : '✨'}</div>
+          <div className="text-6xl mb-3">{isEmpty ? '✨' : '🎉'}</div>
           <h2 className="text-2xl font-bold text-heading mb-1">
-            {total > 0 ? 'انتهت الجلسة!' : 'كل الكلمات محدّثة!'}
+            {isEmpty ? 'كل الكلمات محدّثة!' : 'انتهت الجلسة!'}
           </h2>
           <p className="text-body">
-            {total > 0
-              ? `${correctCount}/${total} صحيحة · ${acc}% · ~${minutes} دقيقة`
-              : 'لا توجد كلمات مستحقة للمراجعة الآن.'}
+            {isEmpty
+              ? emptyMessage || 'لا توجد كلمات مستحقة للمراجعة الآن.'
+              : `${correctCount}/${total} صحيحة · ${acc}% · ~${minutes} دقيقة`}
           </p>
+          {isEmpty && (
+            <p className="text-xs text-muted mt-3">
+              احفظ كلمات جديدة من الفيديو أو القارئ، أو عُد لاحقاً عندما تحين مواعيد المراجعة.
+            </p>
+          )}
         </div>
 
         {dashboard && (
@@ -263,17 +290,26 @@ export default function FlashcardsView() {
             <Stat label="متقنة" value={dashboard.stats.mastered} icon="🏆" />
             <Stat label="مألوفة" value={dashboard.stats.familiar} icon="📚" />
             <Stat label="قيد التعلم" value={dashboard.stats.learning} icon="🌱" />
-            <Stat label="معدل الاحتفاظ" value={`${Math.round((dashboard.retention_rate?.flashcard_recall || 0) * 100)}%`} icon="🎯" />
+            <Stat
+              label="معدل الاحتفاظ"
+              value={`${Math.round((dashboard.retention_rate?.flashcard_recall || 0) * 100)}%`}
+              icon="🎯"
+            />
           </div>
         )}
 
         <div className="flex flex-col gap-2">
-          <Button onClick={() => (mode === 'smart' ? bootSmart() : bootFlashcards())} variant="primary">
-            🔁 جلسة جديدة
+          <Button onClick={startNewSession} variant="primary" disabled={loading}>
+            {loading ? '⏳ جارٍ التحميل…' : isEmpty ? '🔄 تحقّق مجدداً' : '🔁 جلسة جديدة'}
           </Button>
           <Button onClick={() => setMode(mode === 'smart' ? 'flashcards' : 'smart')} variant="outline">
             {mode === 'smart' ? '🃏 تبديل لبطاقات Anki' : '❓ تبديل لاختبار ذكي'}
           </Button>
+          {isEmpty && (
+            <Button onClick={() => useStore.getState().setPage('vocabulary')} variant="outline">
+              📚 الذهاب إلى قاموسي
+            </Button>
+          )}
         </div>
       </div>
     );
