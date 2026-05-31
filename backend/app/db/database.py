@@ -329,6 +329,27 @@ class DatabaseManager:
                 logger.info(f"Applying migration: add word_reviews.{col}")
                 await conn.execute(sql)
 
+        # Track best-ever streak on the XP table
+        async with conn.execute("PRAGMA table_info(user_xp)") as cur:
+            xp_cols = {dict(r)["name"] for r in await cur.fetchall()}
+        if "longest_streak" not in xp_cols:
+            logger.info("Applying migration: add user_xp.longest_streak")
+            await conn.execute("ALTER TABLE user_xp ADD COLUMN longest_streak INTEGER DEFAULT 0")
+
+        # Achievements
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_achievements (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                achievement_id TEXT NOT NULL,
+                unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, achievement_id)
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_user_achievements_user ON user_achievements(user_id)"
+        )
+
     def _now_str(self) -> str:
         return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
