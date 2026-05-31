@@ -5,6 +5,7 @@ No external auth services required. Works fully offline on Termux.
 """
 
 import os
+import re
 import uuid
 import logging
 import hashlib
@@ -149,6 +150,15 @@ class RegisterRequest(BaseModel):
     def password_valid(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def email_valid(cls, v: str) -> str:
+        v = (v or "").strip().lower()
+        # Email is optional, but if provided it must look like an email
+        if v and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", v):
+            raise ValueError("Invalid email address")
         return v
 
 class LoginRequest(BaseModel):

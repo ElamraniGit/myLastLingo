@@ -22,8 +22,10 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Depends
 from pydantic import BaseModel
+
+from backend.app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,7 @@ async def extract_transcript(
     video_id: str,
     background_tasks: BackgroundTasks,
     language: str = Query("en", description="Language code"),
+    current_user: dict = Depends(get_current_user),
 ):
     """Extract transcript from YouTube video (captions or Whisper)."""
 
@@ -692,6 +695,7 @@ async def _transcribe_with_whisper_audio_only(
 async def get_transcript(
     video_id: str,
     language: str = Query("en", description="Language code"),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get transcript for a video."""
     transcript = await db_manager.get_transcript(video_id, language)
@@ -706,6 +710,7 @@ async def get_transcript_segments(
     language: str = Query("en"),
     start_time: Optional[float] = Query(None),
     end_time: Optional[float] = Query(None),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get transcript segments, optionally filtered by time range."""
     transcript = await db_manager.get_transcript(video_id, language)

@@ -71,6 +71,16 @@ async function req<T>(endpoint: string, opts: Opts = {}): Promise<T> {
         const err = await res.json();
         detail = err.detail || err.message || detail;
       } catch {}
+
+      // Centralized session-expiry handling: if an authenticated request is
+      // rejected, clear the stale token and notify the app to return to login.
+      if (res.status === 401 && auth) {
+        tokenStore.clear();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ll:unauthorized'));
+        }
+      }
+
       throw new ApiError(detail, res.status);
     }
 

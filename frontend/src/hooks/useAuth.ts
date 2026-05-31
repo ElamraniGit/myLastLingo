@@ -33,6 +33,20 @@ export function useAuth() {
     return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // React to a centrally-detected expired/invalid session: log out and
+  // bounce the user back to the login screen instead of leaving them on a
+  // half-broken page where every request silently fails.
+  useEffect(() => {
+    const onUnauthorized = () => {
+      if (!useStore.getState().isAuthenticated) return;
+      storeLogout();
+      setAuthError('Your session expired. Please log in again.');
+      setPage('login');
+    };
+    window.addEventListener('ll:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('ll:unauthorized', onUnauthorized);
+  }, [storeLogout, setPage]);
+
   const login = useCallback(
     async (username: string, password: string, remember = false) => {
       setAuthLoading(true);

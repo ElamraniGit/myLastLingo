@@ -14,13 +14,33 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Depends
 from pydantic import BaseModel
+
+from backend.app.api.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 db_manager = None
+
+
+def _safe_video_path(video_id: str) -> Path:
+    """Resolve the local video file path while preventing path traversal.
+
+    `video_id` should be a UUID coming from the DB, but we defend in depth:
+    only allow safe characters and ensure the resolved path stays inside
+    the downloads directory.
+    """
+    import re as _re
+    if not _re.fullmatch(r"[A-Za-z0-9_-]+", video_id or ""):
+        raise HTTPException(status_code=400, detail="Invalid video id")
+    downloads = (Path(__file__).resolve().parent.parent.parent.parent
+                 / "data" / "downloads").resolve()
+    target = (downloads / f"{video_id}.mp4").resolve()
+    if downloads not in target.parents:
+        raise HTTPException(status_code=400, detail="Invalid video id")
+    return target
 
 # Bug #11 fix: key = unique session_id, value = (websocket, video_id)
 active_connections: Dict[str, tuple] = {}
@@ -39,7 +59,10 @@ class PlayerState(BaseModel):
 
 
 @router.post("/state")
-async def update_player_state(state: PlayerState):
+async def update_player_state(
+    state: PlayerState,
+    current_user: dict = Depends(get_current_user),
+):
     """Update and save player state."""
     async with db_manager.get_connection() as conn:
         async with conn.execute(
@@ -73,7 +96,10 @@ async def update_player_state(state: PlayerState):
 
 
 @router.get("/state/{video_id}")
-async def get_player_state(video_id: str):
+async def get_player_state(
+    video_id: str,
+    current_user: dict = Depends(get_current_user),
+):
     """Get saved player state for a video."""
     async with db_manager.get_connection() as conn:
         async with conn.execute(
@@ -94,14 +120,17 @@ async def get_player_state(video_id: str):
 
 
 @router.get("/stream/{video_id}")
-async def get_video_stream(video_id: str):
+async def get_video_stream(
+    video_id: str,
+    current_user: dict = Depends(get_current_user),
+):
     """Get video streaming information."""
     video = await db_manager.get_video(video_id)
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
 
-    video_path = f"data/downloads/{video_id}.mp4"
-    if Path(video_path).exists():
+    video_path = _safe_video_path(video_id)
+    if video_path.exists():
         return {
             "source": "local",
             "path": f"/api/v1/player/file/{video_id}",
@@ -117,15 +146,18 @@ async def get_video_stream(video_id: str):
 
 
 @router.get("/file/{video_id}")
-async def serve_video_file(video_id: str):
+async def serve_video_file(
+    video_id: str,
+    current_user: dict = Depends(get_current_user),
+):
     """Serve local video file for streaming."""
     from fastapi.responses import FileResponse
 
-    video_path = f"data/downloads/{video_id}.mp4"
-    if not Path(video_path).exists():
+    video_path = _safe_video_path(video_id)
+    if not video_path.exists():
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    return FileResponse(video_path, media_type="video/mp4")
+    return FileResponse(str(video_path), media_type="video/mp4")
 
 
 @router.websocket("/ws/{video_id}")
