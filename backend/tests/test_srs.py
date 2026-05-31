@@ -141,9 +141,121 @@ def test_quiz_choices_unique_and_correct_marked():
     gen = QuizGenerator(seed=1)
     session = gen.build_session(pool, pool, max_questions=4)
     for q in session.questions:
+        # SENTENCE_BUILDING has no MC choices; skip those.
+        if not q.choices:
+            continue
         labels = [c["label"] for c in q.choices]
         assert len(labels) == len(set(labels))   # no dup distractors
         assert sum(1 for c in q.choices if c["is_correct"]) == 1
+
+
+# ── v2 question types ───────────────────────────────────────────────────
+
+def _mk_rich(i, word, ar, en, sentence, synonyms=()):
+    return {
+        "id": f"id-{i}", "word_id": f"w-{i}", "word": word,
+        "meaning_ar": ar, "meaning_en": en, "sentence": sentence,
+        "examples": [], "synonyms": list(synonyms), "antonyms": [], "related_words": [],
+        "mastery_score": 85,  # push the adaptive picker toward hard types
+    }
+
+
+_RICH_POOL = [
+    _mk_rich(1, "happy", "سعيد", "feeling pleasure",
+             "She felt happy when she saw her old friend yesterday morning.",
+             ("joyful", "glad")),
+    _mk_rich(2, "fast", "سريع", "moving quickly",
+             "The car moved very fast down the empty highway.",
+             ("quick",)),
+    _mk_rich(3, "big", "كبير", "large in size",
+             "They live in a big house near the central park.",
+             ("large",)),
+    _mk_rich(4, "walk", "يمشي", "go on foot",
+             "I walk to school every morning before classes.",
+             ("stroll",)),
+    _mk_rich(5, "run", "يجري", "move fast",
+             "Children love to run in the green park.",
+             ("sprint",)),
+    _mk_rich(6, "small", "صغير", "little",
+             "The small cat played with a tiny rubber ball.",
+             ("tiny",)),
+]
+
+
+def test_synonym_match_generates():
+    gen = QuizGenerator(seed=11)
+    found = False
+    for _ in range(10):
+        session = gen.build_session(_RICH_POOL, _RICH_POOL, max_questions=15)
+        for q in session.questions:
+            if q.type == QuestionType.SYNONYM_MATCH:
+                found = True
+                # Correct choice must equal one of the word's synonyms.
+                w = next(p for p in _RICH_POOL if p["id"] == q.saved_word_id)
+                correct = next(c["label"] for c in q.choices if c["is_correct"])
+                assert correct in w["synonyms"]
+                break
+        if found:
+            break
+    assert found, "SYNONYM_MATCH was never generated"
+
+
+def test_listening_hides_word_form():
+    gen = QuizGenerator(seed=21)
+    for _ in range(10):
+        session = gen.build_session(_RICH_POOL, _RICH_POOL, max_questions=15)
+        for q in session.questions:
+            if q.type == QuestionType.LISTENING:
+                assert q.audio_word, "listening must carry audio text"
+                assert q.prompt_meta.get("hide_word") is True
+                return
+    assert False, "LISTENING was never generated"
+
+
+def test_reverse_listening_blanks_target_word():
+    gen = QuizGenerator(seed=31)
+    for _ in range(10):
+        session = gen.build_session(_RICH_POOL, _RICH_POOL, max_questions=15)
+        for q in session.questions:
+            if q.type == QuestionType.REVERSE_LISTENING:
+                assert "______" in q.prompt_meta.get("sentence_blanked", "")
+                assert q.audio_word  # sentence to TTS
+                return
+    assert False, "REVERSE_LISTENING was never generated"
+
+
+def test_sentence_building_correct_order_round_trips():
+    gen = QuizGenerator(seed=42)
+    found = 0
+    for _ in range(10):
+        session = gen.build_session(_RICH_POOL, _RICH_POOL, max_questions=15)
+        for q in session.questions:
+            if q.type == QuestionType.SENTENCE_BUILDING:
+                found += 1
+                # Reconstruction round-trip
+                rebuilt = [q.tokens[i] for i in q.correct_order]
+                expected = q.prompt_meta["original_sentence"].split()
+                assert rebuilt == expected, f"{rebuilt} != {expected}"
+        if found >= 1:
+            break
+    assert found >= 1, "SENTENCE_BUILDING was never generated"
+
+
+def test_error_detection_marks_swapped_token():
+    gen = QuizGenerator(seed=55)
+    for _ in range(10):
+        session = gen.build_session(_RICH_POOL, _RICH_POOL, max_questions=15)
+        for q in session.questions:
+            if q.type == QuestionType.ERROR_DETECTION:
+                # Exactly one correct token
+                corrects = [c for c in q.choices if c["is_correct"]]
+                assert len(corrects) == 1
+                # And it must NOT match the same token in the original sentence
+                original = q.prompt_meta["original_sentence"].split()
+                pos = corrects[0]["position"]
+                assert corrects[0]["label"] != original[pos], "swap didn't actually change the token"
+                return
+    assert False, "ERROR_DETECTION was never generated"
 
 
 # ── Error analyzer ──────────────────────────────────────────────────────

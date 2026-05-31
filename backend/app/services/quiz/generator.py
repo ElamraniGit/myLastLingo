@@ -10,12 +10,21 @@ Implements:
   - Desirable difficulty: question type is chosen adaptively from the
     word's mastery score.
 
-MVP question types (the 4 with the highest pedagogical ROI):
+All 9 question types are now generated when the saved word has
+sufficient data; the adaptive picker skews towards the hardest ones
+as the user's mastery rises.
 
-  1. EN_TO_AR        — recall meaning from a known surface form
-  2. AR_TO_EN        — productive recall (harder)
-  3. FILL_BLANK      — context-driven retrieval
-  4. DEFINITION_MATCH— deep semantic processing
+Question types
+--------------
+  1. EN_TO_AR          — recall meaning from a known surface form
+  2. AR_TO_EN          — productive recall (harder)
+  3. FILL_BLANK        — context-driven retrieval
+  4. DEFINITION_MATCH  — deep semantic processing
+  5. SYNONYM_MATCH     — pick the synonym of the target word
+  6. LISTENING         — hear the spoken word, pick its meaning
+  7. REVERSE_LISTENING — hear the example sentence, pick the missing word
+  8. SENTENCE_BUILDING — re-order shuffled tokens into the original sentence
+  9. ERROR_DETECTION   — spot the wrong word inserted into a sentence
 """
 
 from __future__ import annotations
@@ -33,9 +42,11 @@ class QuestionType(str, Enum):
     AR_TO_EN = "ar_to_en"
     FILL_BLANK = "fill_blank"
     DEFINITION_MATCH = "definition_match"
-    # Reserved for v2 (not generated in MVP unless data allows):
     SYNONYM_MATCH = "synonym_match"
     LISTENING = "listening"
+    REVERSE_LISTENING = "reverse_listening"
+    SENTENCE_BUILDING = "sentence_building"
+    ERROR_DETECTION = "error_detection"
 
 
 @dataclass
@@ -50,7 +61,14 @@ class QuizQuestion:
     correct_choice_id: str = ""
     explanation: str = ""                 # shown after answering
     hint: Optional[str] = None
-    audio_word: Optional[str] = None      # word to TTS for listening types
+    audio_word: Optional[str] = None      # word/sentence to TTS for listening types
+    # ── Used by SENTENCE_BUILDING only ────────────────────────────
+    # `tokens` is the shuffled list of words shown to the user; the
+    # frontend lets the user drag them into the correct order. The
+    # `correct_order` field stores the expected sequence (indexes
+    # back into `tokens`).
+    tokens: List[str] = field(default_factory=list)
+    correct_order: List[int] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -137,34 +155,83 @@ class QuizGenerator:
             return None
 
     def _available_types(self, word: Dict[str, Any]) -> List[QuestionType]:
-        types = [QuestionType.EN_TO_AR, QuestionType.AR_TO_EN]
-        if word.get("sentence") and _word_in_sentence(word["word"], word["sentence"]):
-            types.append(QuestionType.FILL_BLANK)
+        """
+        Decide which question types are *possible* given the data on this
+        saved word. Each type is opt-in: missing data simply removes it
+        from the list (no crash).
+        """
+        types: List[QuestionType] = []
+
+        if word.get("meaning_ar"):
+            types.append(QuestionType.EN_TO_AR)
+            types.append(QuestionType.AR_TO_EN)
+            # Listening uses the same answer pool as EN_TO_AR.
+            types.append(QuestionType.LISTENING)
+
         if word.get("meaning_en"):
             types.append(QuestionType.DEFINITION_MATCH)
-        if not word.get("meaning_ar"):
-            # Drop AR-based variants if no Arabic translation.
-            types = [t for t in types if t not in (QuestionType.EN_TO_AR, QuestionType.AR_TO_EN)]
+
+        if (word.get("synonyms") or []):
+            types.append(QuestionType.SYNONYM_MATCH)
+
+        # Sentence-based variants need an example sentence that actually
+        # contains the target word and is long enough to be meaningful.
+        sentence = (word.get("sentence") or "").strip()
+        if not sentence:
+            # Fall back to the first example if no source sentence stored.
+            examples = word.get("examples") or []
+            sentence = next(
+                (e for e in examples if _word_in_sentence(word["word"], e or "")),
+                "",
+            )
+
+        if sentence and _word_in_sentence(word["word"], sentence):
+            types.append(QuestionType.FILL_BLANK)
+            types.append(QuestionType.REVERSE_LISTENING)
+            if _word_count(sentence) >= 4:
+                types.append(QuestionType.SENTENCE_BUILDING)
+                types.append(QuestionType.ERROR_DETECTION)
+
         return types or [QuestionType.EN_TO_AR]
+
+    # Type difficulty (1 = easiest, 5 = hardest). Used by the adaptive picker.
+    _TYPE_DIFFICULTY: Dict[QuestionType, int] = {
+        QuestionType.EN_TO_AR: 1,
+        QuestionType.LISTENING: 2,
+        QuestionType.DEFINITION_MATCH: 2,
+        QuestionType.SYNONYM_MATCH: 3,
+        QuestionType.AR_TO_EN: 3,
+        QuestionType.FILL_BLANK: 4,
+        QuestionType.REVERSE_LISTENING: 4,
+        QuestionType.ERROR_DETECTION: 4,
+        QuestionType.SENTENCE_BUILDING: 5,
+    }
 
     def _pick_type_adaptive(self, word: Dict[str, Any], allowed: List[QuestionType]) -> QuestionType:
         """
-        Low mastery (< 30):  prefer recognition (EN→AR, DEFINITION_MATCH).
-        Mid mastery (30-70): mix freely.
-        High mastery (>70):  prefer production (AR→EN, FILL_BLANK).
+        Map the user's mastery score to the question-difficulty distribution
+        ("desirable difficulty" principle from cognitive science).
+
+          Low mastery   (< 30):  prefer easy (recognition) types.
+          Mid mastery   (30-70): all types weighted moderately.
+          High mastery  (> 70):  prefer hard (production / context) types.
+
+        Weight = exp(-|target_difficulty - type_difficulty|) so the
+        distribution is smooth and any allowed type can still appear.
         """
         mastery = int(word.get("mastery_score") or 0)
-        weights = []
-        for t in allowed:
-            if mastery < 30:
-                w = {QuestionType.EN_TO_AR: 4, QuestionType.DEFINITION_MATCH: 3,
-                     QuestionType.FILL_BLANK: 2, QuestionType.AR_TO_EN: 1}.get(t, 1)
-            elif mastery > 70:
-                w = {QuestionType.AR_TO_EN: 4, QuestionType.FILL_BLANK: 4,
-                     QuestionType.DEFINITION_MATCH: 2, QuestionType.EN_TO_AR: 1}.get(t, 1)
-            else:
-                w = 2
-            weights.append(w)
+        if mastery < 30:
+            target_diff = 1.5
+        elif mastery > 70:
+            target_diff = 4.0
+        else:
+            target_diff = 2.5
+
+        import math
+        weights = [
+            math.exp(-abs(target_diff - self._TYPE_DIFFICULTY.get(t, 3)))
+            for t in allowed
+        ]
         return self.rng.choices(allowed, weights=weights, k=1)[0]
 
     # ── builders per type ────────────────────────────────────────────────
@@ -244,14 +311,233 @@ class QuizGenerator:
             explanation=f'"{word["word"]}" — {defin}',
         )
 
+    # ── New v2 builders ──────────────────────────────────────────────────
+
+    def _build_synonym_match(self, word: Dict[str, Any], pool: List[Dict[str, Any]]) -> Optional[QuizQuestion]:
+        synonyms = [s for s in (word.get("synonyms") or []) if (s or "").strip()]
+        if not synonyms:
+            return None
+        correct = self.rng.choice(synonyms).strip()
+
+        # Distractor pool: words from the user's vocabulary that are NOT a
+        # synonym of the target (more pedagogically meaningful than random).
+        syn_set = {s.lower() for s in synonyms} | {word["word"].lower()}
+        distractors: List[str] = []
+        for w in self.rng.sample(pool, min(len(pool), 30)):
+            cand = (w.get("word") or "").strip()
+            if not cand or cand.lower() in syn_set:
+                continue
+            distractors.append(cand)
+            syn_set.add(cand.lower())
+            if len(distractors) >= 3:
+                break
+        if len(distractors) < 3:
+            return None
+
+        return self._mc_question(
+            word=word,
+            qtype=QuestionType.SYNONYM_MATCH,
+            prompt=f'اختر المرادف الأقرب لكلمة "{word["word"]}"',
+            prompt_meta={"target_word": word["word"]},
+            correct_label=correct,
+            distractor_labels=distractors,
+            explanation=f'"{word["word"]}" ≈ {", ".join(synonyms[:3])}',
+        )
+
+    def _build_listening(self, word: Dict[str, Any], pool: List[Dict[str, Any]]) -> Optional[QuizQuestion]:
+        """User hears the word; picks its Arabic meaning."""
+        correct_ar = (word.get("meaning_ar") or "").strip()
+        if not correct_ar:
+            return None
+        distractors = self._distractors(
+            pool, word, key="meaning_ar", n=3,
+            filter_fn=lambda w: bool((w.get("meaning_ar") or "").strip()),
+        )
+        if len(distractors) < 3:
+            return None
+
+        q = self._mc_question(
+            word=word,
+            qtype=QuestionType.LISTENING,
+            prompt="🎧 استمع للكلمة واختر معناها",
+            prompt_meta={
+                "play_audio": True,
+                "audio_text": word["word"],
+                "hide_word": True,  # the spelled form must NOT be shown
+            },
+            correct_label=correct_ar,
+            distractor_labels=distractors,
+            explanation=f'"{word["word"]}" تعني: {correct_ar}',
+        )
+        q.audio_word = word["word"]
+        return q
+
+    def _build_reverse_listening(self, word: Dict[str, Any], pool: List[Dict[str, Any]]) -> Optional[QuizQuestion]:
+        """User hears the example sentence with the target word; picks the missing word."""
+        sentence = self._best_sentence(word)
+        if not sentence:
+            return None
+        distractors = self._distractors(pool, word, key="word", n=3)
+        if len(distractors) < 3:
+            return None
+
+        q = self._mc_question(
+            word=word,
+            qtype=QuestionType.REVERSE_LISTENING,
+            prompt="🎧 استمع للجملة واختر الكلمة الناقصة",
+            prompt_meta={
+                "play_audio": True,
+                "audio_text": sentence,
+                "sentence_blanked": _blank_out(word["word"], sentence),
+            },
+            correct_label=word["word"],
+            distractor_labels=distractors,
+            explanation=f'الجملة الصحيحة: "{sentence}"',
+        )
+        q.audio_word = sentence
+        return q
+
+    def _build_sentence_building(self, word: Dict[str, Any], pool: List[Dict[str, Any]]) -> Optional[QuizQuestion]:
+        """User drags shuffled tokens into the original sentence order."""
+        sentence = self._best_sentence(word)
+        if not sentence or _word_count(sentence) < 4:
+            return None
+
+        # Tokenise on whitespace; preserve punctuation as part of the token.
+        original_tokens = sentence.strip().split()
+        if not (4 <= len(original_tokens) <= 12):
+            # Skip absurdly long sentences — re-ordering 15+ tokens is painful on mobile.
+            return None
+
+        # Shuffle until at least one token is out of place.
+        shuffled = list(enumerate(original_tokens))  # [(orig_index, token), ...]
+        for _ in range(8):
+            self.rng.shuffle(shuffled)
+            if any(i != pos for pos, (i, _t) in enumerate(shuffled)):
+                break
+
+        tokens = [t for _i, t in shuffled]
+        # correct_order[i] = index in `tokens` of the i-th word of the original sentence
+        position_in_shuffled = {orig_i: pos for pos, (orig_i, _t) in enumerate(shuffled)}
+        correct_order = [position_in_shuffled[i] for i in range(len(original_tokens))]
+
+        q = QuizQuestion(
+            id=str(uuid.uuid4()),
+            saved_word_id=word["id"],
+            word=word["word"],
+            type=QuestionType.SENTENCE_BUILDING,
+            prompt="🧩 رتّب الكلمات لتكوين الجملة الصحيحة",
+            prompt_meta={
+                "target_word": word["word"],
+                "original_sentence": sentence,
+            },
+            choices=[],   # not used for this type
+            correct_choice_id="",
+            tokens=tokens,
+            correct_order=correct_order,
+            explanation=f'الجملة الصحيحة: "{sentence}"',
+            audio_word=sentence,
+        )
+        return q
+
+    def _build_error_detection(self, word: Dict[str, Any], pool: List[Dict[str, Any]]) -> Optional[QuizQuestion]:
+        """
+        Inject a wrong word into a sentence; user picks the wrong word.
+        We replace ONE non-target token with an unrelated word from the pool.
+        """
+        sentence = self._best_sentence(word)
+        if not sentence:
+            return None
+        tokens = sentence.split()
+        if len(tokens) < 4:
+            return None
+
+        # Candidate positions: any token that isn't the target itself,
+        # is alphabetic, and at least 3 letters long (avoid swapping
+        # articles/prepositions where the answer is ambiguous).
+        target_lower = word["word"].lower()
+        candidate_positions = [
+            i for i, t in enumerate(tokens)
+            if re.sub(r"[^a-zA-Z]", "", t).lower() != target_lower
+            and len(re.sub(r"[^a-zA-Z]", "", t)) >= 3
+        ]
+        if not candidate_positions:
+            return None
+
+        swap_pos = self.rng.choice(candidate_positions)
+        original_token = tokens[swap_pos]
+        original_clean = re.sub(r"[^a-zA-Z]", "", original_token).lower()
+
+        # Pick a replacement: a real saved word that's clearly different.
+        replacement = None
+        for w in self.rng.sample(pool, min(len(pool), 40)):
+            cand = (w.get("word") or "").strip()
+            if cand and cand.lower() not in {original_clean, target_lower}:
+                replacement = cand
+                break
+        if not replacement:
+            return None
+
+        # Preserve the original token's surrounding punctuation.
+        prefix = re.match(r"^[^a-zA-Z]*", original_token).group(0)
+        suffix = re.search(r"[^a-zA-Z]*$", original_token).group(0)
+        corrupted_tokens = list(tokens)
+        corrupted_tokens[swap_pos] = f"{prefix}{replacement}{suffix}"
+
+        # Choices: each TOKEN in the corrupted sentence is a click target.
+        choices = []
+        correct_id = None
+        for i, tok in enumerate(corrupted_tokens):
+            cid = str(uuid.uuid4())
+            is_wrong = (i == swap_pos)
+            if is_wrong:
+                correct_id = cid
+            choices.append({"id": cid, "label": tok, "is_correct": is_wrong, "position": i})
+
+        return QuizQuestion(
+            id=str(uuid.uuid4()),
+            saved_word_id=word["id"],
+            word=word["word"],
+            type=QuestionType.ERROR_DETECTION,
+            prompt="🔍 اضغط على الكلمة الخاطئة في الجملة",
+            prompt_meta={
+                "corrupted_sentence": " ".join(corrupted_tokens),
+                "original_sentence": sentence,
+                "corrupted_tokens": corrupted_tokens,
+            },
+            choices=choices,
+            correct_choice_id=correct_id or "",
+            explanation=(
+                f'الكلمة الخاطئة هي "{replacement}".\n'
+                f'الجملة الصحيحة: "{sentence}"'
+            ),
+            audio_word=sentence,
+        )
+
     _builders = {
         QuestionType.EN_TO_AR: _build_en_to_ar,
         QuestionType.AR_TO_EN: _build_ar_to_en,
         QuestionType.FILL_BLANK: _build_fill_blank,
         QuestionType.DEFINITION_MATCH: _build_definition_match,
+        QuestionType.SYNONYM_MATCH: _build_synonym_match,
+        QuestionType.LISTENING: _build_listening,
+        QuestionType.REVERSE_LISTENING: _build_reverse_listening,
+        QuestionType.SENTENCE_BUILDING: _build_sentence_building,
+        QuestionType.ERROR_DETECTION: _build_error_detection,
     }
 
     # ── helpers ──────────────────────────────────────────────────────────
+    def _best_sentence(self, word: Dict[str, Any]) -> Optional[str]:
+        """Return the most useful example sentence for this word, or None."""
+        sentence = (word.get("sentence") or "").strip()
+        if sentence and _word_in_sentence(word["word"], sentence):
+            return sentence
+        for ex in word.get("examples") or []:
+            ex = (ex or "").strip()
+            if ex and _word_in_sentence(word["word"], ex):
+                return ex
+        return None
+
     def _distractors(
         self,
         pool: List[Dict[str, Any]],
@@ -319,6 +605,10 @@ def _word_in_sentence(word: str, sentence: str) -> bool:
 
 def _blank_out(word: str, sentence: str) -> str:
     return re.sub(rf"\b{re.escape(word)}\b", "______", sentence, flags=re.IGNORECASE)
+
+
+def _word_count(sentence: str) -> int:
+    return len([t for t in (sentence or "").split() if t.strip()])
 
 
 def _now() -> str:
