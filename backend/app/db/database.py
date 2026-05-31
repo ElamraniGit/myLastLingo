@@ -350,6 +350,51 @@ class DatabaseManager:
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_user ON user_achievements(user_id)"
         )
 
+        # v3: per-user FSRS parameters (one row per user, weights as JSON)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_fsrs_params (
+                user_id TEXT PRIMARY KEY,
+                weights_json TEXT NOT NULL,
+                request_retention REAL NOT NULL DEFAULT 0.9,
+                sample_size INTEGER DEFAULT 0,
+                improvement_pct REAL DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # v3: daily activity log (one row per user per day). Cheap to query
+        # for heatmaps and never grows beyond ~365 rows/user/year.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS daily_activity (
+                user_id TEXT NOT NULL,
+                day TEXT NOT NULL,                -- 'YYYY-MM-DD'
+                reviews_count INTEGER DEFAULT 0,
+                new_words_count INTEGER DEFAULT 0,
+                correct_count INTEGER DEFAULT 0,
+                total_response_ms INTEGER DEFAULT 0,
+                first_at TIMESTAMP,
+                last_at TIMESTAMP,
+                PRIMARY KEY (user_id, day)
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_daily_activity_user_day "
+            "ON daily_activity(user_id, day)"
+        )
+
+        # v3: per-user new-word introduction settings (Adaptive Intro)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_intro_settings (
+                user_id TEXT PRIMARY KEY,
+                daily_new_target INTEGER DEFAULT 5,
+                auto_adjust INTEGER DEFAULT 1,
+                last_introduced_at TIMESTAMP,
+                last_introduced_today INTEGER DEFAULT 0,
+                last_introduced_date TEXT DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
     def _now_str(self) -> str:
         return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -665,6 +710,14 @@ class DatabaseManager:
                     user_id,
                 ),
             )
+
+        # v3: update daily activity + bump intro counter
+        try:
+            await self.record_daily_activity(user_id, new_words_delta=1)
+            await self.save_intro_settings(user_id, increment_today=1)
+        except Exception:
+            pass
+
         return saved_id
 
     async def get_saved_word(self, saved_word_id: str) -> Optional[Dict[str, Any]]:
@@ -957,10 +1010,10 @@ class DatabaseManager:
             else:
                 new_avg = prev_avg
 
-            # ── Run FSRS ────────────────────────────────────────────
+            # ── Run FSRS (using per-user tuned weights if available) ──
             card = card_from_row(sw)
             rating = quality_to_rating(int(quality))
-            scheduler = FSRSScheduler()
+            scheduler = await self._get_user_scheduler(conn, sw.get("user_id") or "")
             result = scheduler.review(card, rating)
 
             # Status mapping for existing UI: learning | reviewing | learned
@@ -1052,7 +1105,210 @@ class DatabaseManager:
                 ),
             )
 
+        # v3: record one bump on the daily activity table (best-effort)
+        try:
+            await self.record_daily_activity(
+                sw.get("user_id") or "",
+                reviews_delta=1,
+                correct_delta=1 if correct else 0,
+                response_ms_delta=int(response_ms) if response_ms > 0 else 0,
+            )
+        except Exception:
+            pass
+
         return await self.get_saved_word(saved_word_id)
+
+    async def _get_user_scheduler(self, conn, user_id: str):
+        """
+        Build an FSRSScheduler instance using the user's tuned weights
+        (from user_fsrs_params), or the defaults if none have been computed.
+        """
+        from backend.app.services.srs import FSRSScheduler, DEFAULT_WEIGHTS
+        from backend.app.services.srs.optimizer import make_scheduler
+
+        if user_id:
+            try:
+                async with conn.execute(
+                    "SELECT weights_json, request_retention FROM user_fsrs_params WHERE user_id = ?",
+                    (user_id,),
+                ) as cur:
+                    row = await cur.fetchone()
+                if row:
+                    data = dict(row)
+                    weights = json.loads(data.get("weights_json") or "{}")
+                    rr = float(data.get("request_retention") or 0.9)
+                    if weights:
+                        return make_scheduler(weights, rr)
+            except Exception:
+                pass
+        return FSRSScheduler()
+
+    async def save_user_fsrs_params(
+        self,
+        user_id: str,
+        weights: Dict[str, float],
+        request_retention: float,
+        sample_size: int = 0,
+        improvement_pct: float = 0.0,
+    ) -> None:
+        """Persist (insert or replace) the user's tuned FSRS parameters."""
+        async with self.get_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO user_fsrs_params
+                    (user_id, weights_json, request_retention,
+                     sample_size, improvement_pct, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    weights_json = excluded.weights_json,
+                    request_retention = excluded.request_retention,
+                    sample_size = excluded.sample_size,
+                    improvement_pct = excluded.improvement_pct,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    user_id,
+                    json.dumps(weights, ensure_ascii=False),
+                    float(request_retention),
+                    int(sample_size),
+                    float(improvement_pct),
+                    self._now_str(),
+                ),
+            )
+
+    async def get_user_fsrs_params(self, user_id: str) -> Optional[Dict[str, Any]]:
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                "SELECT * FROM user_fsrs_params WHERE user_id = ?",
+                (user_id,),
+            ) as cur:
+                row = await cur.fetchone()
+        if not row:
+            return None
+        data = dict(row)
+        try:
+            data["weights"] = json.loads(data.get("weights_json") or "{}")
+        except Exception:
+            data["weights"] = {}
+        return data
+
+    async def reset_user_fsrs_params(self, user_id: str) -> None:
+        """Drop the user's custom weights so future reviews use defaults."""
+        async with self.get_connection() as conn:
+            await conn.execute("DELETE FROM user_fsrs_params WHERE user_id = ?", (user_id,))
+
+    # ── v3: daily activity log ──────────────────────────────────────────
+    async def record_daily_activity(
+        self,
+        user_id: str,
+        *,
+        reviews_delta: int = 0,
+        new_words_delta: int = 0,
+        correct_delta: int = 0,
+        response_ms_delta: int = 0,
+    ) -> None:
+        """
+        Increment today's activity row for the user. Cheap upsert; safe to
+        call from any review/save endpoint.
+        """
+        if not user_id:
+            return
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        now = self._now_str()
+        async with self.get_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO daily_activity
+                    (user_id, day, reviews_count, new_words_count,
+                     correct_count, total_response_ms, first_at, last_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id, day) DO UPDATE SET
+                    reviews_count = reviews_count + excluded.reviews_count,
+                    new_words_count = new_words_count + excluded.new_words_count,
+                    correct_count = correct_count + excluded.correct_count,
+                    total_response_ms = total_response_ms + excluded.total_response_ms,
+                    last_at = excluded.last_at
+                """,
+                (
+                    user_id, today,
+                    int(reviews_delta), int(new_words_delta),
+                    int(correct_delta), int(response_ms_delta),
+                    now, now,
+                ),
+            )
+
+    async def get_daily_activity_range(
+        self, user_id: str, from_day: str, to_day: str
+    ) -> List[Dict[str, Any]]:
+        """All daily rows for the user between two YYYY-MM-DD dates (inclusive)."""
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                """
+                SELECT day, reviews_count, new_words_count,
+                       correct_count, total_response_ms
+                FROM daily_activity
+                WHERE user_id = ? AND day >= ? AND day <= ?
+                ORDER BY day ASC
+                """,
+                (user_id, from_day, to_day),
+            ) as cur:
+                return [dict(r) for r in await cur.fetchall()]
+
+    # ── v3: adaptive intro settings ─────────────────────────────────────
+    async def get_intro_settings(self, user_id: str) -> Dict[str, Any]:
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                "SELECT * FROM user_intro_settings WHERE user_id = ?", (user_id,),
+            ) as cur:
+                row = await cur.fetchone()
+        if not row:
+            return {
+                "daily_new_target": 5,
+                "auto_adjust": True,
+                "last_introduced_today": 0,
+                "last_introduced_date": "",
+            }
+        d = dict(row)
+        d["auto_adjust"] = bool(d.get("auto_adjust", 1))
+        return d
+
+    async def save_intro_settings(
+        self,
+        user_id: str,
+        *,
+        daily_new_target: Optional[int] = None,
+        auto_adjust: Optional[bool] = None,
+        increment_today: int = 0,
+    ) -> None:
+        existing = await self.get_intro_settings(user_id)
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+
+        target = int(daily_new_target if daily_new_target is not None else existing.get("daily_new_target", 5))
+        auto = int(1 if (auto_adjust if auto_adjust is not None else existing.get("auto_adjust", True)) else 0)
+
+        # Reset counter if we crossed midnight
+        if existing.get("last_introduced_date") == today:
+            today_count = int(existing.get("last_introduced_today") or 0) + max(0, increment_today)
+        else:
+            today_count = max(0, increment_today)
+
+        now = self._now_str()
+        async with self.get_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO user_intro_settings
+                    (user_id, daily_new_target, auto_adjust,
+                     last_introduced_today, last_introduced_date, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    daily_new_target = excluded.daily_new_target,
+                    auto_adjust = excluded.auto_adjust,
+                    last_introduced_today = excluded.last_introduced_today,
+                    last_introduced_date = excluded.last_introduced_date,
+                    updated_at = excluded.updated_at
+                """,
+                (user_id, target, auto, today_count, today, now),
+            )
 
     async def _count_recent_errors(self, conn, saved_word_id: str, limit: int = 3) -> int:
         async with conn.execute(

@@ -6,6 +6,7 @@ Exposes:
   - MasteryCalculator: 0-100 mastery score for each saved word.
   - LearningStage: New / Learning / Familiar / Mastered.
   - Rating: Again / Hard / Good / Easy (1..4) — Anki-compatible.
+  - optimizer: per-user FSRS weight tuner.
 """
 
 from .fsrs import (
@@ -15,8 +16,10 @@ from .fsrs import (
     SchedulingResult,
     LearningStage,
     quality_to_rating,
+    DEFAULT_WEIGHTS,
 )
 from .mastery import MasteryCalculator
+from . import optimizer
 
 __all__ = [
     "FSRSScheduler",
@@ -26,4 +29,6 @@ __all__ = [
     "LearningStage",
     "MasteryCalculator",
     "quality_to_rating",
+    "DEFAULT_WEIGHTS",
+    "optimizer",
 ]
