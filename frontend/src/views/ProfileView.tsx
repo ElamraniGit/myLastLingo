@@ -11,6 +11,7 @@ import { authApi, BACKEND_ORIGIN } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import ReviewDashboard from '@/components/review/ReviewDashboard';
+import AchievementsPanel from '@/components/review/AchievementsPanel';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
 
 type Tab = 'profile' | 'progress' | 'settings';
@@ -121,6 +122,9 @@ function ProgressTab() {
     <div className="space-y-5">
       {/* Smart Review analytics */}
       <ReviewDashboard />
+
+      {/* Achievement catalogue */}
+      <AchievementsPanel />
 
       <div className="grid grid-cols-3 gap-2">
         {stats.map(s => (

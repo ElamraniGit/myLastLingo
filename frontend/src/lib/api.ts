@@ -258,6 +258,8 @@ export const xpApi = {
     req<any>('/xp/add', { method: 'POST', body: { action, amount } }),
 
   getStatus: () => req<any>('/xp/status'),
+
+  getAchievements: () => req<any>('/xp/achievements'),
 };
 
 export const chatApi = {

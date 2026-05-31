@@ -287,6 +287,42 @@ export interface ReviewDashboard {
   };
 }
 
+// ─── Gamification ─────────────────────────────────────────────────────────
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'legendary';
+
+export interface Achievement {
+  id: string;
+  title: string;
+  title_en: string;
+  description: string;
+  icon: string;
+  tier: AchievementTier;
+  xp_reward: number;
+  unlocked: boolean;
+  unlocked_at?: string | null;
+}
+
+export interface AchievementsResponse {
+  achievements: Achievement[];
+  unlocked_count: number;
+  total_count: number;
+}
+
+export interface XPStatus {
+  total_xp: number;
+  level: number;
+  streak_days: number;
+  longest_streak?: number;
+  daily_xp: number;
+  next_level_xp: number;
+  progress: number;
+}
+
+export interface XPAddResponse extends XPStatus {
+  xp_earned: number;
+  new_achievements: Achievement[];
+}
+
 // ─── App Navigation ───────────────────────────────────────────────────────────
 export type AppPage =
   | 'home'
