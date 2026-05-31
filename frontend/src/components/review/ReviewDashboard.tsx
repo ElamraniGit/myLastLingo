@@ -29,10 +29,16 @@ const ERROR_LABELS: Record<string, string> = {
 export default function ReviewDashboard({ compact = false }: { compact?: boolean }) {
   const { dashboard, loadDashboard } = useReview();
 
+  // ── All Hooks MUST be called unconditionally on every render ──────────
+  // (React rule: hook order must be stable across renders.)
   useEffect(() => {
     loadDashboard().catch(() => null);
   }, [loadDashboard]);
 
+  const days7 = useMemo(() => lastNDates(7), []);
+  const days14 = useMemo(() => lastNDates(14, +1 /* future */), []);
+
+  // ── Early return AFTER hooks ──────────────────────────────────────────
   if (!dashboard) {
     return (
       <div className="bg-card/40 border border-line/40 rounded-2xl p-6 text-center text-sm text-muted">
@@ -47,9 +53,6 @@ export default function ReviewDashboard({ compact = false }: { compact?: boolean
   const accuracy = Math.round((retention_rate?.quiz_accuracy || 0) * 100);
   const avgMastery = Math.round(stats?.avg_mastery || 0);
   const avgResponseSec = ((stats?.avg_response_ms || 0) / 1000).toFixed(1);
-
-  const days7 = useMemo(() => lastNDates(7), []);
-  const days14 = useMemo(() => lastNDates(14, +1 /* future */), []);
 
   return (
     <div className="space-y-4">
