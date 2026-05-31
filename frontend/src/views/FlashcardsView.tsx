@@ -414,6 +414,13 @@ export default function FlashcardsView() {
             <ModeBtn active={mode === 'smart'} onClick={() => setMode('smart')} icon="❓" label="ذكي" />
             <ModeBtn active={mode === 'flashcards'} onClick={() => setMode('flashcards')} icon="🃏" label="بطاقات" />
             <button
+              onClick={() => useStore.getState().setPage('daily')}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-card text-body hover:text-heading transition-all"
+              title="خطة المراجعة (اليوم/الأسبوع/الشهر)"
+            >
+              📅
+            </button>
+            <button
               onClick={() => setShowDashboard((v) => !v)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 showDashboard ? 'bg-purple-600 text-heading' : 'bg-card text-body hover:text-heading'

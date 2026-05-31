@@ -329,6 +329,7 @@ export type AppPage =
   | 'player'
   | 'vocabulary'
   | 'flashcards'
+  | 'daily'
   | 'stats'
   | 'settings'
   | 'library'

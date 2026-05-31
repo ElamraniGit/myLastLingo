@@ -18,6 +18,7 @@ import RegisterPage from '@/components/auth/RegisterPage';
 import PlayerView from '@/views/PlayerView';
 import VocabularyView from '@/views/VocabularyView';
 import FlashcardsView from '@/views/FlashcardsView';
+import DailyReviewView from '@/views/DailyReviewView';
 import ProfileView from '@/views/ProfileView';
 import LibraryView from '@/views/LibraryView';
 import ChatView from '@/views/ChatView';
@@ -77,6 +78,8 @@ export default function App({ Component, pageProps }: AppProps) {
         return <VocabularyView />;
       case 'flashcards':
         return <FlashcardsView />;
+      case 'daily':
+        return <DailyReviewView />;
       case 'chat':
         return <ChatView />;
       case 'textreader':
