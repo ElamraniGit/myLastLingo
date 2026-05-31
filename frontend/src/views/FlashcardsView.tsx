@@ -21,13 +21,9 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { Button } from '@/components/ui/Button';
 import { LevelBadge } from '@/components/ui/Badge';
 import ReviewDashboard from '@/components/review/ReviewDashboard';
+import { QuizCard, type AnswerPayload } from '@/components/review/QuizCards';
 import { speak as ttsSpeak } from '@/lib/tts';
-import type {
-  QuizQuestion,
-  QuizSession,
-  SavedWord,
-  FsrsRating,
-} from '@/types';
+import type { QuizQuestion, SavedWord, FsrsRating } from '@/types';
 
 /* ── Constants ──────────────────────────────────────────────────────── */
 const RATINGS: Array<{
@@ -43,15 +39,6 @@ const RATINGS: Array<{
   { value: 3, key: '3', label: 'Good', emoji: '🙂', hint: 'يوم+', color: 'border-blue-500/40 hover:bg-blue-500/10' },
   { value: 4, key: '4', label: 'Easy', emoji: '🚀', hint: '4 أيام+', color: 'border-green-500/40 hover:bg-green-500/10' },
 ];
-
-const QUESTION_TYPE_LABEL: Record<string, string> = {
-  en_to_ar: 'اختر الترجمة الصحيحة',
-  ar_to_en: 'اختر الكلمة الإنجليزية',
-  fill_blank: 'أكمل الفراغ',
-  definition_match: 'أي كلمة يصفها هذا التعريف؟',
-  synonym_match: 'اختر المرادف',
-  listening: 'استمع ثم اختر',
-};
 
 function speakWord(text: string) {
   const rate = (text || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
@@ -164,14 +151,57 @@ export default function FlashcardsView() {
     else bootFlashcards();
   }, [activePage, mode, reloadKey, practiceMode, practiceSort]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* ── Smart quiz answer (called from QuizCard) ─────────────────── */
+  const handleAnswer = useCallback(
+    async (payload: AnswerPayload) => {
+      if (!currentQ || answered) return;
+      setPicked(payload.picked_label || null);
+      setAnswered(true);
+
+      try {
+        const res = await submitAnswer({
+          saved_word_id: currentQ.saved_word_id,
+          question_type: currentQ.type,
+          is_correct: payload.is_correct,
+          picked_label: payload.picked_label,
+          response_ms: payload.response_ms,
+          rate_card: true,
+        });
+        if (payload.is_correct) setCorrectCount((c) => c + 1);
+        setFeedback({
+          correct: payload.is_correct,
+          explanation: currentQ.explanation,
+          error: res?.error_reason ?? undefined,
+        });
+        loadStats().catch(() => null);
+      } catch {
+        setFeedback({ correct: payload.is_correct, explanation: currentQ.explanation });
+      }
+    },
+    [currentQ, answered, submitAnswer, loadStats],
+  );
+
   /* ── Keyboard shortcuts ───────────────────────────────────────── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (mode === 'smart' && currentQ && !answered) {
+      // MC questions: 1..N picks an answer
+      if (mode === 'smart' && currentQ && !answered && currentQ.choices?.length > 0) {
         const n = parseInt(e.key, 10);
-        if (n >= 1 && n <= currentQ.choices.length) {
+        // Skip ERROR_DETECTION — clicking by number is meaningless when
+        // every token in the sentence is a separate choice.
+        if (
+          currentQ.type !== 'error_detection' &&
+          currentQ.type !== 'sentence_building' &&
+          n >= 1 &&
+          n <= currentQ.choices.length
+        ) {
           e.preventDefault();
-          handlePick(currentQ.choices[n - 1].id);
+          const chosen = currentQ.choices[n - 1];
+          handleAnswer({
+            is_correct: !!chosen.is_correct,
+            picked_label: chosen.label,
+            response_ms: 0,
+          });
         }
       } else if (mode === 'flashcards' && currentFc) {
         if (e.key === ' ' || e.key === 'Enter') {
@@ -188,39 +218,7 @@ export default function FlashcardsView() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, currentQ?.id, currentFc?.id, flipped, answered]); // eslint-disable-line
-
-  /* ── Smart quiz answer ────────────────────────────────────────── */
-  const handlePick = useCallback(
-    async (choiceId: string) => {
-      if (!currentQ || answered) return;
-      setPicked(choiceId);
-      setAnswered(true);
-      const chosen = currentQ.choices.find((c) => c.id === choiceId)!;
-      const responseMs = Date.now() - startedAt.current;
-
-      try {
-        const res = await submitAnswer({
-          saved_word_id: currentQ.saved_word_id,
-          question_type: currentQ.type,
-          is_correct: !!chosen.is_correct,
-          picked_label: chosen.label,
-          response_ms: responseMs,
-          rate_card: true,
-        });
-        if (chosen.is_correct) setCorrectCount((c) => c + 1);
-        setFeedback({
-          correct: !!chosen.is_correct,
-          explanation: currentQ.explanation,
-          error: res?.error_reason ?? undefined,
-        });
-        loadStats().catch(() => null);
-      } catch {
-        setFeedback({ correct: !!chosen.is_correct, explanation: currentQ.explanation });
-      }
-    },
-    [currentQ, answered, submitAnswer, loadStats],
-  );
+  }, [mode, currentQ?.id, currentFc?.id, flipped, answered, handleAnswer]); // eslint-disable-line
 
   const nextQuestion = useCallback(() => {
     if (!session) return;
@@ -502,15 +500,16 @@ export default function FlashcardsView() {
 
       {/* SMART QUIZ */}
       {mode === 'smart' && currentQ && (
-        <SmartQuestionCard
+        <QuizCard
           q={currentQ}
-          picked={picked}
           answered={answered}
           feedback={feedback}
-          onPick={handlePick}
+          onAnswer={handleAnswer}
           onNext={nextQuestion}
-          onSpeak={() => currentQ.audio_word && speakWord(currentQ.audio_word)}
-          onViewDetail={() => lookupWord(currentQ.word, currentQ.prompt_meta?.original_sentence || '')}
+          onSpeak={(text) => speakWord(text)}
+          onViewDetail={() =>
+            lookupWord(currentQ.word, currentQ.prompt_meta?.original_sentence || '')
+          }
         />
       )}
 
@@ -525,118 +524,6 @@ export default function FlashcardsView() {
           onSpeak={() => speakWord(currentFc.word)}
           onViewDetail={() => lookupWord(currentFc.word, currentFc.sentence || '')}
         />
-      )}
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════════════ */
-/* ─── Smart Question Card ─────────────────────────────────────────── */
-
-function SmartQuestionCard({
-  q,
-  picked,
-  answered,
-  feedback,
-  onPick,
-  onNext,
-  onSpeak,
-  onViewDetail,
-}: {
-  q: QuizQuestion;
-  picked: string | null;
-  answered: boolean;
-  feedback: { correct: boolean; explanation: string; error?: string } | null;
-  onPick: (id: string) => void;
-  onNext: () => void;
-  onSpeak: () => void;
-  onViewDetail: () => void;
-}) {
-  const blankSentence = q.prompt_meta?.sentence_blanked as string | undefined;
-  const definition = q.prompt_meta?.definition as string | undefined;
-  const isRtlPrompt = q.prompt_meta?.direction === 'rtl';
-
-  return (
-    <div className="bg-card/60 border border-line/50 rounded-3xl p-6 min-h-[340px] space-y-5 animate-fadeIn">
-      {/* Question type badge */}
-      <div className="flex items-center justify-between">
-        <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[11px] font-semibold uppercase tracking-wider">
-          {QUESTION_TYPE_LABEL[q.type] || q.type}
-        </span>
-        <button
-          onClick={onSpeak}
-          className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-colors"
-          aria-label="نطق"
-        >
-          🔊
-        </button>
-      </div>
-
-      {/* Prompt */}
-      <div className="text-center py-2">
-        {blankSentence ? (
-          <p className="text-xl leading-relaxed text-heading">{blankSentence}</p>
-        ) : definition ? (
-          <p className="text-base text-body italic leading-relaxed">"{definition}"</p>
-        ) : (
-          <h2
-            className={`text-4xl font-extrabold text-heading ${isRtlPrompt ? 'text-right' : ''}`}
-            style={isRtlPrompt ? { direction: 'rtl', fontFamily: "'Noto Sans Arabic', sans-serif" } : {}}
-          >
-            {q.prompt}
-          </h2>
-        )}
-      </div>
-
-      {/* Choices */}
-      <div className="grid gap-2.5">
-        {q.choices.map((c, i) => {
-          const isThis = picked === c.id;
-          let cls = 'border-line hover:border-blue-500/40 hover:bg-card/80';
-          if (answered) {
-            if (c.is_correct) cls = 'border-green-500/50 bg-green-500/10 text-green-200';
-            else if (isThis) cls = 'border-red-500/50 bg-red-500/10 text-red-200';
-            else cls = 'border-line/30 opacity-50';
-          }
-          return (
-            <button
-              key={c.id}
-              disabled={answered}
-              onClick={() => onPick(c.id)}
-              className={`rounded-xl border px-4 py-3 text-start transition-all text-[15px] text-body ${cls}`}
-            >
-              <span className="text-faint me-2 font-mono">{i + 1}.</span>
-              {c.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Feedback */}
-      {answered && feedback && (
-        <div
-          className={`rounded-xl px-4 py-3 border text-sm space-y-1.5 ${
-            feedback.correct
-              ? 'bg-green-500/10 border-green-500/20 text-green-300'
-              : 'bg-red-500/10 border-red-500/20 text-red-300'
-          }`}
-        >
-          <p className="font-semibold">{feedback.correct ? '✓ إجابة صحيحة' : '✗ إجابة خاطئة'}</p>
-          <p className="text-body/90">{feedback.explanation}</p>
-          {feedback.error && <p className="text-xs opacity-80">💡 {feedback.error}</p>}
-        </div>
-      )}
-
-      {/* Actions */}
-      {answered && (
-        <div className="grid grid-cols-2 gap-3">
-          <Button onClick={onViewDetail} variant="outline">
-            📖 تفاصيل
-          </Button>
-          <Button onClick={onNext} variant="primary">
-            التالي →
-          </Button>
-        </div>
       )}
     </div>
   );

@@ -219,12 +219,17 @@ export type QuizQuestionType =
   | 'fill_blank'
   | 'definition_match'
   | 'synonym_match'
-  | 'listening';
+  | 'listening'
+  | 'reverse_listening'
+  | 'sentence_building'
+  | 'error_detection';
 
 export interface QuizChoice {
   id: string;
   label: string;
   is_correct: boolean;
+  /** Present on ERROR_DETECTION: index of this token in the sentence. */
+  position?: number;
 }
 
 export interface QuizQuestion {
@@ -239,6 +244,11 @@ export interface QuizQuestion {
   explanation: string;
   hint?: string;
   audio_word?: string;
+  /** SENTENCE_BUILDING only — shuffled tokens displayed to the user. */
+  tokens?: string[];
+  /** SENTENCE_BUILDING only — `tokens[correct_order[i]]` gives the i-th word
+   *  of the original sentence. */
+  correct_order?: number[];
 }
 
 export interface QuizSession {
