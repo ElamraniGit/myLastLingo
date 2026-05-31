@@ -323,6 +323,67 @@ export interface XPAddResponse extends XPStatus {
   new_achievements: Achievement[];
 }
 
+// ─── v3: FSRS-Optimizer ──────────────────────────────────────────────────
+export interface OptimizerResult {
+  sample_size: number;
+  converged: boolean;
+  baseline_loss: number;
+  optimized_loss: number;
+  improvement_pct: number;
+  request_retention: number;
+  weights: Record<string, number>;
+  notes: string[];
+}
+
+export interface OptimizerStatus {
+  is_tuned: boolean;
+  sample_size?: number;
+  improvement_pct?: number;
+  request_retention?: number;
+  weights?: Record<string, number>;
+  updated_at?: string;
+  message?: string;
+}
+
+// ─── v3: Adaptive new-word introduction ──────────────────────────────────
+export interface IntroSettings {
+  daily_new_target: number;
+  auto_adjust: boolean;
+  introduced_today: number;
+  remaining_today: number;
+}
+
+export interface IntroRecommendation {
+  target: number;
+  introduced_today: number;
+  base_remaining: number;
+  suggested_now: number;
+  notes: string[];
+  auto_adjust_active: boolean;
+}
+
+// ─── v3: Activity heatmap ────────────────────────────────────────────────
+export interface HeatmapCell {
+  day: string;          // 'YYYY-MM-DD'
+  reviews: number;
+  new_words: number;
+  correct: number;
+  total: number;
+  intensity: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface HeatmapData {
+  days: number;
+  from: string;
+  to: string;
+  total_reviews: number;
+  total_new_words: number;
+  active_days: number;
+  longest_streak: number;
+  current_streak: number;
+  cells: HeatmapCell[];
+}
+
 // ─── App Navigation ───────────────────────────────────────────────────────────
 export type AppPage =
   | 'home'

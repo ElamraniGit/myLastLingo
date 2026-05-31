@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import ReviewDashboard from '@/components/review/ReviewDashboard';
 import AchievementsPanel from '@/components/review/AchievementsPanel';
+import ActivityHeatmap from '@/components/review/ActivityHeatmap';
+import OptimizerPanel from '@/components/review/OptimizerPanel';
+import AdaptiveIntroPanel from '@/components/review/AdaptiveIntroPanel';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
 
 type Tab = 'profile' | 'progress' | 'settings';
@@ -122,6 +125,15 @@ function ProgressTab() {
     <div className="space-y-5">
       {/* Smart Review analytics */}
       <ReviewDashboard />
+
+      {/* v3: yearly activity heatmap */}
+      <ActivityHeatmap days={365} />
+
+      {/* v3: adaptive new-word intro controls */}
+      <AdaptiveIntroPanel />
+
+      {/* v3: FSRS-Optimizer per-user */}
+      <OptimizerPanel />
 
       {/* Achievement catalogue */}
       <AchievementsPanel />

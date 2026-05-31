@@ -234,6 +234,23 @@ export const reviewApi = {
   forecast: (days = 14) => req<any>(`/review/forecast?days=${days}`),
 };
 
+// ─── v3: Optimizer / Adaptive Intro / Heatmap ──────────────────────────
+export const v3Api = {
+  // FSRS-Optimizer
+  optimizerRun:    () => req<any>('/v3/optimizer/run',   { method: 'POST', timeout: 60000 }),
+  optimizerStatus: () => req<any>('/v3/optimizer/status'),
+  optimizerReset:  () => req<any>('/v3/optimizer/reset', { method: 'POST' }),
+
+  // Adaptive intro
+  introSettings:        () => req<any>('/v3/intro/settings'),
+  introUpdateSettings:  (data: { daily_new_target?: number; auto_adjust?: boolean }) =>
+    req<any>('/v3/intro/settings', { method: 'PATCH', body: data }),
+  introRecommendation:  () => req<any>('/v3/intro/recommendation'),
+
+  // Activity heatmap
+  activityHeatmap: (days = 365) => req<any>(`/v3/activity/heatmap?days=${days}`),
+};
+
 export const playerApi = {
   saveState: (state: any) => req<any>('/player/state', { method: 'POST', body: state }),
 

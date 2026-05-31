@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { reviewApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
+import ActivityHeatmap from '@/components/review/ActivityHeatmap';
 import type { ReviewDashboard, ReviewSummary, SavedWord } from '@/types';
 
 interface DailyPlan {
@@ -29,7 +30,7 @@ export default function DailyReviewView() {
   const [plan, setPlan] = useState<DailyPlan | null>(null);
   const [dashboard, setDashboard] = useState<ReviewDashboard | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'today' | 'week' | 'month'>('today');
+  const [tab, setTab] = useState<'today' | 'week' | 'month' | 'year'>('today');
 
   useEffect(() => {
     if (activePage !== 'daily') return;
@@ -62,17 +63,17 @@ export default function DailyReviewView() {
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-heading">خطة المراجعة</h1>
         <div className="flex gap-1 bg-card/50 rounded-xl p-1">
-          {(['today', 'week', 'month'] as const).map((t) => (
+          {(['today', 'week', 'month', 'year'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
                 tab === t
                   ? 'bg-elevated text-heading'
                   : 'text-muted hover:text-body'
               }`}
             >
-              {t === 'today' ? 'اليوم' : t === 'week' ? 'الأسبوع' : 'الشهر'}
+              {t === 'today' ? 'اليوم' : t === 'week' ? 'الأسبوع' : t === 'month' ? 'الشهر' : 'السنة'}
             </button>
           ))}
         </div>
@@ -81,6 +82,7 @@ export default function DailyReviewView() {
       {tab === 'today' && <TodayTab plan={plan} onStart={() => setPage('flashcards')} />}
       {tab === 'week' && <WeekTab data={week} />}
       {tab === 'month' && <MonthTab data={month} />}
+      {tab === 'year' && <ActivityHeatmap days={365} />}
     </div>
   );
 }
