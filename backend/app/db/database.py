@@ -271,11 +271,62 @@ class DatabaseManager:
             "tags": "ALTER TABLE saved_words ADD COLUMN tags TEXT DEFAULT '[]'",
             "notes": "ALTER TABLE saved_words ADD COLUMN notes TEXT DEFAULT ''",
             "favorite": "ALTER TABLE saved_words ADD COLUMN favorite INTEGER DEFAULT 0",
+            # ── Smart Review System (FSRS + Mastery + Error tracking) ──
+            "fsrs_stability": "ALTER TABLE saved_words ADD COLUMN fsrs_stability REAL DEFAULT 0",
+            "fsrs_difficulty": "ALTER TABLE saved_words ADD COLUMN fsrs_difficulty REAL DEFAULT 0",
+            "fsrs_state": "ALTER TABLE saved_words ADD COLUMN fsrs_state TEXT DEFAULT 'new'",
+            "stage": "ALTER TABLE saved_words ADD COLUMN stage TEXT DEFAULT 'new'",
+            "mastery_score": "ALTER TABLE saved_words ADD COLUMN mastery_score INTEGER DEFAULT 0",
+            "correct_count": "ALTER TABLE saved_words ADD COLUMN correct_count INTEGER DEFAULT 0",
+            "incorrect_count": "ALTER TABLE saved_words ADD COLUMN incorrect_count INTEGER DEFAULT 0",
+            "total_attempts": "ALTER TABLE saved_words ADD COLUMN total_attempts INTEGER DEFAULT 0",
+            "avg_response_ms": "ALTER TABLE saved_words ADD COLUMN avg_response_ms REAL DEFAULT 0",
+            "is_leech": "ALTER TABLE saved_words ADD COLUMN is_leech INTEGER DEFAULT 0",
         }
 
         for column, sql in migrations.items():
             if column not in columns:
                 logger.info(f"Applying migration: add saved_words.{column}")
+                await conn.execute(sql)
+
+        # New tables for the smart review system
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS quiz_attempts (
+                id TEXT PRIMARY KEY,
+                saved_word_id TEXT NOT NULL,
+                user_id TEXT DEFAULT '',
+                question_type TEXT NOT NULL,
+                is_correct INTEGER NOT NULL,
+                response_ms INTEGER DEFAULT 0,
+                picked_label TEXT,
+                error_type TEXT,
+                error_reason TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (saved_word_id) REFERENCES saved_words(id) ON DELETE CASCADE
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_quiz_attempts_saved ON quiz_attempts(saved_word_id)"
+        )
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user_date ON quiz_attempts(user_id, created_at)"
+        )
+
+        # Extend word_reviews with FSRS-specific telemetry
+        async with conn.execute("PRAGMA table_info(word_reviews)") as cur:
+            wr_cols = {dict(r)["name"] for r in await cur.fetchall()}
+        wr_migrations = {
+            "rating": "ALTER TABLE word_reviews ADD COLUMN rating INTEGER",
+            "stability": "ALTER TABLE word_reviews ADD COLUMN stability REAL",
+            "difficulty": "ALTER TABLE word_reviews ADD COLUMN difficulty REAL",
+            "interval_days": "ALTER TABLE word_reviews ADD COLUMN interval_days REAL",
+            "retrievability": "ALTER TABLE word_reviews ADD COLUMN retrievability REAL",
+            "response_ms": "ALTER TABLE word_reviews ADD COLUMN response_ms INTEGER",
+            "review_type": "ALTER TABLE word_reviews ADD COLUMN review_type TEXT DEFAULT 'flashcard'",
+        }
+        for col, sql in wr_migrations.items():
+            if col not in wr_cols:
+                logger.info(f"Applying migration: add word_reviews.{col}")
                 await conn.execute(sql)
 
     def _now_str(self) -> str:
@@ -827,8 +878,237 @@ class DatabaseManager:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 
-    async def update_review(self, saved_word_id: str, quality: int) -> Optional[Dict[str, Any]]:
-        """Update spaced-repetition data after a review and return the updated saved word."""
+    async def update_review(
+        self,
+        saved_word_id: str,
+        quality: int,
+        *,
+        response_ms: int = 0,
+        review_type: str = "flashcard",
+        is_correct: Optional[bool] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Update SRS state after a review using FSRS-v4 (with full fallback
+        to the legacy SM-2 path if FSRS is not available).
+
+        Parameters
+        ----------
+        quality : int
+            Legacy 0..5 quality OR Anki-style 1..4 rating. Both accepted.
+        response_ms : int
+            Time the user took to answer (used for mastery + analytics).
+        review_type : str
+            'flashcard' | 'quiz' | 'listening' | …
+        is_correct : Optional[bool]
+            Override for accuracy stats; if None we infer from quality.
+        """
+        try:
+            from backend.app.services.srs import (
+                FSRSScheduler, quality_to_rating, MasteryCalculator,
+            )
+            from backend.app.services.srs.fsrs import card_from_row
+            use_fsrs = True
+        except Exception:
+            use_fsrs = False
+
+        if not use_fsrs:
+            return await self._legacy_update_review(saved_word_id, quality)
+
+        import uuid as _uuid
+
+        async with self.get_connection() as conn:
+            async with conn.execute("SELECT * FROM saved_words WHERE id = ?", (saved_word_id,)) as cursor:
+                row = await cursor.fetchone()
+                if not row:
+                    return None
+            sw = dict(row)
+
+            # Determine correctness
+            correct = bool(is_correct) if is_correct is not None else (int(quality) >= 3)
+            correct_count = int(sw.get("correct_count") or 0) + (1 if correct else 0)
+            incorrect_count = int(sw.get("incorrect_count") or 0) + (0 if correct else 1)
+            total_attempts = int(sw.get("total_attempts") or 0) + 1
+
+            # Rolling average response time
+            prev_avg = float(sw.get("avg_response_ms") or 0)
+            if response_ms > 0:
+                new_avg = (prev_avg * (total_attempts - 1) + response_ms) / total_attempts
+            else:
+                new_avg = prev_avg
+
+            # ── Run FSRS ────────────────────────────────────────────
+            card = card_from_row(sw)
+            rating = quality_to_rating(int(quality))
+            scheduler = FSRSScheduler()
+            result = scheduler.review(card, rating)
+
+            # Status mapping for existing UI: learning | reviewing | learned
+            stage_to_status = {
+                "new": "learning",
+                "learning": "learning",
+                "familiar": "reviewing",
+                "mastered": "learned",
+            }
+            status = stage_to_status.get(result.stage, "learning")
+
+            # Mastery score
+            recent_errors = await self._count_recent_errors(conn, saved_word_id, limit=3)
+            mastery = MasteryCalculator.compute(
+                correct_count=correct_count,
+                total_attempts=total_attempts,
+                lapses=result.lapses,
+                stability_days=result.stability,
+                avg_response_ms=new_avg,
+                recent_errors=recent_errors,
+                stage=result.stage,
+            )
+
+            now_str = self._now_str()
+            next_review = result.next_review.strftime("%Y-%m-%d %H:%M:%S")
+            review_id = str(_uuid.uuid4())
+
+            await conn.execute(
+                """
+                UPDATE saved_words SET
+                    ease_factor = ?,
+                    interval = ?,
+                    repetitions = ?,
+                    next_review = ?,
+                    last_reviewed = ?,
+                    status = ?,
+                    stage = ?,
+                    lapses = ?,
+                    reviewed_count = ?,
+                    last_quality = ?,
+                    fsrs_stability = ?,
+                    fsrs_difficulty = ?,
+                    fsrs_state = ?,
+                    mastery_score = ?,
+                    correct_count = ?,
+                    incorrect_count = ?,
+                    total_attempts = ?,
+                    avg_response_ms = ?,
+                    is_leech = ?
+                WHERE id = ?
+                """,
+                (
+                    # Keep ease_factor/interval in sync for any legacy code paths
+                    max(1.3, min(3.0, 11.0 - result.difficulty * 0.8)),
+                    int(round(result.interval_days)),
+                    result.reps,
+                    next_review,
+                    now_str,
+                    status,
+                    result.stage,
+                    result.lapses,
+                    result.reps,
+                    int(quality),
+                    result.stability,
+                    result.difficulty,
+                    result.state,
+                    mastery.score,
+                    correct_count,
+                    incorrect_count,
+                    total_attempts,
+                    new_avg,
+                    1 if mastery.is_leech else 0,
+                    saved_word_id,
+                ),
+            )
+            await conn.execute(
+                """
+                INSERT INTO word_reviews
+                    (id, saved_word_id, quality, reviewed_at,
+                     rating, stability, difficulty, interval_days,
+                     retrievability, response_ms, review_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    review_id, saved_word_id, int(quality), now_str,
+                    int(rating), result.stability, result.difficulty,
+                    result.interval_days, result.retrievability,
+                    int(response_ms), review_type,
+                ),
+            )
+
+        return await self.get_saved_word(saved_word_id)
+
+    async def _count_recent_errors(self, conn, saved_word_id: str, limit: int = 3) -> int:
+        async with conn.execute(
+            """
+            SELECT is_correct FROM quiz_attempts
+            WHERE saved_word_id = ?
+            ORDER BY datetime(created_at) DESC LIMIT ?
+            """,
+            (saved_word_id, limit),
+        ) as cur:
+            rows = await cur.fetchall()
+            return sum(1 for r in rows if not dict(r)["is_correct"])
+
+    async def record_quiz_attempt(
+        self,
+        *,
+        saved_word_id: str,
+        user_id: str,
+        question_type: str,
+        is_correct: bool,
+        response_ms: int = 0,
+        picked_label: Optional[str] = None,
+        error_type: Optional[str] = None,
+        error_reason: Optional[str] = None,
+    ) -> str:
+        """Persist a single quiz answer for analytics + error mining."""
+        import uuid as _uuid
+        attempt_id = str(_uuid.uuid4())
+        async with self.get_connection() as conn:
+            await conn.execute(
+                """
+                INSERT INTO quiz_attempts
+                    (id, saved_word_id, user_id, question_type, is_correct,
+                     response_ms, picked_label, error_type, error_reason, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    attempt_id, saved_word_id, user_id, question_type,
+                    1 if is_correct else 0, int(response_ms), picked_label,
+                    error_type, error_reason, self._now_str(),
+                ),
+            )
+        return attempt_id
+
+    async def get_error_analytics(self, user_id: str, days: int = 30) -> Dict[str, Any]:
+        """Aggregate recent errors for the analytics dashboard."""
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                """
+                SELECT error_type, COUNT(*) as n
+                FROM quiz_attempts
+                WHERE user_id = ? AND is_correct = 0 AND error_type IS NOT NULL
+                  AND datetime(created_at) >= datetime('now', ?)
+                GROUP BY error_type ORDER BY n DESC
+                """,
+                (user_id, f"-{int(days)} days"),
+            ) as cur:
+                by_type = [dict(r) for r in await cur.fetchall()]
+
+            async with conn.execute(
+                """
+                SELECT sw.id, w.word, COUNT(*) as misses
+                FROM quiz_attempts qa
+                JOIN saved_words sw ON sw.id = qa.saved_word_id
+                JOIN words w ON w.id = sw.word_id
+                WHERE qa.user_id = ? AND qa.is_correct = 0
+                  AND datetime(qa.created_at) >= datetime('now', ?)
+                GROUP BY sw.id ORDER BY misses DESC LIMIT 10
+                """,
+                (user_id, f"-{int(days)} days"),
+            ) as cur:
+                top_missed = [dict(r) for r in await cur.fetchall()]
+
+        return {"by_type": by_type, "top_missed_words": top_missed, "window_days": days}
+
+    async def _legacy_update_review(self, saved_word_id: str, quality: int) -> Optional[Dict[str, Any]]:
+        """Original SM-2 fallback (kept verbatim for safety)."""
         import uuid as _uuid
 
         async with self.get_connection() as conn:
