@@ -167,20 +167,47 @@ PYTHONPATH=. python backend/tests/test_srs.py
 
 ---
 
-## 8) ما الذي **لم** يُنفَّذ بعد (v2 roadmap)
+## 8) ما الذي **لم** يُنفَّذ بعد (v3 roadmap)
 
-النطاق الحالي = MVP حسب الاتفاق. هذه الميزات الـ schema جاهز لها ويمكن
-إضافتها لاحقاً بدون تغييرات معمارية:
+تم إكمال v2 كاملاً. الميزات التالية متروكة لـ v3:
 
-- 🔊 **Listening Quiz** و **Reverse Listening** (TTS موجود أصلاً).
-- 🧩 **Sentence Building** (سحب وإفلات لإعادة ترتيب الكلمات).
-- 🔍 **Error Detection** (اعثر على الكلمة الخاطئة في الجملة).
-- 🪞 **Synonym Match** (الـ generator يدعمه؛ ينقصه فقط تفعيل عندما يكون
-  لدى الكلمة مرادفات كافية في الـ pool).
-- 🏆 **Achievement system + streak system كامل** (الـ XP موجود؛ نضيف badges).
-- 📅 **Daily / Weekly / Monthly review sheets** (الـ endpoint `/daily` موجود؛
-  نحتاج شاشة تجمع الثلاث).
 - 🤖 **FSRS-Optimizer per-user** (إعادة ضبط الأوزان حسب بيانات المستخدم).
+- 🌐 **Online sync** (المشروع حالياً local-first).
+- 🎓 **Adaptive new-word introduction** (تقديم كلمات جديدة بمعدل ذكي يومياً).
+- 📊 **Heatmap calendar** بأسلوب GitHub لعرض النشاط السنوي.
+
+## ✅ v2 — مُكتمَل
+
+كل ما كان مُؤجَّلاً في الإصدار الأول أصبح متاحاً:
+
+### 9 أنواع أسئلة كاملة
+| النوع | الوصف |
+|---|---|
+| EN_TO_AR | اختر الترجمة العربية |
+| AR_TO_EN | اختر الكلمة الإنجليزية |
+| FILL_BLANK | أكمل الفراغ في الجملة |
+| DEFINITION_MATCH | اختر الكلمة المناسبة للتعريف |
+| **SYNONYM_MATCH** ✨ | اختر المرادف |
+| **LISTENING** ✨ | استمع للكلمة واختر معناها |
+| **REVERSE_LISTENING** ✨ | استمع للجملة واختر الكلمة الناقصة |
+| **SENTENCE_BUILDING** ✨ | رتّب الكلمات لتكوين الجملة (tap-based) |
+| **ERROR_DETECTION** ✨ | اضغط الكلمة الخاطئة في الجملة |
+
+اختيار النوع تكيفي: low mastery → recognition، high mastery → production.
+
+### نظام الإنجازات (18 إنجاز)
+- 4 فئات: bronze / silver / gold / legendary
+- 7 مجموعات: First steps, Vocabulary, Mastered, Streaks, Accuracy, Volume, Levels
+- toasts تلقائية على الفتح + لوحة كاملة في Profile
+
+### شاشة Daily/Weekly/Monthly
+- Today: hero CTA + leech alerts + recommended preview
+- Week: bar chart للنشاط + retention + avg mastery
+- Month: heatmap 30 يوم قادم + pipeline bar
+
+### Streak System
+- `streak_days` + `longest_streak` (لا يُنقَص أبداً)
+- يظهر في الـ XP bar مع tooltip للأطول
 
 ---
 
