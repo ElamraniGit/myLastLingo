@@ -35,6 +35,8 @@ class StartSessionRequest(BaseModel):
     max_questions: int = Field(10, ge=1, le=40)
     include_new: bool = True
     focus_difficult: bool = False  # weight leeches / low-mastery higher
+    include_all: bool = False      # ignore SRS due dates → practice any saved word
+    sort: str = Field("smart", pattern="^(smart|random|weakest|newest|oldest)$")
 
 
 class AnswerRequest(BaseModel):
@@ -76,6 +78,69 @@ async def _due_target_words(user_id: str, max_questions: int, focus_difficult: b
     return due[:max_questions]
 
 
+async def _all_target_words(
+    user_id: str,
+    max_questions: int,
+    *,
+    focus_difficult: bool = False,
+    sort: str = "smart",
+) -> List[Dict[str, Any]]:
+    """
+    Practice mode: ignore the SRS due date entirely.
+
+    Lets the user drill any saved word right now — useful when:
+      • all cards are scheduled for the future
+      • they explicitly want extra practice on something
+      • they're cramming before a test / lesson
+    """
+    # Pull a generous superset; we'll trim & shuffle below
+    pool = await db_manager.get_saved_words(
+        limit=max(max_questions * 6, 60),
+        page=1,
+        user_id=user_id,
+        sort="next_review",  # underlying SQL sort; we re-rank below
+    )
+    if not pool:
+        return []
+
+    if focus_difficult:
+        # Weakest mastery + most lapses first
+        pool.sort(
+            key=lambda w: (
+                -(int(w.get("is_leech") or 0)),
+                int(w.get("mastery_score") or 0),
+                -int(w.get("lapses") or 0),
+            )
+        )
+    elif sort == "random":
+        import random
+        random.shuffle(pool)
+    elif sort == "weakest":
+        pool.sort(key=lambda w: int(w.get("mastery_score") or 0))
+    elif sort == "newest":
+        pool.sort(key=lambda w: w.get("created_at") or "", reverse=True)
+    elif sort == "oldest":
+        pool.sort(key=lambda w: w.get("created_at") or "")
+    else:
+        # "smart": prioritise words whose interval has elapsed the most
+        # (true overdue first), then those with the lowest mastery.
+        from datetime import datetime
+        now = datetime.utcnow()
+
+        def overdue_seconds(w):
+            nr = w.get("next_review")
+            if not nr:
+                return 1e12  # never reviewed → top priority
+            try:
+                dt = datetime.strptime(str(nr).replace("T", " ")[:19], "%Y-%m-%d %H:%M:%S")
+                return (now - dt).total_seconds()
+            except Exception:
+                return 0
+        pool.sort(key=lambda w: (-overdue_seconds(w), int(w.get("mastery_score") or 0)))
+
+    return pool[:max_questions]
+
+
 # ── Endpoints ───────────────────────────────────────────────────────────
 
 @router.post("/session/start")
@@ -83,17 +148,56 @@ async def start_session(
     req: StartSessionRequest,
     current_user: dict = Depends(get_current_user),
 ):
-    """Build a fresh interleaved quiz session for the current user."""
+    """
+    Build a fresh interleaved quiz session for the current user.
+
+    Two modes:
+      • default            — only words that are due per the SRS schedule.
+      • include_all=True   — practice mode: any saved word, ignoring due dates.
+    """
     uid = current_user["sub"]
-    due = await _due_target_words(uid, req.max_questions, req.focus_difficult)
-    if not due:
-        return {"session": None, "message": "No words are due right now."}
+
+    if req.include_all:
+        targets = await _all_target_words(
+            uid, req.max_questions,
+            focus_difficult=req.focus_difficult,
+            sort=req.sort,
+        )
+        if not targets:
+            return {
+                "session": None,
+                "message": "ليس لديك أي كلمات محفوظة بعد. ابدأ بحفظ كلمات من الفيديو أو القارئ.",
+                "mode": "practice",
+            }
+        mode_label = "practice"
+    else:
+        targets = await _due_target_words(uid, req.max_questions, req.focus_difficult)
+        if not targets:
+            # Check if any saved words exist at all (helpful hint for the UI)
+            summary = await db_manager.get_review_summary(uid)
+            has_any = (summary.get("total_saved") or 0) > 0
+            return {
+                "session": None,
+                "message": (
+                    "لا توجد كلمات مستحقة للمراجعة الآن — يمكنك استعمال وضع الممارسة لمراجعة أي كلمة."
+                    if has_any else
+                    "لا توجد كلمات محفوظة بعد. ابدأ بإضافة كلمات من الفيديو أو القارئ."
+                ),
+                "can_practice": has_any,
+                "summary": summary,
+                "mode": "due",
+            }
+        mode_label = "due"
 
     pool = await _enriched_pool(uid)
     gen = QuizGenerator()
-    session = gen.build_session(due, pool, max_questions=req.max_questions)
+    session = gen.build_session(targets, pool, max_questions=req.max_questions)
 
-    return {"session": session.to_dict(), "summary": await db_manager.get_review_summary(uid)}
+    return {
+        "session": session.to_dict(),
+        "summary": await db_manager.get_review_summary(uid),
+        "mode": mode_label,
+    }
 
 
 @router.post("/session/answer")

@@ -20,18 +20,29 @@ export function useReview() {
   const [dashboard, setDashboard] = useState<ReviewDashboard | null>(null);
 
   const startSession = useCallback(
-    async (opts: { max_questions?: number; focus_difficult?: boolean } = {}) => {
+    async (opts: {
+      max_questions?: number;
+      focus_difficult?: boolean;
+      include_all?: boolean;
+      sort?: 'smart' | 'random' | 'weakest' | 'newest' | 'oldest';
+    } = {}) => {
       setLoading(true);
       setSession(null); // clear stale session first so the UI shows loading
       try {
         const data = await reviewApi.startSession(opts);
         const s: QuizSession | null = data?.session ?? null;
         setSession(s);
-        return { session: s, summary: data?.summary ?? null, message: data?.message };
+        return {
+          session: s,
+          summary: data?.summary ?? null,
+          message: data?.message as string | undefined,
+          mode: data?.mode as 'due' | 'practice' | undefined,
+          can_practice: !!data?.can_practice,
+        };
       } catch (e) {
         console.error('startSession failed', e);
         setSession(null);
-        return { session: null, summary: null, message: 'فشل تحميل الجلسة' };
+        return { session: null, summary: null, message: 'فشل تحميل الجلسة', mode: undefined, can_practice: false };
       } finally {
         setLoading(false);
       }

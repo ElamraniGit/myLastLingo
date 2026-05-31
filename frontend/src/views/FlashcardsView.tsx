@@ -95,9 +95,13 @@ export default function FlashcardsView() {
   const fcStartedAt = useRef<number>(0);
 
   const [focusDifficult, setFocusDifficult] = useState(false);
+  const [practiceMode, setPracticeMode] = useState(false);      // ignore SRS due dates
+  const [practiceSort, setPracticeSort] = useState<'smart' | 'random' | 'weakest' | 'newest' | 'oldest'>('smart');
   const [sessionComplete, setSessionComplete] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
+  const [canPractice, setCanPractice] = useState(false);
+  const [currentMode, setCurrentMode] = useState<'due' | 'practice' | null>(null);
   const [reloadKey, setReloadKey] = useState(0); // force re-trigger of boot effect
 
   const currentQ: QuizQuestion | null = session?.questions?.[idx] ?? null;
@@ -107,23 +111,28 @@ export default function FlashcardsView() {
   const bootSmart = useCallback(async () => {
     setSessionComplete(false);
     setEmptyMessage(null);
+    setCanPractice(false);
     setIdx(0);
     setCorrectCount(0);
     setPicked(null);
     setAnswered(false);
     setFeedback(null);
     sessionStartAt.current = Date.now();
-    const { session: s, message } = await startSession({
+    const { session: s, message, mode, can_practice } = await startSession({
       max_questions: 10,
       focus_difficult: focusDifficult,
+      include_all: practiceMode,
+      sort: practiceMode ? practiceSort : 'smart',
     });
+    setCurrentMode(mode || null);
     if (!s || s.questions.length === 0) {
       setEmptyMessage(message || 'لا توجد كلمات مستحقة للمراجعة الآن.');
+      setCanPractice(can_practice);
       setSessionComplete(true);
     }
     startedAt.current = Date.now();
     loadDashboard().catch(() => null);
-  }, [startSession, loadDashboard, focusDifficult]);
+  }, [startSession, loadDashboard, focusDifficult, practiceMode, practiceSort]);
 
   const bootFlashcards = useCallback(async () => {
     setSessionComplete(false);
@@ -150,7 +159,7 @@ export default function FlashcardsView() {
     if (activePage !== 'flashcards') return;
     if (mode === 'smart') bootSmart();
     else bootFlashcards();
-  }, [activePage, mode, reloadKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activePage, mode, reloadKey, practiceMode, practiceSort]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Keyboard shortcuts ───────────────────────────────────────── */
   useEffect(() => {
@@ -278,7 +287,15 @@ export default function FlashcardsView() {
               ? emptyMessage || 'لا توجد كلمات مستحقة للمراجعة الآن.'
               : `${correctCount}/${total} صحيحة · ${acc}% · ~${minutes} دقيقة`}
           </p>
-          {isEmpty && (
+          {!isEmpty && practiceMode && (
+            <p className="text-[11px] text-purple-300 mt-2">💪 وضع الممارسة — لم تُحدَّث مواعيد المراجعة بناءً على الجدول الذكي بنفس قوة الجلسة المجدوَلة.</p>
+          )}
+          {isEmpty && canPractice && (
+            <p className="text-xs text-muted mt-3">
+              لا توجد كلمات مستحقة، لكن لديك كلمات محفوظة — جرّب وضع الممارسة لمراجعة أي كلمة الآن.
+            </p>
+          )}
+          {isEmpty && !canPractice && (
             <p className="text-xs text-muted mt-3">
               احفظ كلمات جديدة من الفيديو أو القارئ، أو عُد لاحقاً عندما تحين مواعيد المراجعة.
             </p>
@@ -299,13 +316,43 @@ export default function FlashcardsView() {
         )}
 
         <div className="flex flex-col gap-2">
+          {/* Primary action: re-run same mode */}
           <Button onClick={startNewSession} variant="primary" disabled={loading}>
             {loading ? '⏳ جارٍ التحميل…' : isEmpty ? '🔄 تحقّق مجدداً' : '🔁 جلسة جديدة'}
           </Button>
+
+          {/* Practice-mode CTA — main fix for "no due words" frustration */}
+          {isEmpty && canPractice && !practiceMode && (
+            <Button
+              onClick={() => {
+                setPracticeMode(true);
+                setReloadKey((k) => k + 1);
+              }}
+              variant="primary"
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              💪 ابدأ جلسة ممارسة (أي كلمة)
+            </Button>
+          )}
+
+          {/* Toggle back from practice to scheduled mode */}
+          {practiceMode && (
+            <Button
+              onClick={() => {
+                setPracticeMode(false);
+                setReloadKey((k) => k + 1);
+              }}
+              variant="outline"
+            >
+              📅 العودة لوضع المراجعة المجدوَلة
+            </Button>
+          )}
+
           <Button onClick={() => setMode(mode === 'smart' ? 'flashcards' : 'smart')} variant="outline">
             {mode === 'smart' ? '🃏 تبديل لبطاقات Anki' : '❓ تبديل لاختبار ذكي'}
           </Button>
-          {isEmpty && (
+
+          {isEmpty && !canPractice && (
             <Button onClick={() => useStore.getState().setPage('vocabulary')} variant="outline">
               📚 الذهاب إلى قاموسي
             </Button>
@@ -358,15 +405,59 @@ export default function FlashcardsView() {
           </span>
         </div>
         {mode === 'smart' && (
-          <label className="flex items-center gap-2 mt-2 text-xs text-muted cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={focusDifficult}
-              onChange={(e) => setFocusDifficult(e.target.checked)}
-              className="rounded"
-            />
-            ركّز على الكلمات الصعبة (Leeches)
-          </label>
+          <div className="mt-2 space-y-1.5">
+            {/* Mode pill: due vs practice */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setPracticeMode(false);
+                  setReloadKey((k) => k + 1);
+                }}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                  !practiceMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'bg-card text-muted border border-transparent hover:text-body'
+                }`}
+              >
+                📅 المجدوَلة (Due)
+              </button>
+              <button
+                onClick={() => {
+                  setPracticeMode(true);
+                  setReloadKey((k) => k + 1);
+                }}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                  practiceMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' : 'bg-card text-muted border border-transparent hover:text-body'
+                }`}
+                title="مارِس أي كلمة محفوظة بغض النظر عن موعد المراجعة"
+              >
+                💪 ممارسة (الكل)
+              </button>
+
+              {/* Practice-mode sort selector */}
+              {practiceMode && (
+                <select
+                  value={practiceSort}
+                  onChange={(e) => setPracticeSort(e.target.value as any)}
+                  className="ms-auto text-[11px] bg-card border border-line/40 rounded-lg px-2 py-1 text-body cursor-pointer"
+                >
+                  <option value="smart">🧠 ذكي</option>
+                  <option value="weakest">⚠️ الأضعف أولاً</option>
+                  <option value="random">🎲 عشوائي</option>
+                  <option value="newest">🆕 الأحدث</option>
+                  <option value="oldest">📜 الأقدم</option>
+                </select>
+              )}
+            </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={focusDifficult}
+                onChange={(e) => setFocusDifficult(e.target.checked)}
+                className="rounded"
+              />
+              ركّز على الكلمات الصعبة (Leeches)
+            </label>
+          </div>
         )}
       </div>
 

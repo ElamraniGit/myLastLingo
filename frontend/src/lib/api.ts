@@ -196,13 +196,21 @@ export const vocabularyApi = {
 
 // ─── Smart Review System ──────────────────────────────────────────────────
 export const reviewApi = {
-  startSession: (opts: { max_questions?: number; include_new?: boolean; focus_difficult?: boolean } = {}) =>
+  startSession: (opts: {
+    max_questions?: number;
+    include_new?: boolean;
+    focus_difficult?: boolean;
+    include_all?: boolean;                                             // ignore SRS due dates
+    sort?: 'smart' | 'random' | 'weakest' | 'newest' | 'oldest';
+  } = {}) =>
     req<any>('/review/session/start', {
       method: 'POST',
       body: {
         max_questions: opts.max_questions ?? 10,
         include_new: opts.include_new ?? true,
         focus_difficult: opts.focus_difficult ?? false,
+        include_all: opts.include_all ?? false,
+        sort: opts.sort ?? 'smart',
       },
     }),
 
