@@ -1,25 +1,19 @@
 /**
- * LinguaLearn v2 — App root.
- * Handles auth routing, theme, page switching.
- *
- * FIX: Removed "if (router.pathname !== '/') return <Component />"
- *      That pattern caused a render loop — Component re-rendered _app
- *      which re-rendered Component infinitely.
- *      Now we always render the SPA shell on '/' and return null elsewhere.
+ * LinguaLearn — App root.
+ * Single-page app shell. All routing handled by Zustand store.
  */
 
 import '@/styles/globals.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useStore } from '@/store/appStore';
+import { authApi, tokenStore } from '@/lib/api';
 import Layout from '@/components/common/Layout';
 import InstallPrompt from '@/components/common/InstallPrompt';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
-
-// Views
 import PlayerView from '@/views/PlayerView';
 import VocabularyView from '@/views/VocabularyView';
 import FlashcardsView from '@/views/FlashcardsView';
@@ -30,82 +24,114 @@ import TextReaderView from '@/views/TextReaderView';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const { currentPage, isAuthenticated, theme } = useStore();
+
+  // Read store values — but split them so theme change doesn't remount everything
+  const currentPage    = useStore(s => s.currentPage);
+  const isAuthenticated = useStore(s => s.isAuthenticated);
+  const theme          = useStore(s => s.theme);
+  const setUser        = useStore(s => s.setUser);
+  const setPage        = useStore(s => s.setPage);
+
+  // hydrated = Zustand has rehydrated from localStorage
   const [hydrated, setHydrated] = useState(false);
 
-  // Apply theme class to <html>
+  // Session restore — runs ONCE on mount, never again
+  const didRestoreRef = useRef(false);
+
+  // ── 1. Apply theme class ─────────────────────────────────────────
   useEffect(() => {
     const el = document.documentElement;
     el.classList.remove('dark', 'light');
-    if (theme === 'dark') {
-      el.classList.add('dark');
-    } else if (theme === 'light') {
-      el.classList.add('light');
-    }
-    // 'auto' = no class — CSS @media (prefers-color-scheme) handles it
+    if (theme === 'dark')       el.classList.add('dark');
+    else if (theme === 'light') el.classList.add('light');
   }, [theme]);
 
-  // Register SW once, then mark hydrated
+  // ── 2. Register SW + mark hydrated ───────────────────────────────
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
-    setHydrated(true);
+    // Give Zustand one tick to rehydrate from localStorage before rendering
+    const raf = requestAnimationFrame(() => setHydrated(true));
+    return () => cancelAnimationFrame(raf);
   }, []);
 
-  // FIX: Only render the SPA on the root path.
-  // For any other Next.js page (e.g. /404), render normally without our shell.
-  if (router.pathname !== '/') {
-    return <Component {...pageProps} />;
-  }
+  // ── 3. Session restore — exactly once ────────────────────────────
+  useEffect(() => {
+    if (didRestoreRef.current) return;
+    didRestoreRef.current = true;
 
-  // Show loading spinner while Zustand is rehydrating from localStorage
-  if (!hydrated) {
-    return (
+    // If store already has a user (rehydrated from localStorage), skip API call
+    if (useStore.getState().isAuthenticated) return;
+
+    const token = tokenStore.get();
+    if (!token) return;
+
+    let cancelled = false;
+    authApi.me()
+      .then(u => {
+        if (cancelled) return;
+        setUser(u);
+        const page = useStore.getState().currentPage;
+        if (page === 'login' || page === 'register') setPage('player');
+      })
+      .catch(() => {
+        if (!cancelled) tokenStore.clear();
+      });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── 4. Listen for 401 → logout ───────────────────────────────────
+  useEffect(() => {
+    const onUnauth = () => {
+      const s = useStore.getState();
+      if (!s.isAuthenticated) return;
+      s.logout();
+      setPage('login');
+    };
+    window.addEventListener('ll:unauthorized', onUnauth);
+    return () => window.removeEventListener('ll:unauthorized', onUnauth);
+  }, [setPage]);
+
+  // ── Non-root pages (e.g. /404) ───────────────────────────────────
+  if (router.pathname !== '/') return <Component {...pageProps} />;
+
+  // ── Loading spinner (waiting for Zustand rehydration) ────────────
+  if (!hydrated) return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100vh', backgroundColor: '#000',
+    }}>
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100vh', background: '#020617',
-      }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 12,
-          background: '#3b82f6', color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 24, fontWeight: 800,
-          animation: 'pulse 1.5s ease-in-out infinite',
-        }}>L</div>
-        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
-      </div>
-    );
-  }
+        width: 52, height: 52, borderRadius: 14, backgroundColor: '#2563eb',
+        color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 26, fontWeight: 800,
+      }}>L</div>
+    </div>
+  );
 
-  // Not logged in → show auth screens
+  // ── Auth screens ─────────────────────────────────────────────────
   if (!isAuthenticated) {
     if (currentPage === 'register') return <RegisterPage />;
     return <LoginPage />;
   }
 
-  // Logged in → render the correct view
-  const renderPage = () => {
+  // ── App ──────────────────────────────────────────────────────────
+  const Page = () => {
     switch (currentPage) {
       case 'player':
-      case 'home':
-        return <PlayerView />;
-      case 'library':
-        return <LibraryView />;
-      case 'vocabulary':
-        return <VocabularyView />;
-      case 'flashcards':
-        return <FlashcardsView />;
-      case 'chat':
-        return <ChatView />;
-      case 'textreader':
-        return <TextReaderView />;
+      case 'home':       return <PlayerView />;
+      case 'library':    return <LibraryView />;
+      case 'vocabulary': return <VocabularyView />;
+      case 'flashcards': return <FlashcardsView />;
+      case 'chat':       return <ChatView />;
+      case 'textreader': return <TextReaderView />;
       case 'profile':
       case 'settings':
-      case 'stats':
-        return <ProfileView />;
-      default:
-        return <PlayerView />;
+      case 'stats':      return <ProfileView />;
+      default:           return <PlayerView />;
     }
   };
 
@@ -117,7 +143,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <Layout>
         <InstallPrompt />
-        {renderPage()}
+        <Page />
       </Layout>
     </>
   );
