@@ -41,7 +41,6 @@ db_manager = None
 cache_manager = None
 config = None
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global db_manager, cache_manager, config
@@ -99,7 +98,6 @@ async def lifespan(app: FastAPI):
     await db_manager.close()
     await cache_manager.close()
 
-
 app = FastAPI(
     title="LinguaLearn API",
     description="Local English Learning Platform",
@@ -107,16 +105,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── FIX BUG-1: Restrict CORS to localhost only (this is a local app) ──────────
+# Allowing "*" would let any website make authenticated requests with the user's token.
+_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    # Add your Termux LAN IP if needed, e.g.: "http://192.168.1.x:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(api_router, prefix="/api/v1")
-
 
 @app.get("/health")
 async def health_check():
@@ -127,7 +136,6 @@ async def health_check():
         "database": db_manager is not None,
     }
 
-
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger = logging.getLogger(__name__)
@@ -136,7 +144,6 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error", "message": str(exc)},
     )
-
 
 if __name__ == "__main__":
     import uvicorn

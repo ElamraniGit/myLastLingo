@@ -5,42 +5,44 @@
 @layer base {
   /* ── Light theme (default) ──────────────────────────────────── */
   :root {
-    --bg-primary:    255 255 255;     /* white */
-    --bg-secondary:  248 250 252;     /* slate-50 */
-    --bg-card:       241 245 249;     /* slate-100 */
-    --bg-elevated:   226 232 240;     /* slate-200 */
-    --bg-input:      241 245 249;     /* slate-100 */
+    --bg-primary:    255 255 255;   /* white */
+    --bg-secondary:  248 250 252;   /* slate-50 */
+    --bg-card:       241 245 249;   /* slate-100 */
+    --bg-elevated:   226 232 240;   /* slate-200 */
+    --bg-input:      241 245 249;   /* slate-100 */
 
-    --text-primary:  15 23 42;        /* slate-900 */
-    --text-secondary: 71 85 105;      /* slate-500 */
-    --text-muted:    148 163 184;     /* slate-400 */
-    --text-faint:    203 213 225;     /* slate-300 */
+    --text-primary:  15 23 42;      /* slate-900 */
+    --text-secondary:71 85 105;     /* slate-500 */
+    --text-muted:    148 163 184;   /* slate-400 */
+    --text-faint:    203 213 225;   /* slate-300 */
 
-    --border:        203 213 225;     /* slate-300 */
-    --border-subtle: 226 232 240;     /* slate-200 */
+    --border:        203 213 225;   /* slate-300 */
+    --border-subtle: 226 232 240;   /* slate-200 */
 
-    --accent:        59 130 246;      /* blue-500 */
-    --accent-soft:   59 130 246;      /* blue-500 at /10 */
+    --accent:        59 130 246;    /* blue-500 */
+    /* FIX BUG-14: accent-soft is now a visually distinct lighter blue */
+    --accent-soft:   147 197 253;   /* blue-300 — lighter than accent */
   }
 
   /* ── Dark theme ─────────────────────────────────────────────── */
   .dark {
-    --bg-primary:    2 6 23;          /* slate-950 */
-    --bg-secondary:  15 23 42;        /* slate-900 */
-    --bg-card:       30 41 59;        /* slate-800 */
-    --bg-elevated:   51 65 85;        /* slate-700 */
-    --bg-input:      30 41 59;        /* slate-800 */
+    --bg-primary:    2 6 23;        /* slate-950 */
+    --bg-secondary:  15 23 42;      /* slate-900 */
+    --bg-card:       30 41 59;      /* slate-800 */
+    --bg-elevated:   51 65 85;      /* slate-700 */
+    --bg-input:      30 41 59;      /* slate-800 */
 
-    --text-primary:  241 245 249;     /* slate-100 */
-    --text-secondary: 148 163 184;    /* slate-400 */
-    --text-muted:    100 116 139;     /* slate-500 */
-    --text-faint:    51 65 85;        /* slate-700 */
+    --text-primary:  241 245 249;   /* slate-100 */
+    --text-secondary:148 163 184;   /* slate-400 */
+    --text-muted:    100 116 139;   /* slate-500 */
+    --text-faint:    51 65 85;      /* slate-700 */
 
-    --border:        51 65 85;        /* slate-700 */
-    --border-subtle: 30 41 59;        /* slate-800 */
+    --border:        51 65 85;      /* slate-700 */
+    --border-subtle: 30 41 59;      /* slate-800 */
 
-    --accent:        59 130 246;
-    --accent-soft:   59 130 246;
+    --accent:        59 130 246;    /* blue-500 */
+    /* FIX BUG-14: accent-soft in dark mode — a subtle blue tint */
+    --accent-soft:   30 64 175;     /* blue-800 — darker, works on dark bg */
   }
 
   /* ── Auto-detect system preference ──────────────────────────── */
@@ -52,11 +54,13 @@
       --bg-elevated:   51 65 85;
       --bg-input:      30 41 59;
       --text-primary:  241 245 249;
-      --text-secondary: 148 163 184;
+      --text-secondary:148 163 184;
       --text-muted:    100 116 139;
       --text-faint:    51 65 85;
       --border:        51 65 85;
       --border-subtle: 30 41 59;
+      --accent:        59 130 246;
+      --accent-soft:   30 64 175;
     }
   }
 
@@ -103,11 +107,11 @@
 }
 
 @layer utilities {
-  .pb-safe  { padding-bottom: env(safe-area-inset-bottom, 8px); }
-  .pt-safe  { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 8px); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 
-  .backface-hidden  { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .rotate-y-180     { transform: rotateY(180deg); }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .rotate-y-180 { transform: rotateY(180deg); }
 
   .line-clamp-1 {
     overflow: hidden;
@@ -122,24 +126,28 @@
     -webkit-box-orient: vertical;
   }
 
-  .scrollbar-thin  { scrollbar-width: thin; }
-  .scrollbar-none  { scrollbar-width: none; }
+  .scrollbar-thin { scrollbar-width: thin; }
+  .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
 
   /* ── Theme-aware utility classes ─────────────────────────────── */
-  .bg-base       { background-color: rgb(var(--bg-primary)); }
-  .bg-surface    { background-color: rgb(var(--bg-secondary)); }
-  .bg-card       { background-color: rgb(var(--bg-card)); }
-  .bg-elevated   { background-color: rgb(var(--bg-elevated)); }
-  .bg-input      { background-color: rgb(var(--bg-input)); }
+  .bg-base     { background-color: rgb(var(--bg-primary)); }
+  .bg-surface  { background-color: rgb(var(--bg-secondary)); }
+  .bg-card     { background-color: rgb(var(--bg-card)); }
+  .bg-elevated { background-color: rgb(var(--bg-elevated)); }
+  .bg-input    { background-color: rgb(var(--bg-input)); }
 
-  .text-heading   { color: rgb(var(--text-primary)); }
-  .text-body      { color: rgb(var(--text-secondary)); }
-  .text-muted     { color: rgb(var(--text-muted)); }
-  .text-faint     { color: rgb(var(--text-faint)); }
+  .text-heading  { color: rgb(var(--text-primary)); }
+  .text-body     { color: rgb(var(--text-secondary)); }
+  .text-muted    { color: rgb(var(--text-muted)); }
+  .text-faint    { color: rgb(var(--text-faint)); }
 
   .border-default { border-color: rgb(var(--border)); }
   .border-subtle  { border-color: rgb(var(--border-subtle)); }
+
+  /* FIX BUG-14: accent-soft utility class */
+  .bg-accent-soft { background-color: rgb(var(--accent-soft) / 0.15); }
+  .text-accent     { color: rgb(var(--accent)); }
 }
 
 @layer components {
@@ -150,14 +158,14 @@
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
   }
 
-  .flashcard-wrap  { perspective: 1000px; }
+  .flashcard-wrap { perspective: 1000px; }
   .flashcard-inner {
     transform-style: preserve-3d;
     transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
   }
   .flashcard-inner.flipped { transform: rotateY(180deg); }
-  .flashcard-face  { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .flashcard-back  { transform: rotateY(180deg); }
+  .flashcard-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flashcard-back { transform: rotateY(180deg); }
 }
 
 /* ── PWA Install prompt animation ─────────────────────────────── */

@@ -3,8 +3,9 @@ Video player control API.
 Handles playback state, synchronization, and WebSocket connections.
 
 FIXES APPLIED:
-  - Bug #11: WebSocket connections now keyed by unique session_id, not video_id.
-             Multiple tabs on the same video no longer overwrite each other.
+ - BUG-5:  WebSocket now verifies JWT token via query param (auth on WS).
+ - BUG-6:  delete_video uses absolute path (via PROJECT_ROOT) instead of relative.
+ - Bug #11: WebSocket connections keyed by unique session_id, not video_id.
 """
 
 import json
@@ -17,34 +18,33 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Depends
 from pydantic import BaseModel
 
-from backend.app.api.auth import get_current_user
+from backend.app.api.auth import get_current_user, _verify_token
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 db_manager = None
 
+# Resolve downloads dir absolutely so it works regardless of CWD
+_DOWNLOADS_DIR = (Path(__file__).resolve().parent.parent.parent.parent / "data" / "downloads").resolve()
+
 
 def _safe_video_path(video_id: str) -> Path:
-    """Resolve the local video file path while preventing path traversal.
-
-    `video_id` should be a UUID coming from the DB, but we defend in depth:
-    only allow safe characters and ensure the resolved path stays inside
-    the downloads directory.
+    """
+    Resolve the local video file path while preventing path traversal.
+    Uses absolute path — FIX BUG-6.
     """
     import re as _re
     if not _re.fullmatch(r"[A-Za-z0-9_-]+", video_id or ""):
         raise HTTPException(status_code=400, detail="Invalid video id")
-    downloads = (Path(__file__).resolve().parent.parent.parent.parent
-                 / "data" / "downloads").resolve()
-    target = (downloads / f"{video_id}.mp4").resolve()
-    if downloads not in target.parents:
+    target = (_DOWNLOADS_DIR / f"{video_id}.mp4").resolve()
+    if _DOWNLOADS_DIR not in target.parents:
         raise HTTPException(status_code=400, detail="Invalid video id")
     return target
 
+
 # Bug #11 fix: key = unique session_id, value = (websocket, video_id)
 active_connections: Dict[str, tuple] = {}
-
 
 class PlayerState(BaseModel):
     video_id: str
@@ -161,19 +161,34 @@ async def serve_video_file(
 
 
 @router.websocket("/ws/{video_id}")
-async def websocket_sync(websocket: WebSocket, video_id: str):
+async def websocket_sync(
+    websocket: WebSocket,
+    video_id: str,
+    token: Optional[str] = Query(None),  # FIX BUG-5: auth via query param
+):
     """
     WebSocket for real-time video synchronization.
 
+    FIX BUG-5: Requires valid JWT token as ?token= query parameter.
     Bug #11 fix: Each connection gets a unique session_id so multiple tabs
     on the same video don't overwrite each other.
     """
+    # ── Auth check ────────────────────────────────────────────────────────────
+    if not token:
+        await websocket.close(code=4001, reason="Authentication required")
+        return
+
+    payload = _verify_token(token)
+    if not payload:
+        await websocket.close(code=4001, reason="Invalid or expired token")
+        return
+
     await websocket.accept()
 
     # Unique key per connection, not per video
     session_id = str(uuid.uuid4())
     active_connections[session_id] = (websocket, video_id)
-    logger.info(f"WebSocket connected: session={session_id}, video={video_id}")
+    logger.info(f"WebSocket connected: session={session_id}, video={video_id}, user={payload.get('username')}")
 
     try:
         while True:

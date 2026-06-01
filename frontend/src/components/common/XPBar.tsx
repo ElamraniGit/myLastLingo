@@ -1,6 +1,8 @@
 /**
  * XP Bar — shows level, XP progress, streak, and daily XP in the header.
  * Compact design for mobile top bar.
+ *
+ * FIX BUG-16: Simplified pct calculation (removed redundant /100 * 100).
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -12,7 +14,7 @@ interface XPData {
   streak_days: number;
   daily_xp: number;
   next_level_xp: number;
-  progress: number;
+  progress: number;  // 0–99 XP within current level
 }
 
 export default function XPBar() {
@@ -38,30 +40,35 @@ export default function XPBar() {
 
   if (!data) return null;
 
-  const pct = data.next_level_xp > 0 ? Math.min((data.progress / 100) * 100, 100) : 0;
+  // FIX BUG-16: progress is already 0–99, so percentage = progress directly.
+  // (data.progress / 100) * 100 simplifies to just data.progress.
+  const pct = Math.min(data.progress, 100);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 text-xs">
       {/* Streak */}
       {data.streak_days > 0 && (
-        <div className="flex items-center gap-0.5 text-orange-400" title={`${data.streak_days} day streak`}>
-          <span className="text-xs">🔥</span>
-          <span className="text-[10px] font-bold">{data.streak_days}</span>
+        <div className="flex items-center gap-0.5 text-orange-400 font-medium">
+          <span>🔥</span>
+          <span>{data.streak_days}</span>
         </div>
       )}
 
       {/* Level + XP bar */}
       <div className="flex items-center gap-1.5">
-        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-sm">
-          <span className="text-[9px] font-black text-white">{data.level}</span>
+        <div className="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold flex items-center justify-center">
+          {data.level}
         </div>
-        <div className="w-16 h-1.5 bg-elevated rounded-full overflow-hidden" title={`${data.progress}/100 XP to next level`}>
+
+        {/* Progress bar */}
+        <div className="w-16 h-1.5 bg-elevated rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-500"
+            className="h-full bg-blue-500 rounded-full transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <span className="text-[10px] text-muted font-medium tabular-nums">{data.total_xp}</span>
+
+        <span className="text-muted font-medium">{data.total_xp}</span>
       </div>
     </div>
   );

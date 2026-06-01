@@ -180,6 +180,11 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_words_word ON words(word)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_saved_words_user ON saved_words(status, next_review)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_video ON sessions(video_id)")
+        # FIX BUG-20: Add user_id indexes for fast per-user queries (was doing full table scans)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_saved_words_uid ON saved_words(user_id)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_uid ON sessions(user_id)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_text_sources_uid ON text_sources(user_id)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_videos_uid ON videos(user_id)")
 
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS chat_messages (

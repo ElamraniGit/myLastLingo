@@ -2,25 +2,24 @@
  * Centralized Text-to-Speech.
  *
  * Primary: natural NEURAL voices from the backend (/tts via Microsoft Edge,
- *          free, human-like). Audio is fetched as a blob (so the auth header
- *          can be sent) and played through an <audio> element.
+ * free, human-like). Audio is fetched as a blob (so the auth header
+ * can be sent) and played through an <audio> element.
  *
  * Fallback: the browser's built-in SpeechSynthesis (works offline, but more
- *           robotic). Used automatically if the backend is unreachable, TTS
- *           is offline, or edge-tts isn't installed.
+ * robotic). Used automatically if the backend is unreachable, TTS
+ * is offline, or edge-tts isn't installed.
  *
- * Usage:
- *   import { speak, stopSpeaking } from '@/lib/tts';
- *   await speak('hello');                       // word
- *   await speak(longText, { rate: 0.9 });       // sentence/paragraph
+ * FIX BUG-12: neuralAvailable now has a retry mechanism.
+ *             If backend was down on first try, it retries after 60 seconds
+ *             instead of staying permanently failed for the whole session.
  */
 
 import { API_BASE, tokenStore } from '@/lib/api';
 
 export type SpeakOptions = {
-  voice?: string;          // backend neural voice id, e.g. 'en-US-AriaNeural'
-  rate?: number;           // 0.5 – 2.0 (1 = normal)
-  onEnd?: () => void;      // called when playback finishes (or errors)
+  voice?: string;   // backend neural voice id, e.g. 'en-US-AriaNeural'
+  rate?: number;    // 0.5 – 2.0 (1 = normal)
+  onEnd?: () => void;  // called when playback finishes (or errors)
 };
 
 // Preferred natural voice (can be changed by the user later)
@@ -31,7 +30,11 @@ export function getPreferredVoice() { return preferredVoice; }
 // Single shared audio element + object URL so we never overlap playback
 let audioEl: HTMLAudioElement | null = null;
 let currentUrl: string | null = null;
-let neuralAvailable: boolean | null = null; // null = unknown, cache after first try
+
+// FIX BUG-12: Track neural availability with a timestamp for retry logic
+let neuralAvailable: boolean | null = null; // null = unknown
+let neuralFailedAt: number | null = null;   // timestamp when it last failed
+const NEURAL_RETRY_AFTER_MS = 60_000;       // retry after 60 seconds
 
 function ensureAudio(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
@@ -115,7 +118,12 @@ async function neuralSpeak(text: string, opts: SpeakOptions = {}): Promise<boole
     const res = await fetch(`${API_BASE}/tts?${params.toString()}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    if (!res.ok) { neuralAvailable = false; return false; }
+    if (!res.ok) {
+      // FIX BUG-12: Record failure time instead of permanently disabling
+      neuralAvailable = false;
+      neuralFailedAt = Date.now();
+      return false;
+    }
 
     const blob = await res.blob();
     if (!blob.size) { return false; }
@@ -124,7 +132,7 @@ async function neuralSpeak(text: string, opts: SpeakOptions = {}): Promise<boole
     currentUrl = URL.createObjectURL(blob);
     el.src = currentUrl;
 
-    return await new Promise<boolean>((resolve) => {
+    return await new Promise((resolve) => {
       const done = (ok: boolean) => {
         el.onended = null; el.onerror = null;
         opts.onEnd?.();
@@ -132,12 +140,34 @@ async function neuralSpeak(text: string, opts: SpeakOptions = {}): Promise<boole
       };
       el.onended = () => done(true);
       el.onerror = () => done(false);
-      el.play().then(() => { neuralAvailable = true; }).catch(() => done(false));
+      el.play().then(() => {
+        // FIX BUG-12: Mark as available and clear failure timestamp
+        neuralAvailable = true;
+        neuralFailedAt = null;
+      }).catch(() => done(false));
     });
   } catch {
+    // FIX BUG-12: Record failure time
     neuralAvailable = false;
+    neuralFailedAt = Date.now();
     return false;
   }
+}
+
+/**
+ * FIX BUG-12: Check if we should retry neural TTS.
+ * Returns true if neural is available OR if enough time has passed since failure.
+ */
+function shouldTryNeural(): boolean {
+  if (neuralAvailable === true) return true;
+  if (neuralAvailable === null) return true; // never tried
+  // Was marked unavailable — retry after timeout
+  if (neuralFailedAt !== null && Date.now() - neuralFailedAt > NEURAL_RETRY_AFTER_MS) {
+    neuralAvailable = null; // reset to unknown — will try again
+    neuralFailedAt = null;
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -150,8 +180,8 @@ export async function speak(text: string, opts: SpeakOptions = {}): Promise<void
 
   stopSpeaking();
 
-  // If we already know neural is unavailable, skip straight to browser voice.
-  if (neuralAvailable !== false) {
+  // FIX BUG-12: Use shouldTryNeural() instead of checking neuralAvailable directly
+  if (shouldTryNeural()) {
     const ok = await neuralSpeak(clean, opts);
     if (ok) return;
   }

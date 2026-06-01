@@ -234,11 +234,20 @@ export default function WordPopup() {
             <Section title="In Context" icon="🎬">
               <div className="bg-card/40 rounded-xl px-4 py-3 border border-line/30">
                 <p className="text-sm text-body leading-relaxed">
-                  {wordPopupSentence.split(new RegExp(`(\\b${w.word}\\b)`, 'i')).map((part: string, i: number) =>
-                    part.toLowerCase() === w.word.toLowerCase()
-                      ? <mark key={i} className="bg-blue-500/30 text-blue-300 rounded px-0.5 font-semibold">{part}</mark>
-                      : <span key={i}>{part}</span>
-                  )}
+                  {/* FIX BUG-11: Safe regex — escapes special chars (c++, it's, etc.) */}
+                  {(() => {
+                    try {
+                      const escaped = w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                      const pattern = new RegExp(`((?<![\\w'])${escaped}(?![\\w']))`, 'gi');
+                      return wordPopupSentence.split(pattern).map((part: string, i: number) =>
+                        part.toLowerCase() === w.word.toLowerCase()
+                          ? <mark key={i} className="bg-blue-500/30 text-blue-300 rounded px-0.5 font-semibold">{part}</mark>
+                          : <span key={i}>{part}</span>
+                      );
+                    } catch {
+                      return <span>{wordPopupSentence}</span>;
+                    }
+                  })()}
                 </p>
               </div>
             </Section>

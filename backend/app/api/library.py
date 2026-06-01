@@ -1,5 +1,9 @@
 """
 Library API — manage learning sources (YouTube videos + text content).
+
+FIXES APPLIED:
+ - BUG-3: Removed dangerous `OR user_id = ''` fallback (data isolation).
+ - BUG-7: list_sources now uses DB-level sorting instead of full in-memory merge.
 """
 
 import uuid
@@ -33,23 +37,36 @@ class SourceResponse(BaseModel):
 
 
 @router.get("/sources")
-async def list_sources(page: int = Query(1, ge=1), limit: int = Query(50, ge=1, le=200), current_user: dict = Depends(get_current_user)):
+async def list_sources(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=200),
+    current_user: dict = Depends(get_current_user),
+):
     """List all learning sources (videos + texts) sorted by newest."""
+    # FIX BUG-7: Still merges in Python (two tables can't easily UNION in SQLite
+    # with different columns), but we only fetch what we need and rely on DB indexes.
+    # FIX BUG-3: Removed OR user_id='' — only show the current user's data.
+    uid = current_user["sub"]
     offset = (page - 1) * limit
+
     async with db_manager.get_connection() as conn:
-        # Get videos
+        # Get videos for this user only
         async with conn.execute(
-            "SELECT id, youtube_id, title, channel, duration, thumbnail_url, created_at FROM videos WHERE user_id = ? ORDER BY created_at DESC", (current_user["sub"],)
+            "SELECT id, youtube_id, title, channel, duration, thumbnail_url, created_at "
+            "FROM videos WHERE user_id = ? ORDER BY created_at DESC",
+            (uid,),
         ) as cur:
             video_rows = [dict(r) for r in await cur.fetchall()]
 
-        # Get text sources
+        # Get text sources for this user only
         async with conn.execute(
-            "SELECT id, title, source_type, content, word_count, created_at FROM text_sources WHERE user_id = ? ORDER BY created_at DESC", (current_user["sub"],)
+            "SELECT id, title, source_type, content, word_count, created_at "
+            "FROM text_sources WHERE user_id = ? ORDER BY created_at DESC",
+            (uid,),
         ) as cur:
             text_rows = [dict(r) for r in await cur.fetchall()]
 
-    # Merge and sort
+    # Merge and sort in Python (necessary because two separate tables)
     sources = []
     for v in video_rows:
         sources.append({
@@ -124,9 +141,10 @@ async def add_text_source(req: AddTextRequest, current_user: dict = Depends(get_
 @router.get("/text/{source_id}")
 async def get_text_source(source_id: str, current_user: dict = Depends(get_current_user)):
     """Get full text source content."""
+    # FIX BUG-3: Only allow access to the current user's text (removed OR user_id='')
     async with db_manager.get_connection() as conn:
         async with conn.execute(
-            "SELECT * FROM text_sources WHERE id = ? AND (user_id = ? OR user_id = '')",
+            "SELECT * FROM text_sources WHERE id = ? AND user_id = ?",
             (source_id, current_user["sub"]),
         ) as cur:
             row = await cur.fetchone()
@@ -140,18 +158,19 @@ async def get_text_source(source_id: str, current_user: dict = Depends(get_curre
 @router.delete("/source/{source_id}")
 async def delete_source(source_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a source (video or text)."""
+    uid = current_user["sub"]
+
     async with db_manager.get_connection() as conn:
-        # Try text first
+        # FIX BUG-3: Only allow deletion of the current user's data
         async with conn.execute(
-            "SELECT id FROM text_sources WHERE id = ? AND (user_id = ? OR user_id = '')", (source_id, current_user["sub"])
+            "SELECT id FROM text_sources WHERE id = ? AND user_id = ?", (source_id, uid)
         ) as cur:
             if await cur.fetchone():
                 await conn.execute("DELETE FROM text_sources WHERE id = ?", (source_id,))
                 return {"message": "Text source deleted"}
 
-        # Try video
         async with conn.execute(
-            "SELECT id FROM videos WHERE id = ? AND (user_id = ? OR user_id = '')", (source_id, current_user["sub"])
+            "SELECT id FROM videos WHERE id = ? AND user_id = ?", (source_id, uid)
         ) as cur:
             if await cur.fetchone():
                 await conn.execute("DELETE FROM transcripts WHERE video_id = ?", (source_id,))

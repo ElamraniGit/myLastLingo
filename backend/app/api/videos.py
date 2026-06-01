@@ -3,8 +3,9 @@ Video management API endpoints for LinguaLearn.
 Handles YouTube video info fetching and local storage.
 
 FIXES APPLIED:
-  - Bug #A2: Replaced shell string f-string with subprocess exec list (safer).
-  - Improved error handling and logging.
+ - Bug #A2: Replaced shell string f-string with subprocess exec list (safer).
+ - BUG-6:   delete_video now uses absolute path via PROJECT_ROOT.
+ - Improved error handling and logging.
 """
 
 import os
@@ -24,8 +25,10 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
 db_manager = None
+
+# FIX BUG-6: Use absolute path so file deletion works regardless of CWD
+_DOWNLOADS_DIR = (Path(__file__).resolve().parent.parent.parent.parent / "data" / "downloads").resolve()
 
 
 class VideoURLInput(BaseModel):
@@ -168,8 +171,13 @@ async def delete_video(video_id: str, current_user: dict = Depends(get_current_u
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
 
-    # Delete local files if present
-    video_path = Path(f"data/downloads/{video_id}.mp4")
+    # Verify ownership
+    if video.get("user_id") and video["user_id"] != current_user["sub"]:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this video")
+
+    # FIX BUG-6: Use absolute path
+    _DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    video_path = (_DOWNLOADS_DIR / f"{video_id}.mp4").resolve()
     if video_path.exists():
         video_path.unlink()
 
