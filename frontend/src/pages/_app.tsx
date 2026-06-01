@@ -1,6 +1,11 @@
 /**
  * LinguaLearn v2 — App root.
  * Handles auth routing, theme, page switching.
+ *
+ * FIX: Removed "if (router.pathname !== '/') return <Component />"
+ *      That pattern caused a render loop — Component re-rendered _app
+ *      which re-rendered Component infinitely.
+ *      Now we always render the SPA shell on '/' and return null elsewhere.
  */
 
 import '@/styles/globals.css';
@@ -28,6 +33,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const { currentPage, isAuthenticated, theme } = useStore();
   const [hydrated, setHydrated] = useState(false);
 
+  // Apply theme class to <html>
   useEffect(() => {
     const el = document.documentElement;
     el.classList.remove('dark', 'light');
@@ -36,9 +42,10 @@ export default function App({ Component, pageProps }: AppProps) {
     } else if (theme === 'light') {
       el.classList.add('light');
     }
-    // 'auto' = no class added, CSS @media (prefers-color-scheme) handles it
+    // 'auto' = no class — CSS @media (prefers-color-scheme) handles it
   }, [theme]);
 
+  // Register SW once, then mark hydrated
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -46,26 +53,38 @@ export default function App({ Component, pageProps }: AppProps) {
     setHydrated(true);
   }, []);
 
-  if (router.pathname !== '/') return <Component {...pageProps} />;
+  // FIX: Only render the SPA on the root path.
+  // For any other Next.js page (e.g. /404), render normally without our shell.
+  if (router.pathname !== '/') {
+    return <Component {...pageProps} />;
+  }
 
+  // Show loading spinner while Zustand is rehydrating from localStorage
   if (!hydrated) {
     return (
-      <div className="min-h-screen bg-base flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
-            <span className="text-heading text-xl font-black">L</span>
-          </div>
-          <div className="w-6 h-6 border-2 border-line border-t-blue-500 rounded-full animate-spin" />
-        </div>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', background: '#020617',
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 12,
+          background: '#3b82f6', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 24, fontWeight: 800,
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }}>L</div>
+        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
       </div>
     );
   }
 
+  // Not logged in → show auth screens
   if (!isAuthenticated) {
     if (currentPage === 'register') return <RegisterPage />;
     return <LoginPage />;
   }
 
+  // Logged in → render the correct view
   const renderPage = () => {
     switch (currentPage) {
       case 'player':
@@ -93,17 +112,12 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-        <meta name="theme-color" content="#0f172a" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <title>LinguaLearn — English Learning</title>
-        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <Layout>
-        {renderPage()}
         <InstallPrompt />
+        {renderPage()}
       </Layout>
     </>
   );
