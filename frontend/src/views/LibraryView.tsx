@@ -1,16 +1,12 @@
 /**
- * Library — all learning sources in one place.
- * YouTube videos + text content (paste/file/typed).
- * Add new sources via a modal with type selection.
+ * Library — Apple-style redesign.
+ * All learning sources: YouTube videos + text content.
  */
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
-import { libraryApi, videosApi, dictionaryApi, vocabularyApi, ApiError } from '@/lib/api';
-import { Button } from '@/components/ui/Button';
-import { speak as ttsSpeak } from '@/lib/tts';
+import { libraryApi, videosApi, ApiError } from '@/lib/api';
+import { useDictionary } from '@/hooks/useDictionary';
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface Source {
   id: string;
   title: string;
@@ -24,39 +20,31 @@ interface Source {
   created_at?: string;
 }
 
-type AddMode = null | 'choose' | 'youtube' | 'text' | 'paste' | 'word';
+type AddMode = null | 'choose' | 'youtube' | 'text' | 'word';
 
-/* ── Helpers ───────────────────────────────────────────────────── */
 function fmtDate(v?: string) {
   if (!v) return '';
   const d = new Date(v.replace(' ', 'T'));
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-
 function fmtDuration(s?: number) {
   if (!s) return '';
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-  return h ? `${h}h${m}m` : `${m}m`;
+  return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-const SOURCE_ICONS: Record<string, string> = {
-  youtube: '🎬', text: '📄', paste: '📋', file: '📁',
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  youtube: 'YouTube', text: 'Text', paste: 'Pasted', file: 'File',
-};
+const TYPE_ICON: Record<string, string>  = { youtube: '🎬', text: '📄', paste: '📋', file: '📁' };
+const TYPE_LABEL: Record<string, string> = { youtube: 'Video', text: 'Text', paste: 'Text', file: 'File' };
 
 /* ════════════════════════════════════════════════════════════════ */
 
 export default function LibraryView() {
-  const { setCurrentVideo, setPage, addRecentVideo } = useStore();
+  const { setCurrentVideo, setPage, addRecentVideo, setCurrentTextId } = useStore();
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
-  const currentPage = useStore((s) => s.currentPage);
   const [addMode, setAddMode] = useState<AddMode>(null);
+  const currentPage = useStore(s => s.currentPage);
 
-  /* ── Load sources ────────────────────────────────────────────── */
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -66,23 +54,22 @@ export default function LibraryView() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { if (currentPage === 'library') load(); }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (currentPage === 'library') load(); }, [currentPage]); // eslint-disable-line
 
-  /* ── Open source ─────────────────────────────────────────────── */
   const openSource = useCallback((s: Source) => {
     if (s.source_type === 'youtube' && s.youtube_id) {
       setCurrentVideo(s as any);
       addRecentVideo(s as any);
       setPage('player');
     } else {
-      // Open in text reader
-      useStore.setState({ currentTextId: s.id });
+      setCurrentTextId(s.id);
       setPage('textreader');
     }
-  }, [setCurrentVideo, addRecentVideo, setPage]);
+  }, [setCurrentVideo, addRecentVideo, setPage, setCurrentTextId]);
 
-  /* ── Delete source ───────────────────────────────────────────── */
-  const deleteSource = useCallback(async (id: string) => {
+  const deleteSource = useCallback(async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Delete this source?')) return;
     try {
       await libraryApi.deleteSource(id);
       setSources(prev => prev.filter(s => s.id !== id));
@@ -90,58 +77,83 @@ export default function LibraryView() {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-heading">Library</h1>
-          <p className="text-muted text-sm mt-0.5">{sources.length} source{sources.length === 1 ? '' : 's'}</p>
+    <div className="max-w-lg mx-auto pb-28 lg:pb-8 animate-fade-in">
+
+      {/* ── Sticky header ───────────────────────────────────────── */}
+      <div className="sticky top-0 z-20 bg-base/90 backdrop-blur-xl border-b border-default px-4 pt-5 pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-heading">Library</h2>
+            <p className="text-xs text-muted mt-0.5">
+              {sources.length} source{sources.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={() => setAddMode('choose')}
+            className="btn-primary py-2 px-4 text-sm rounded-xl"
+          >
+            + Add
+          </button>
         </div>
-        <Button onClick={() => setAddMode('choose')} variant="primary" size="sm">
-          + Add Source
-        </Button>
       </div>
 
-      {/* Sources list */}
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-2 border-line border-t-blue-500 rounded-full animate-spin" />
-        </div>
-      ) : sources.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-5xl mb-4">📖</div>
-          <h2 className="text-lg font-semibold text-heading mb-2">Your library is empty</h2>
-          <p className="text-body text-sm max-w-xs mx-auto mb-6">
-            Add YouTube videos or text content to start learning English
-          </p>
-          <Button onClick={() => setAddMode('choose')} variant="primary">Add your first source</Button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {sources.map(s => (
-            <div key={s.id}
-              className="bg-card/50 border border-line/40 rounded-xl overflow-hidden hover:border-line transition-all group">
-              <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={() => openSource(s)}>
-                {/* Thumbnail or icon */}
+      {/* ── Content ─────────────────────────────────────────────── */}
+      <div className="px-4 pt-3">
+        {loading ? (
+          <div className="space-y-3 mt-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-3 items-center">
+                <div className="skeleton w-16 h-11 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-3.5 rounded-md w-3/4" />
+                  <div className="skeleton h-3 rounded-md w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+        ) : sources.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="text-5xl mb-4">📖</div>
+            <div className="text-base font-semibold text-heading mb-1">Library is empty</div>
+            <div className="text-sm text-muted mb-6">Add YouTube videos or text to start learning</div>
+            <button onClick={() => setAddMode('choose')} className="btn-primary px-6 py-2.5 text-sm rounded-xl">
+              Add your first source
+            </button>
+          </div>
+
+        ) : (
+          <div className="space-y-2">
+            {sources.map(s => (
+              <button
+                key={s.id}
+                onClick={() => openSource(s)}
+                className="w-full flex items-center gap-3 bg-card border border-default rounded-2xl p-3 card-hover text-left group"
+              >
+                {/* Thumbnail / icon */}
                 {s.source_type === 'youtube' && s.thumbnail_url ? (
-                  <img src={s.thumbnail_url} alt="" className="w-20 h-12 rounded-lg object-cover bg-elevated flex-shrink-0" />
+                  <img
+                    src={s.thumbnail_url}
+                    alt=""
+                    className="w-16 h-11 rounded-xl object-cover shrink-0 bg-elevated"
+                  />
                 ) : (
-                  <div className="w-20 h-12 rounded-lg bg-elevated/60 flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">{SOURCE_ICONS[s.source_type] || '📄'}</span>
+                  <div className="w-16 h-11 rounded-xl bg-elevated flex items-center justify-center text-2xl shrink-0">
+                    {TYPE_ICON[s.source_type] || '📄'}
                   </div>
                 )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-heading line-clamp-1">{s.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-elevated/60 text-body">
-                      {SOURCE_LABELS[s.source_type] || s.source_type}
+                  <div className="text-sm font-semibold text-heading truncate">{s.title}</div>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-elevated text-muted font-medium">
+                      {TYPE_LABEL[s.source_type] || s.source_type}
                     </span>
-                    {s.channel && <span className="text-xs text-muted">{s.channel}</span>}
+                    {s.channel && <span className="text-xs text-muted truncate">{s.channel}</span>}
                     {s.duration ? <span className="text-xs text-faint">{fmtDuration(s.duration)}</span> : null}
                     {(s.word_count ?? 0) > 0 && <span className="text-xs text-faint">{s.word_count} words</span>}
-                    {s.created_at && <span className="text-xs text-faint">{fmtDate(s.created_at)}</span>}
+                    {s.created_at && <span className="text-xs text-faint ml-auto">{fmtDate(s.created_at)}</span>}
                   </div>
                   {s.source_type !== 'youtube' && s.content && (
                     <p className="text-xs text-muted mt-1 line-clamp-1">{s.content}</p>
@@ -149,19 +161,19 @@ export default function LibraryView() {
                 </div>
 
                 {/* Delete */}
-                <button onClick={e => { e.stopPropagation(); deleteSource(s.id); }}
-                  className="p-2 rounded-lg text-faint hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
-                  🗑
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                <button
+                  onClick={e => deleteSource(s.id, e)}
+                  className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-faint hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shrink-0 text-sm"
+                >🗑</button>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* ── Add Source Modal ────────────────────────────────────── */}
+      {/* ── Add Modal ────────────────────────────────────────────── */}
       {addMode && (
-        <AddSourceModal
+        <AddModal
           mode={addMode}
           setMode={setAddMode}
           onAdded={load}
@@ -171,11 +183,8 @@ export default function LibraryView() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════
-   ADD SOURCE MODAL
-   ════════════════════════════════════════════════════════════════ */
-
-function AddSourceModal({
+/* ── Add Source Modal ─────────────────────────────────────────── */
+function AddModal({
   mode, setMode, onAdded,
 }: {
   mode: AddMode;
@@ -183,16 +192,17 @@ function AddSourceModal({
   onAdded: () => void;
 }) {
   const { setCurrentVideo, setPage, addRecentVideo, defaultVideoQuality } = useStore();
-  const [url, setUrl] = useState('');
+  const [url,   setUrl]   = useState('');
   const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [text,  setText]  = useState('');
+  const [word,  setWord]  = useState('');
+  const [busy,  setBusy]  = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const close = () => { setMode(null); setError(''); };
 
-  /* ── Submit YouTube ──────────────────────────────────────────── */
+  /* YouTube */
   const submitYoutube = async () => {
     if (!url.trim()) return;
     setBusy(true); setError('');
@@ -200,175 +210,157 @@ function AddSourceModal({
       const video = await videosApi.process(url.trim(), defaultVideoQuality);
       addRecentVideo(video);
       setCurrentVideo(video);
-      onAdded();
-      close();
+      onAdded(); close();
       setPage('player');
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Failed to load video');
-    }
+    } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed to load video'); }
     setBusy(false);
   };
 
-  /* ── Submit Text ─────────────────────────────────────────────── */
-  const submitText = async (sourceType: string) => {
+  /* Text / Paste */
+  const submitText = async () => {
     const t = title.trim() || 'Untitled';
     const c = text.trim();
     if (c.length < 10) { setError('Content must be at least 10 characters'); return; }
     setBusy(true); setError('');
     try {
-      await libraryApi.addText(t, c, sourceType);
-      onAdded();
-      close();
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Failed to add text');
-    }
+      await libraryApi.addText(t, c, mode === 'text' ? 'text' : 'paste');
+      onAdded(); close();
+    } catch (e) { setError(e instanceof ApiError ? e.message : 'Failed to add text'); }
     setBusy(false);
   };
 
-  /* ── File upload handler ─────────────────────────────────────── */
+  /* File */
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ''));
     const reader = new FileReader();
-    reader.onload = () => {
-      setText(reader.result as string);
-      setMode('text');
-    };
+    reader.onload = () => { setText(reader.result as string); setMode('text'); };
     reader.readAsText(file);
+  };
+
+  const MODAL_TITLE: Record<string, string> = {
+    choose: 'Add to Library',
+    youtube: '🎬 YouTube Video',
+    text: '📄 Text Content',
+    word: '🔤 Add a Word',
   };
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={close} />
+      <div
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+        onClick={close}
+      />
 
-      {/* Modal */}
-      <div className="fixed inset-x-4 bottom-4 top-auto z-50 bg-surface border border-line/50 rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto
-                      sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
+      {/* Sheet */}
+      <div className="fixed z-50 bottom-0 left-0 right-0 bg-surface rounded-t-3xl border-t border-default max-h-[88vh] overflow-y-auto animate-slide-up lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-md">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-line-s">
-          <h2 className="text-lg font-bold text-heading">
-            {mode === 'choose' && 'Add Source'}
-            {mode === 'youtube' && '🎬 YouTube Video'}
-            {mode === 'text' && '📄 Text Content'}
-            {mode === 'paste' && '📋 Paste Text'}
-            {mode === 'word' && '🔤 Add a Word'}
-          </h2>
-          <button onClick={close} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body">✕</button>
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 bg-elevated rounded-full" />
         </div>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-5 pb-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-bold text-heading">{MODAL_TITLE[mode!] || 'Add'}</h3>
+            <button onClick={close} className="w-8 h-8 rounded-full bg-elevated text-muted hover:text-heading flex items-center justify-center text-sm transition-colors">✕</button>
+          </div>
 
-          {/* ── Choose type ────────────────────────────────────── */}
-          {mode === 'choose' && (
-            <div className="space-y-3">
-              <p className="text-sm text-body">What would you like to add?</p>
-
-              <button onClick={() => setMode('youtube')}
-                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-blue-500/30 hover:bg-blue-500/5 transition-all text-left">
-                <span className="text-3xl">🎬</span>
-                <div>
-                  <p className="text-sm font-semibold text-heading">YouTube Video</p>
-                  <p className="text-xs text-muted mt-0.5">Paste a YouTube URL to extract subtitles</p>
-                </div>
-              </button>
-
-              <button onClick={() => setMode('paste')}
-                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-purple-500/30 hover:bg-purple-500/5 transition-all text-left">
-                <span className="text-3xl">📋</span>
-                <div>
-                  <p className="text-sm font-semibold text-heading">Paste Text</p>
-                  <p className="text-xs text-muted mt-0.5">Paste any English text, story, or article</p>
-                </div>
-              </button>
-
-              <button onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-green-500/30 hover:bg-green-500/5 transition-all text-left">
-                <span className="text-3xl">📁</span>
-                <div>
-                  <p className="text-sm font-semibold text-heading">Upload Text File</p>
-                  <p className="text-xs text-muted mt-0.5">.txt file with English content</p>
-                </div>
-              </button>
-              <input ref={fileRef} type="file" accept=".txt,.text" onChange={handleFile} className="hidden" />
-
-              <button onClick={() => setMode('word')}
-                className="w-full flex items-center gap-4 p-4 bg-card/60 border border-line/40 rounded-xl hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all text-left">
-                <span className="text-3xl">🔤</span>
-                <div>
-                  <p className="text-sm font-semibold text-heading">Add a Word</p>
-                  <p className="text-xs text-muted mt-0.5">Look up any English word and save it</p>
-                </div>
-              </button>
+          {/* Error */}
+          {error && (
+            <div className="mb-4 bg-red-500/8 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">
+              {error}
             </div>
           )}
 
-          {/* ── YouTube URL input ──────────────────────────────── */}
+          {/* ── Choose type ──────────────────────────────────── */}
+          {mode === 'choose' && (
+            <div className="space-y-2">
+              {[
+                { m: 'youtube', icon: '🎬', title: 'YouTube Video',   sub: 'Paste a URL to extract subtitles' },
+                { m: 'text',    icon: '📋', title: 'Paste Text',      sub: 'Any English text, article or story' },
+                { m: null,      icon: '📁', title: 'Upload .txt File', sub: 'Read a text file from your device', file: true },
+                { m: 'word',    icon: '🔤', title: 'Add a Word',      sub: 'Look up and save any English word' },
+              ].map(item => (
+                <button
+                  key={item.title}
+                  onClick={() => item.file ? fileRef.current?.click() : setMode(item.m as AddMode)}
+                  className="w-full flex items-center gap-4 p-4 bg-card border border-default rounded-2xl hover:border-blue-500/30 active:scale-[0.98] transition-all text-left"
+                >
+                  <span className="text-2xl w-9 text-center">{item.icon}</span>
+                  <div>
+                    <div className="text-sm font-semibold text-heading">{item.title}</div>
+                    <div className="text-xs text-muted mt-0.5">{item.sub}</div>
+                  </div>
+                </button>
+              ))}
+              <input ref={fileRef} type="file" accept=".txt" className="hidden" onChange={handleFile} />
+            </div>
+          )}
+
+          {/* ── YouTube ──────────────────────────────────────── */}
           {mode === 'youtube' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-body mb-1.5 block">YouTube URL</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">YouTube URL</label>
                 <input
-                  type="text" value={url}
+                  value={url}
                   onChange={e => { setUrl(e.target.value); setError(''); }}
                   placeholder="https://youtube.com/watch?v=..."
-                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="input-field text-sm"
                   autoFocus
+                  dir="ltr"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={() => setMode('choose')} variant="outline" className="flex-1">← Back</Button>
-                <Button onClick={submitYoutube} variant="primary" loading={busy} className="flex-1">Add Video</Button>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setMode('choose')} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
+                <button onClick={submitYoutube} disabled={busy || !url.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
+                  {busy ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>Loading…</span> : 'Add Video'}
+                </button>
               </div>
             </div>
           )}
 
-          {/* ── Paste text input ───────────────────────────────── */}
-          {(mode === 'paste' || mode === 'text') && (
-            <div className="space-y-4">
+          {/* ── Text / Paste ─────────────────────────────────── */}
+          {(mode === 'text') && (
+            <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-body mb-1.5 block">Title</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">Title</label>
                 <input
-                  type="text" value={title}
+                  value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. 'The Little Prince - Chapter 1'"
-                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  placeholder="e.g. The Little Prince — Ch. 1"
+                  className="input-field text-sm"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-body mb-1.5 block">
-                  Content <span className="text-muted font-normal">({text.split(/\s+/).filter(Boolean).length} words)</span>
+                <label className="block text-xs font-medium text-muted mb-1.5">
+                  Content <span className="text-faint">({text.split(/\s+/).filter(Boolean).length} words)</span>
                 </label>
                 <textarea
                   value={text}
-                  onChange={e => { setText(e.target.value); setError(''); }}
-                  placeholder="Paste your English text here..."
-                  rows={8}
-                  className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-y"
+                  onChange={e => setText(e.target.value)}
+                  placeholder="Paste your English text here…"
+                  rows={7}
+                  className="input-field text-sm resize-none"
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => setMode('choose')} variant="outline" className="flex-1">← Back</Button>
-                <Button onClick={() => submitText(mode === 'paste' ? 'paste' : 'file')} variant="primary" loading={busy} className="flex-1">
-                  Add to Library
-                </Button>
+                <button onClick={() => setMode('choose')} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
+                <button onClick={submitText} disabled={busy || text.trim().length < 10} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
+                  {busy ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>Saving…</span> : 'Save Text'}
+                </button>
               </div>
             </div>
           )}
 
           {/* ── Word lookup ──────────────────────────────────── */}
           {mode === 'word' && (
-            <WordLookupPanel onClose={close} onAdded={onAdded} setError={setError} />
-          )}
-
-          {/* Error */}
-          {error && (
-            <div className="px-4 py-2.5 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <p className="text-sm text-red-400">{error}</p>
-            </div>
+            <WordLookup onBack={() => setMode('choose')} onSaved={() => { onAdded(); close(); }} />
           )}
         </div>
       </div>
@@ -376,133 +368,46 @@ function AddSourceModal({
   );
 }
 
+/* ── Word Lookup inside modal ─────────────────────────────────── */
+function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
+  const [word,   setWord]   = useState('');
+  const [busy,   setBusy]   = useState(false);
+  const [error,  setError]  = useState('');
+  const [result, setResult] = useState<any>(null);
+  const { lookupWord } = useDictionary();
 
-/* ── Word Lookup Panel ──────────────────────────────────────────── */
-function WordLookupPanel({ onClose, onAdded, setError }: {
-  onClose: () => void;
-  onAdded: () => void;
-  setError: (e: string) => void;
-}) {
-  const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [wordData, setWordData] = useState<any>(null);
-  const [saved, setSaved] = useState(false);
-
-  const lookup = async () => {
-    const w = input.trim().toLowerCase();
-    if (!w || w.length < 2) { setError('Enter a valid English word'); return; }
+  const search = async () => {
+    const w = word.trim().toLowerCase();
+    if (!w) return;
     setBusy(true); setError('');
     try {
-      const data = await dictionaryApi.lookup(w);
-      setWordData(data);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Word not found');
-    }
+      await lookupWord(w, '');
+      setResult({ word: w });
+    } catch { setError('Word not found'); }
     setBusy(false);
-  };
-
-  const saveWord = async () => {
-    if (!wordData || saved) return;
-    setBusy(true);
-    try {
-      await vocabularyApi.save(wordData.word);
-      setSaved(true);
-      onAdded();
-    } catch (e) {
-      setError('Failed to save word');
-    }
-    setBusy(false);
-  };
-
-  const speak = (t: string) => {
-    const rate = (t || '').trim().split(/\s+/).length <= 2 ? 0.9 : 1.0;
-    ttsSpeak(t, { rate });
   };
 
   return (
-    <div className="space-y-4">
-      {/* Input */}
+    <div className="space-y-3">
       <div>
-        <label className="text-sm font-medium text-body mb-1.5 block">English Word</label>
-        <div className="flex gap-2">
-          <input
-            type="text" value={input}
-            onChange={e => { setInput(e.target.value); setWordData(null); setSaved(false); setError(''); }}
-            onKeyDown={e => { if (e.key === 'Enter') lookup(); }}
-            placeholder="e.g. opportunity"
-            className="flex-1 bg-input-bg border border-line rounded-xl px-4 py-3 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-            autoFocus
-          />
-          <Button onClick={lookup} loading={busy} variant="primary">Look up</Button>
-        </div>
+        <label className="block text-xs font-medium text-muted mb-1.5">English Word</label>
+        <input
+          value={word}
+          onChange={e => { setWord(e.target.value); setError(''); setResult(null); }}
+          onKeyDown={e => e.key === 'Enter' && search()}
+          placeholder="e.g. ambiguous"
+          className="input-field text-sm"
+          autoFocus
+        />
       </div>
-
-      {/* Result */}
-      {wordData && (
-        <div className="bg-surface/50 border border-line/40 rounded-xl p-4 space-y-3">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-heading">{wordData.word}</h3>
-                {wordData.level && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-semibold">{wordData.level}</span>
-                )}
-              </div>
-              {wordData.pronunciation && (
-                <p className="text-xs text-muted font-mono mt-0.5">{wordData.pronunciation}</p>
-              )}
-            </div>
-            <button onClick={() => speak(wordData.word)}
-              className="p-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400">
-              🔊
-            </button>
-          </div>
-
-          {/* Arabic */}
-          {wordData.meaning_ar && (
-            <div className="bg-blue-500/8 border border-blue-500/15 rounded-lg px-3 py-2">
-              <p className="text-base font-semibold text-heading" style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Noto Sans Arabic', sans-serif" }}>
-                {wordData.meaning_ar}
-              </p>
-            </div>
-          )}
-
-          {/* Definition */}
-          {wordData.meaning_en && (
-            <p className="text-sm text-body leading-relaxed">{wordData.meaning_en}</p>
-          )}
-
-          {/* Example */}
-          {wordData.examples?.length > 0 && (
-            <div className="bg-surface/40 border border-line/30 rounded-lg px-3 py-2">
-              <p className="text-[11px] text-muted mb-0.5">Example</p>
-              <p className="text-sm text-body italic">"{wordData.examples[0]}"</p>
-            </div>
-          )}
-
-          {/* Synonyms */}
-          {wordData.synonyms?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              <span className="text-[11px] text-muted">Synonyms:</span>
-              {wordData.synonyms.slice(0, 5).map((s: string) => (
-                <span key={s} className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-lg">{s}</span>
-              ))}
-            </div>
-          )}
-
-          {/* Save button */}
-          <Button onClick={saveWord} loading={busy} variant={saved ? 'secondary' : 'primary'} className="w-full">
-            {saved ? '✓ Saved to vocabulary' : '+ Save to my words'}
-          </Button>
-        </div>
-      )}
-
-      {/* Back button */}
-      {!wordData && (
-        <Button onClick={() => onClose()} variant="outline" className="w-full">← Back</Button>
-      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      {result && <p className="text-xs text-green-400">✓ Word popup opened — save it from there!</p>}
+      <div className="flex gap-2">
+        <button onClick={onBack} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
+        <button onClick={search} disabled={busy || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
+          {busy ? 'Looking up…' : 'Look Up'}
+        </button>
+      </div>
     </div>
   );
 }
-
