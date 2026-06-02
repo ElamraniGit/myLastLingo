@@ -134,9 +134,12 @@ function HomeDashboard() {
                     <span className="text-sm font-semibold text-heading">{w.word}</span>
                     {w.level && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-semibold">{w.level}</span>}
                   </div>
-                  {w.meaning_ar && (
-                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl', textAlign: 'right' }}>{w.meaning_ar}</div>
-                  )}
+                  {/* Show English definition first, Arabic only as fallback */}
+                  {w.meaning_en ? (
+                    <div className="text-xs text-muted mt-0.5 truncate">{w.meaning_en}</div>
+                  ) : w.meaning_ar ? (
+                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl' }}>{w.meaning_ar}</div>
+                  ) : null}
                 </div>
                 <button
                   onClick={e => { e.stopPropagation(); speak(w.word); }}

@@ -181,7 +181,7 @@ export default function WordPopup() {
           {/* ── Arabic Translation ───────────────────────────── */}
           {w.meaning_ar && (
             <div className="mt-4 bg-gradient-to-r from-blue-500/8 to-purple-500/8 border border-blue-500/15 rounded-2xl px-4 py-3.5">
-              <p className="text-[11px] text-blue-400/70 uppercase tracking-wider mb-1">الترجمة العربية</p>
+              <p className="text-[11px] text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
               <p className="text-xl font-bold text-heading"
                  style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate',
                           fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>

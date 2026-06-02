@@ -168,10 +168,11 @@ export default function VocabularyView() {
                       {w.status}
                     </span>
                   </div>
-                  {w.meaning_ar ? (
-                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl' }}>{w.meaning_ar}</div>
-                  ) : w.meaning_en ? (
+                  {/* Always show English definition first */}
+                  {w.meaning_en ? (
                     <div className="text-xs text-muted mt-0.5 truncate">{w.meaning_en}</div>
+                  ) : w.meaning_ar ? (
+                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl' }}>{w.meaning_ar}</div>
                   ) : null}
                 </div>
 
