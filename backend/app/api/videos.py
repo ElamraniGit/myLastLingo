@@ -157,9 +157,14 @@ async def list_videos(
 
 @router.get("/{video_id}")
 async def get_video(video_id: str, current_user: dict = Depends(get_current_user)):
-    """Get video details."""
+    """Get video details (scoped to the owner — FIX-SEC-9)."""
     video = await db_manager.get_video(video_id)
     if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    # Only the owner may read a video record. Legacy rows with empty user_id
+    # (pre-multi-user data) remain accessible for backward compatibility.
+    owner = video.get("user_id") or ""
+    if owner and owner != current_user["sub"]:
         raise HTTPException(status_code=404, detail="Video not found")
     return video
 

@@ -47,3 +47,8 @@ Thumbs.db
 *.swo
 *.tsbuildinfo
 frontend/tsconfig.tsbuildinfo
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/

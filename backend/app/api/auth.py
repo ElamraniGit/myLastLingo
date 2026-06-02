@@ -85,12 +85,13 @@ def _b64url_decode(s: str) -> bytes:
         s += "=" * padding
     return base64.urlsafe_b64decode(s)
 
-def _create_token(user_id: str, username: str, remember: bool = False) -> str:
+def _create_token(user_id: str, username: str, remember: bool = False, token_version: int = 0) -> str:
     """Create a signed local JWT-like token."""
     exp_hours = 720 if remember else 24  # 30 days if remember, else 24h
     payload = {
         "sub": user_id,
         "username": username,
+        "tv": int(token_version),  # FIX-SEC-5: token version for revocation
         "exp": (datetime.utcnow() + timedelta(hours=exp_hours)).isoformat(),
         "iat": datetime.utcnow().isoformat(),
     }
@@ -138,6 +139,29 @@ def _verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+# ─── Token-version helpers (FIX-SEC-5: revocation support) ───────────────────
+async def _get_token_version(user_id: str) -> Optional[int]:
+    """Return the user's current token_version, or None if the user is gone."""
+    if db_manager is None:
+        return 0
+    async with db_manager.get_connection() as conn:
+        async with conn.execute(
+            "SELECT token_version FROM users WHERE id = ?", (user_id,)
+        ) as cur:
+            row = await cur.fetchone()
+    if row is None:
+        return None
+    return int(dict(row).get("token_version") or 0)
+
+
+async def _token_version_ok(payload: dict) -> bool:
+    """A token is valid only if its 'tv' claim matches the user's current version."""
+    current = await _get_token_version(payload.get("sub", ""))
+    if current is None:
+        return False  # user deleted
+    return int(payload.get("tv", 0)) == current
+
+
 # ─── Dependency: get current user from Authorization header ──────────────────
 async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
@@ -146,13 +170,19 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
     payload = _verify_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    # FIX-SEC-5: reject tokens whose version no longer matches (logout/password change)
+    if not await _token_version_ok(payload):
+        raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
     return payload
 
 async def get_current_user_optional(authorization: Optional[str] = Header(None)) -> Optional[dict]:
     if not authorization or not authorization.startswith("Bearer "):
         return None
     token = authorization[7:]
-    return _verify_token(token)
+    payload = _verify_token(token)
+    if payload and not await _token_version_ok(payload):
+        return None
+    return payload
 
 
 # ─── Pydantic models ──────────────────────────────────────────────────────────
@@ -217,6 +247,8 @@ async def create_auth_tables(conn: aiosqlite.Connection):
             password_hash TEXT NOT NULL,
             avatar_color TEXT DEFAULT '#3b82f6',
             streak_days INTEGER DEFAULT 0,
+            token_version INTEGER DEFAULT 0,
+            groq_api_key TEXT DEFAULT '',
             last_login TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -224,6 +256,15 @@ async def create_auth_tables(conn: aiosqlite.Connection):
     """)
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+
+    # FIX-SEC-5 / FIX-SEC-4: additive migrations for existing databases.
+    async with conn.execute("PRAGMA table_info(users)") as cur:
+        cols = {dict(r)["name"] for r in await cur.fetchall()}
+    if "token_version" not in cols:
+        await conn.execute("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 0")
+    if "groq_api_key" not in cols:
+        await conn.execute("ALTER TABLE users ADD COLUMN groq_api_key TEXT DEFAULT ''")
+
     await conn.commit()
 
 
@@ -297,7 +338,10 @@ async def login(req: LoginRequest):
             "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?", (user["id"],)
         )
 
-    token = _create_token(user["id"], user["username"], req.remember)
+    token = _create_token(
+        user["id"], user["username"], req.remember,
+        token_version=int(user.get("token_version") or 0),
+    )
     safe_user = {
         "id": user["id"],
         "username": user["username"],
@@ -373,6 +417,8 @@ async def update_profile(
                 raise HTTPException(status_code=400, detail="New password too short")
             updates.append("password_hash = ?")
             params.append(_hash_password(req.new_password))
+            # FIX-SEC-5: changing the password revokes all existing sessions.
+            updates.append("token_version = token_version + 1")
 
         if updates:
             updates.append("updated_at = CURRENT_TIMESTAMP")
@@ -386,14 +432,25 @@ async def update_profile(
 
 @router.post("/refresh")
 async def refresh_token(current_user: dict = Depends(get_current_user)):
-    """Issue a fresh token for an authenticated user."""
-    token = _create_token(current_user["sub"], current_user["username"])
+    """Issue a fresh token for an authenticated user (preserving token version)."""
+    tv = await _get_token_version(current_user["sub"]) or 0
+    token = _create_token(current_user["sub"], current_user["username"], token_version=tv)
     return {"token": token}
 
 
 @router.post("/logout")
 async def logout(current_user: dict = Depends(get_current_user)):
-    """Logout (client should discard token)."""
+    """
+    Log out everywhere by incrementing the user's token_version.
+
+    FIX-SEC-5: previously this was a no-op and tokens stayed valid until expiry
+    (up to 30 days). Now every issued token for this user is immediately revoked.
+    """
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            "UPDATE users SET token_version = token_version + 1 WHERE id = ?",
+            (current_user["sub"],),
+        )
     return {"message": "Logged out"}
 
 

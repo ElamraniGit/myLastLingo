@@ -23,19 +23,32 @@ db_manager = None
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.1-8b-instant"
 
-# Store API key in data/.groq_key (user provides it)
-_groq_key: Optional[str] = None
+# FIX-SEC-4: Groq API keys are now stored PER USER in the users table.
+#
+# Previously a single key lived in data/.groq_key and a module global, which meant
+# every user shared one key and any user could overwrite it via /chat/set-key.
+# A legacy file key (if present) is used only as a last-resort fallback so existing
+# single-user installs keep working.
 
-
-def _get_groq_key() -> Optional[str]:
-    global _groq_key
-    if _groq_key:
-        return _groq_key
+async def _get_groq_key(user_id: str) -> Optional[str]:
+    """Return this user's saved Groq key, falling back to a legacy file key."""
+    if db_manager is not None:
+        async with db_manager.get_connection() as conn:
+            async with conn.execute(
+                "SELECT groq_api_key FROM users WHERE id = ?", (user_id,)
+            ) as cur:
+                row = await cur.fetchone()
+        if row:
+            key = (dict(row).get("groq_api_key") or "").strip()
+            if key:
+                return key
+    # Legacy fallback (single-user installs created before per-user keys)
     from pathlib import Path
     key_file = Path("data/.groq_key")
     if key_file.exists():
-        _groq_key = key_file.read_text().strip()
-        return _groq_key
+        legacy = key_file.read_text().strip()
+        if legacy:
+            return legacy
     return None
 
 
@@ -57,7 +70,7 @@ async def send_message(req: ChatRequest, current_user: dict = Depends(get_curren
     if not message:
         raise HTTPException(400, "Message cannot be empty")
 
-    api_key = _get_groq_key()
+    api_key = await _get_groq_key(user_id)
     if not api_key:
         raise HTTPException(
             503,
@@ -147,26 +160,24 @@ You can help with:
 
 @router.post("/set-key")
 async def set_api_key(req: SetKeyRequest, current_user: dict = Depends(get_current_user)):
-    """Save the Groq API key."""
-    global _groq_key
-    from pathlib import Path
-
+    """Save the Groq API key for the CURRENT user only (FIX-SEC-4)."""
     key = req.api_key.strip()
     if not key or len(key) < 10:
         raise HTTPException(400, "Invalid API key")
 
-    key_file = Path("data/.groq_key")
-    key_file.parent.mkdir(parents=True, exist_ok=True)
-    key_file.write_text(key)
-    _groq_key = key
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            "UPDATE users SET groq_api_key = ? WHERE id = ?",
+            (key, current_user["sub"]),
+        )
 
     return {"message": "API key saved"}
 
 
 @router.get("/has-key")
 async def check_api_key(current_user: dict = Depends(get_current_user)):
-    """Check if API key is configured."""
-    return {"has_key": bool(_get_groq_key())}
+    """Check if the current user has an API key configured."""
+    return {"has_key": bool(await _get_groq_key(current_user["sub"]))}
 
 
 @router.get("/history")

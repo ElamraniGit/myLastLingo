@@ -125,6 +125,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ── FIX-SEC-7: Security headers on every response ─────────────────────────────
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Permissions-Policy", "geolocation=(), camera=(), microphone=(self)")
+    # API responses must never be cached by shared caches (may contain user data).
+    if request.url.path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
+
+
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/health")
@@ -138,11 +153,13 @@ async def health_check():
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
+    # FIX-SEC-8: log the real error server-side, but never leak internals
+    # (exception text / stack details) to the client.
     logger = logging.getLogger(__name__)
-    logger.error(f"Unhandled: {exc}", exc_info=True)
+    logger.error(f"Unhandled error on {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "message": str(exc)},
+        content={"detail": "Internal server error"},
     )
 
 if __name__ == "__main__":
