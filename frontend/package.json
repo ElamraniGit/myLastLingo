@@ -10,21 +10,13 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.24.0",
-    "axios": "^1.6.2",
-    "date-fns": "^3.0.0",
-    "framer-motion": "^10.16.16",
-    "howler": "^2.2.4",
-    "idb-keyval": "^6.2.1",
     "next": "14.2.33",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^4.12.0",
-    "react-intersection-observer": "^9.5.3",
     "react-player": "^2.13.0",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@types/howler": "^2.2.11",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.39",
     "@types/react-dom": "^18.2.17",

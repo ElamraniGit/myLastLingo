@@ -17,6 +17,21 @@
 
 ---
 
+## 📚 Documentation
+
+| Document | Purpose |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture, data flow, design decisions |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Setup, run, test, build, configuration |
+| [AI_AGENT_GUIDE.md](AI_AGENT_GUIDE.md) | Repo map + golden rules for AI agents / new devs |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Workflow, coding standards, commit format |
+| [docs/API.md](docs/API.md) | Full REST API reference |
+| [docs/DATABASE.md](docs/DATABASE.md) | Database schema & data flow |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems & fixes |
+| [docs/history/](docs/history/) | Archived audit/diagnostic reports |
+
+---
+
 ## ✨ المميزات
 
 ### 🎬 تشغيل فيديوهات YouTube

@@ -511,53 +511,6 @@ def _vtt_time_to_seconds(vtt_time: str) -> float:
 
 
 # ---------------------------------------------------------------------------
-# SRT Parser (kept for backwards compatibility / cached files)
-# ---------------------------------------------------------------------------
-
-def _parse_srt(srt_content: str) -> List[Dict]:
-    """Parse SRT subtitle format to structured segments."""
-    segments = []
-    pattern = (
-        r"(\d+)\n(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})\n"
-        r"((?:(?!\n\n).+\n?)*)"
-    )
-    for match in re.finditer(pattern, srt_content, re.MULTILINE):
-        start_time = _srt_time_to_seconds(match.group(2))
-        end_time = _srt_time_to_seconds(match.group(3))
-        text = match.group(4).strip().replace("\n", " ")
-        text = re.sub(r"<[^>]+>", "", text)
-
-        words = text.split()
-        word_duration = (end_time - start_time) / max(len(words), 1)
-        word_timings = [
-            {
-                "word": w,
-                "start": round(start_time + i * word_duration, 3),
-                "end": round(start_time + (i + 1) * word_duration, 3),
-            }
-            for i, w in enumerate(words)
-        ]
-
-        segments.append(
-            {
-                "index": int(match.group(1)),
-                "start": start_time,
-                "end": end_time,
-                "text": text,
-                "words": word_timings,
-                "duration": end_time - start_time,
-            }
-        )
-    return segments
-
-
-def _srt_time_to_seconds(srt_time: str) -> float:
-    """Convert SRT timestamp to seconds."""
-    parts = srt_time.replace(",", ".").split(":")
-    return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-
-
-# ---------------------------------------------------------------------------
 # Word-timing utility
 # ---------------------------------------------------------------------------
 
