@@ -222,18 +222,31 @@ class DictionaryService:
         return "unknown"
 
     def _estimate_level(self, word: str) -> str:
-        length = len(word)
-        if length <= 4:
-            return "A1"
-        elif length <= 6:
-            return "A2"
-        elif length <= 8:
-            return "B1"
-        elif length <= 10:
-            return "B2"
-        elif length <= 13:
-            return "C1"
-        return "C2"
+        """
+        Estimate CEFR level.
+
+        FIX-QUAL-1: Previously this used a crude word-length heuristic
+        ("the" and "cat" → A1, but so was every 4-letter rare word). The project
+        already ships a 645-line CEFR estimator with real graded word lists
+        (level_estimator.py) that was only wired into one rarely-used endpoint.
+        We now use it here, falling back to the length heuristic if import fails.
+        """
+        try:
+            from .level_estimator import estimate_level
+            return estimate_level(word)
+        except Exception:
+            length = len(word)
+            if length <= 4:
+                return "A1"
+            elif length <= 6:
+                return "A2"
+            elif length <= 8:
+                return "B1"
+            elif length <= 10:
+                return "B2"
+            elif length <= 13:
+                return "C1"
+            return "C2"
 
     def _estimate_conjugations(self, word: str) -> Dict[str, str]:
         if word.endswith("e"):

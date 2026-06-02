@@ -142,8 +142,10 @@ class WhisperService:
                 segments.append(seg_data)
                 
                 if on_progress:
-                    progress = (i + 1) / max(len(list(segment_generator)), 1) if hasattr(segment_generator, '__len__') else None
-                    on_progress(progress, seg_data)
+                    # faster-whisper yields a lazy generator with no known length,
+                    # so we report incremental progress without a total. (Never call
+                    # list() here — it would consume the generator and drop segments.)
+                    on_progress(None, seg_data)
             
             elapsed = time.time() - start_time
             logger.info(f"Transcription complete: {len(segments)} segments in {elapsed:.2f}s")

@@ -21,9 +21,6 @@ aiohttp>=3.9.0
 # Must be kept up to date — YouTube changes frequently
 yt-dlp>=2024.1.0
 
-# Multipart form support
-python-multipart>=0.0.6
-
 # Natural neural text-to-speech (free, via Microsoft Edge — no API key, no ffmpeg)
 # Powers human-like "Read Aloud" and word pronunciation.
 edge-tts>=6.1.0

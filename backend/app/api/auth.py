@@ -24,6 +24,35 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 db_manager = None
 
+# ─── Simple in-memory login rate limiter (FIX-SEC-4) ─────────────────────────
+# Prevents online password brute-forcing. Keyed by identifier (username/email).
+# In-process only (fine for a single-worker local app); resets on restart.
+import time as _time
+from collections import defaultdict as _defaultdict
+
+_LOGIN_ATTEMPTS: dict = _defaultdict(list)  # ident -> [timestamps of failures]
+_LOGIN_WINDOW_SEC = 300       # 5 minutes
+_LOGIN_MAX_FAILS = 8          # max failed attempts within the window
+
+
+def _login_rate_check(ident: str) -> None:
+    now = _time.time()
+    fails = [t for t in _LOGIN_ATTEMPTS[ident] if now - t < _LOGIN_WINDOW_SEC]
+    _LOGIN_ATTEMPTS[ident] = fails
+    if len(fails) >= _LOGIN_MAX_FAILS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed login attempts. Try again in a few minutes.",
+        )
+
+
+def _login_record_failure(ident: str) -> None:
+    _LOGIN_ATTEMPTS[ident].append(_time.time())
+
+
+def _login_clear(ident: str) -> None:
+    _LOGIN_ATTEMPTS.pop(ident, None)
+
 # ─── Secret key (generated once, stored locally) ────────────────────────────
 _SECRET_KEY: Optional[str] = None
 
@@ -244,6 +273,7 @@ async def register(req: RegisterRequest):
 async def login(req: LoginRequest):
     """Login with username or email + password."""
     ident = req.username.strip().lower()
+    _login_rate_check(ident)  # FIX-SEC-4: throttle brute-force attempts
     async with db_manager.get_connection() as conn:
         async with conn.execute(
             "SELECT * FROM users WHERE username = ? OR email = ?", (ident, ident)
@@ -251,11 +281,15 @@ async def login(req: LoginRequest):
             row = await cur.fetchone()
 
     if not row:
+        _login_record_failure(ident)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     user = dict(row)
     if not _verify_password(req.password, user["password_hash"]):
+        _login_record_failure(ident)
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    _login_clear(ident)  # successful login resets the counter
 
     # Update last login
     async with db_manager.get_connection() as conn:

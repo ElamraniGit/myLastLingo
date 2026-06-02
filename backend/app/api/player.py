@@ -63,10 +63,13 @@ async def update_player_state(
     state: PlayerState,
     current_user: dict = Depends(get_current_user),
 ):
-    """Update and save player state."""
+    """Update and save player state (scoped to the current user)."""
+    uid = current_user["sub"]
     async with db_manager.get_connection() as conn:
+        # FIX-SEC-3: scope session by (video_id, user_id) so two users watching
+        # the same YouTube video don't overwrite each other's resume position.
         async with conn.execute(
-            "SELECT * FROM sessions WHERE video_id = ?", (state.video_id,)
+            "SELECT * FROM sessions WHERE video_id = ? AND user_id = ?", (state.video_id, uid)
         ) as cursor:
             session = await cursor.fetchone()
 
@@ -79,17 +82,17 @@ async def update_player_state(
                     volume = ?,
                     last_watched = CURRENT_TIMESTAMP,
                     watch_count = watch_count + 1
-                WHERE video_id = ?
+                WHERE video_id = ? AND user_id = ?
                 """,
-                (state.position, state.speed, state.volume, state.video_id),
+                (state.position, state.speed, state.volume, state.video_id, uid),
             )
         else:
             await conn.execute(
                 """
-                INSERT INTO sessions (id, video_id, last_position, playback_speed, volume)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO sessions (id, video_id, last_position, playback_speed, volume, user_id)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (str(uuid.uuid4()), state.video_id, state.position, state.speed, state.volume),
+                (str(uuid.uuid4()), state.video_id, state.position, state.speed, state.volume, uid),
             )
 
     return {"message": "State saved", "position": state.position}
@@ -100,10 +103,11 @@ async def get_player_state(
     video_id: str,
     current_user: dict = Depends(get_current_user),
 ):
-    """Get saved player state for a video."""
+    """Get saved player state for a video (scoped to the current user)."""
     async with db_manager.get_connection() as conn:
         async with conn.execute(
-            "SELECT * FROM sessions WHERE video_id = ?", (video_id,)
+            "SELECT * FROM sessions WHERE video_id = ? AND user_id = ?",
+            (video_id, current_user["sub"]),
         ) as cursor:
             session = await cursor.fetchone()
 

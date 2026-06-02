@@ -180,11 +180,9 @@ class DatabaseManager:
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_words_word ON words(word)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_saved_words_user ON saved_words(status, next_review)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_video ON sessions(video_id)")
-        # FIX BUG-20: Add user_id indexes for fast per-user queries (was doing full table scans)
-        await conn.execute("CREATE INDEX IF NOT EXISTS idx_saved_words_uid ON saved_words(user_id)")
-        await conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_uid ON sessions(user_id)")
-        await conn.execute("CREATE INDEX IF NOT EXISTS idx_text_sources_uid ON text_sources(user_id)")
-        await conn.execute("CREATE INDEX IF NOT EXISTS idx_videos_uid ON videos(user_id)")
+        # NOTE (FIX-CRIT-1): user_id indexes are created in _run_migrations(), AFTER the
+        # user_id columns are guaranteed to exist. Creating them here previously caused a
+        # CRITICAL "no such column: user_id" failure on every brand-new database.
 
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS chat_messages (
@@ -282,6 +280,16 @@ class DatabaseManager:
             if column not in columns:
                 logger.info(f"Applying migration: add saved_words.{column}")
                 await conn.execute(sql)
+
+        # FIX-CRIT-1: Create user_id indexes here, now that the columns exist.
+        # (Previously these lived in _create_tables and broke fresh installs.)
+        for idx_sql in [
+            "CREATE INDEX IF NOT EXISTS idx_saved_words_uid ON saved_words(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_sessions_uid ON sessions(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_text_sources_uid ON text_sources(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_videos_uid ON videos(user_id)",
+        ]:
+            await conn.execute(idx_sql)
 
     def _now_str(self) -> str:
         return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

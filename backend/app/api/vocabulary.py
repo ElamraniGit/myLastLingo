@@ -17,6 +17,26 @@ router = APIRouter()
 db_manager = None
 
 
+async def _assert_owns_saved_word(saved_id: str, user_id: str) -> None:
+    """
+    FIX-SEC-2 (IDOR): Verify the saved word belongs to the current user before
+    allowing review / update / delete / history access. Without this, any
+    authenticated user could mutate or read another user's words by guessing IDs.
+    """
+    async with db_manager.get_connection() as conn:
+        async with conn.execute(
+            "SELECT user_id FROM saved_words WHERE id = ?", (saved_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Saved word not found")
+    owner = dict(row).get("user_id") or ""
+    # Allow legacy rows with empty user_id (pre-multi-user data); reject only if
+    # a *different* user owns the row.
+    if owner and owner != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized for this word")
+
+
 class SaveWordRequest(BaseModel):
     word: str
     video_id: Optional[str] = None
@@ -176,6 +196,7 @@ async def get_vocabulary_filters(current_user: dict = Depends(get_current_user))
 @router.patch("/{saved_id}")
 async def update_saved_word(saved_id: str, request: UpdateSavedWordRequest, current_user: dict = Depends(get_current_user)):
     """Update tags / notes / favorite metadata for a saved word."""
+    await _assert_owns_saved_word(saved_id, current_user["sub"])
     updated = await db_manager.update_saved_word_metadata(
         saved_id,
         tags=request.tags,
@@ -193,6 +214,7 @@ async def review_word(request: ReviewRequest, current_user: dict = Depends(get_c
     if request.quality < 0 or request.quality > 5:
         raise HTTPException(status_code=400, detail="Quality must be between 0 and 5")
 
+    await _assert_owns_saved_word(request.saved_word_id, current_user["sub"])
     updated = await db_manager.update_review(request.saved_word_id, request.quality)
     if not updated:
         raise HTTPException(status_code=404, detail="Saved word not found")
@@ -225,6 +247,7 @@ async def get_review_summary(current_user: dict = Depends(get_current_user)):
 @router.get("/review/history/{saved_word_id}")
 async def get_review_history(saved_word_id: str, limit: int = Query(20, ge=1, le=100), current_user: dict = Depends(get_current_user)):
     """Get review history for one saved word."""
+    await _assert_owns_saved_word(saved_word_id, current_user["sub"])
     saved_word = await db_manager.get_saved_word(saved_word_id)
     if not saved_word:
         raise HTTPException(status_code=404, detail="Saved word not found")
@@ -354,6 +377,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
 @router.delete("/{saved_id}")
 async def delete_saved_word(saved_id: str, current_user: dict = Depends(get_current_user)):
     """Remove a word from vocabulary."""
+    await _assert_owns_saved_word(saved_id, current_user["sub"])
     async with db_manager.get_connection() as conn:
         await conn.execute("DELETE FROM word_reviews WHERE saved_word_id = ?", (saved_id,))
         await conn.execute("DELETE FROM saved_words WHERE id = ?", (saved_id,))
