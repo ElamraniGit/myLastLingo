@@ -124,6 +124,17 @@ npm run build
 cd ..
 ```
 
+> 📱 **ملاحظة Termux / أندرويد (ARM):** لا تتوفر نواة SWC الأصلية لـ Next.js على
+> Termux، لذا يستخدم المشروع بديل **`@next/swc-wasm-nodejs`** (مثبّت تلقائيًا ضمن
+> `devDependencies`) الذي يعمل على جميع المنصات. إن واجهت الخطأ
+> `Failed to load SWC binary for android/arm64` بعد تحديث Next، نفّذ:
+> ```bash
+> cd frontend && npm install --save-dev @next/swc-wasm-nodejs@$(node -p "require('next/package.json').version")
+> rm -rf .next && npm run build
+> ```
+> بعد البناء، شغّل الواجهة في وضع الإنتاج لأنه الأكثر استقرارًا على Termux:
+> `cd frontend && npm run start` (المنفذ 3000).
+
 #### الخطوة 5: إنشاء المجلدات
 ```bash
 mkdir -p data/{downloads,cache/{videos,transcripts,thumbnails},dictionary}
