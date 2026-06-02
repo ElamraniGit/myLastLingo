@@ -3,8 +3,8 @@
 # LinguaLearn — Start Everything
 # =================================================================
 # Usage:
-#   ./scripts/start_all.sh          → production mode
-#   ./scripts/start_all.sh --dev    → development mode
+#   ./scripts/start_all.sh          → dev mode (default; works on Termux/ARM)
+#   ./scripts/start_all.sh --prod   → production mode (needs a completable next build)
 # =================================================================
 
 GREEN='\033[0;32m'
@@ -17,10 +17,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-DEV_FLAG=""
-MODE="PRODUCTION"
+# Default to DEV mode: Next.js has no native SWC binary for android/arm64, so
+# `next build` (production) cannot complete on Termux. Dev mode compiles via
+# Babel (.babelrc) on demand and runs reliably. Pass --prod to force production
+# on platforms where a full build works (e.g. a desktop/CI).
+DEV_FLAG="--dev"
+MODE="DEVELOPMENT"
 for arg in "$@"; do
-  [ "$arg" = "--dev" ] && DEV_FLAG="--dev" && MODE="DEVELOPMENT"
+  [ "$arg" = "--prod" ] && DEV_FLAG="" && MODE="PRODUCTION"
+  [ "$arg" = "--dev" ]  && DEV_FLAG="--dev" && MODE="DEVELOPMENT"
 done
 
 echo -e "${BLUE}"

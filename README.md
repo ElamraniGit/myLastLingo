@@ -120,20 +120,25 @@ pip install faster-whisper numpy
 ```bash
 cd frontend
 npm install
-npm run build
 cd ..
 ```
+> على Termux **لا تشغّل `npm run build`** (لن يكتمل على ARM — انظر الملاحظة أدناه).
+> التشغيل يتم في وضع dev عبر `./scripts/start_all.sh`.
 
-> 📱 **ملاحظة Termux / أندرويد (ARM):** لا تتوفر نواة SWC الأصلية لـ Next.js على
-> Termux، لذا يستخدم المشروع بديل **`@next/swc-wasm-nodejs`** (مثبّت تلقائيًا ضمن
-> `devDependencies`) الذي يعمل على جميع المنصات. إن واجهت الخطأ
-> `Failed to load SWC binary for android/arm64` بعد تحديث Next، نفّذ:
+> 📱 **مهم لـ Termux / أندرويد (ARM):** لا تتوفر نواة **SWC** الأصلية لـ Next.js
+> على أندرويد/arm64، لذلك **لا يكتمل أمر `next build` (وضع الإنتاج)** على Termux
+> وستظهر رسالة `Failed to load SWC binary for android/arm64`.
+>
+> الحل المعتمد: **شغّل الواجهة في وضع التطوير (dev)** — فهو يترجم الصفحات عند
+> الطلب عبر **Babel** (إعداد `frontend/.babelrc` مرفق في المستودع) ولا يحتاج SWC
+> ولا إلى بناء إنتاجي. لذلك على Termux لا تستخدم `npm run build` / `npm run start`،
+> بل استخدم:
 > ```bash
-> cd frontend && npm install --save-dev @next/swc-wasm-nodejs@$(node -p "require('next/package.json').version")
-> rm -rf .next && npm run build
+> ./scripts/start_all.sh        # الوضع الافتراضي = dev (يعمل على Termux)
+> # أو للواجهة فقط:
+> cd frontend && npm run dev
 > ```
-> بعد البناء، شغّل الواجهة في وضع الإنتاج لأنه الأكثر استقرارًا على Termux:
-> `cd frontend && npm run start` (المنفذ 3000).
+> أما `--prod` (الإنتاج) فاستخدمه فقط على جهاز يكتمل فيه `next build` (سطح مكتب/CI).
 
 #### الخطوة 5: إنشاء المجلدات
 ```bash
