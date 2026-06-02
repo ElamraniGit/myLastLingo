@@ -39,6 +39,9 @@ XP_ACTIONS = {
     "daily_login": 10,
 }
 
+# Phase 5: a simple daily XP goal drives the streak/retention loop.
+DAILY_GOAL_XP = 50
+
 
 class AddXPRequest(BaseModel):
     action: str
@@ -117,6 +120,8 @@ async def add_xp(req: AddXPRequest, current_user: dict = Depends(get_current_use
         "daily_xp": daily_xp,
         "next_level_xp": level * 100,
         "progress": total_xp % 100,
+        "daily_goal": DAILY_GOAL_XP,
+        "daily_goal_met": daily_xp >= DAILY_GOAL_XP,
     }
 
 
@@ -135,19 +140,26 @@ async def get_xp_status(current_user: dict = Depends(get_current_user)):
         return {
             "total_xp": 0, "level": 1, "streak_days": 0,
             "daily_xp": 0, "next_level_xp": 100, "progress": 0,
+            "daily_goal": DAILY_GOAL_XP, "daily_goal_met": False,
         }
 
     data = dict(row)
     total = data["total_xp"]
     level = total // 100 + 1
 
+    # daily_xp resets each day in add_xp; only count it for *today*.
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    daily_xp = data.get("daily_xp", 0) if data.get("last_active_date") == today else 0
+
     return {
         "total_xp": total,
         "level": level,
         "streak_days": data.get("streak_days", 0),
-        "daily_xp": data.get("daily_xp", 0),
+        "daily_xp": daily_xp,
         "next_level_xp": level * 100,
         "progress": total % 100,
+        "daily_goal": DAILY_GOAL_XP,
+        "daily_goal_met": daily_xp >= DAILY_GOAL_XP,
     }
 
 

@@ -3,11 +3,14 @@ Vocabulary management API.
 Handles saved words, flashcards, and spaced repetition.
 """
 
+import io
+import csv
 import uuid
 import logging
 from typing import Optional, Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi.responses import StreamingResponse
 from backend.app.api.auth import get_current_user
 from pydantic import BaseModel
 
@@ -382,6 +385,137 @@ async def delete_saved_word(saved_id: str, current_user: dict = Depends(get_curr
         await conn.execute("DELETE FROM word_reviews WHERE saved_word_id = ?", (saved_id,))
         await conn.execute("DELETE FROM saved_words WHERE id = ?", (saved_id,))
     return {"message": "Word removed from vocabulary"}
+
+
+class ImportWord(BaseModel):
+    word: str
+    sentence: str = ""
+    context: str = ""
+
+
+class ImportRequest(BaseModel):
+    words: List[ImportWord]
+
+
+@router.get("/export")
+async def export_vocabulary(
+    format: str = Query("csv", pattern="^(csv|json)$"),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Phase 5: export the user's vocabulary for backup / portability.
+
+    CSV columns are Anki-friendly (word, meaning, example, level, status).
+    """
+    uid = current_user["sub"]
+    # Pull everything (cap high to keep it bounded).
+    words = await db_manager.get_saved_words(limit=10000, page=1, sort="newest", user_id=uid)
+
+    if format == "json":
+        payload = {
+            "version": 1,
+            "exported_by": current_user.get("username", ""),
+            "count": len(words),
+            "words": [
+                {
+                    "word": w.get("word", ""),
+                    "meaning_en": w.get("meaning_en", ""),
+                    "meaning_ar": w.get("meaning_ar", ""),
+                    "level": w.get("level", ""),
+                    "part_of_speech": w.get("part_of_speech", ""),
+                    "sentence": w.get("sentence", ""),
+                    "status": w.get("status", ""),
+                    "examples": w.get("examples", []),
+                }
+                for w in words
+            ],
+        }
+        import json as _json
+        data = _json.dumps(payload, ensure_ascii=False, indent=2)
+        return StreamingResponse(
+            iter([data]),
+            media_type="application/json",
+            headers={"Content-Disposition": 'attachment; filename="lingualearn-vocabulary.json"'},
+        )
+
+    # CSV
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["word", "meaning_en", "meaning_ar", "level", "part_of_speech", "example", "status"])
+    for w in words:
+        example = ""
+        ex = w.get("examples") or []
+        if isinstance(ex, list) and ex:
+            example = str(ex[0])
+        writer.writerow([
+            w.get("word", ""),
+            w.get("meaning_en", ""),
+            w.get("meaning_ar", ""),
+            w.get("level", ""),
+            w.get("part_of_speech", ""),
+            example,
+            w.get("status", ""),
+        ])
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="lingualearn-vocabulary.csv"'},
+    )
+
+
+@router.post("/import")
+async def import_vocabulary(request: ImportRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Phase 5: bulk-import words into the user's vocabulary.
+
+    Each word is looked up (cached dictionary → online → basic entry) and added
+    if the user doesn't already have it. Returns counts. Capped at 500 per call.
+    """
+    uid = current_user["sub"]
+    if not request.words:
+        raise HTTPException(status_code=400, detail="No words provided")
+    if len(request.words) > 500:
+        raise HTTPException(status_code=400, detail="Too many words (max 500 per import)")
+
+    added, skipped, failed = 0, 0, 0
+    for item in request.words:
+        word = (item.word or "").lower().strip()
+        if not word:
+            failed += 1
+            continue
+        try:
+            word_data = await db_manager.get_word(word)
+            if not word_data:
+                try:
+                    from ai.dictionary.service import DictionaryService
+                    svc = DictionaryService()
+                    word_data = await svc.lookup(word) or _make_basic_entry(word)
+                    word_data.setdefault("id", str(uuid.uuid4()))
+                    await db_manager.add_word(word_data)
+                except Exception:
+                    word_data = _make_basic_entry(word)
+                    await db_manager.add_word(word_data)
+
+            # Skip if the user already has this word
+            async with db_manager.get_connection() as conn:
+                async with conn.execute(
+                    "SELECT id FROM saved_words WHERE word_id = ? AND user_id = ?",
+                    (word_data["id"], uid),
+                ) as cur:
+                    if await cur.fetchone():
+                        skipped += 1
+                        continue
+
+            await db_manager.save_word_to_vocabulary(
+                word_data["id"], None, item.sentence, item.context, user_id=uid,
+            )
+            added += 1
+        except Exception as e:
+            logger.warning(f"Import failed for '{word}': {e}")
+            failed += 1
+
+    return {"message": "Import complete", "added": added, "skipped": skipped, "failed": failed}
 
 
 def _make_basic_entry(word: str) -> Dict[str, Any]:

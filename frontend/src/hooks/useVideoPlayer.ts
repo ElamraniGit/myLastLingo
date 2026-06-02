@@ -226,17 +226,26 @@ export function useVideoPlayer() {
 
       if (data?.status === 'processing') {
         setTranscriptStatus('processing');
-        for (let i = 0; i < 50; i++) {
+        // Phase 2: poll the real status endpoint so we can surface 'error'
+        // immediately instead of blindly retrying get() 50 times.
+        for (let i = 0; i < 60; i++) {
           await new Promise((r) => setTimeout(r, 3000));
           try {
-            const t = await transcriptsApi.get(currentVideo.id);
-            if (t?.segments?.length) {
-              setTranscript(t);
-              setTranscriptStatus('ready');
+            const st = await transcriptsApi.status(currentVideo.id);
+            if (st?.status === 'ready') {
+              const t = await transcriptsApi.get(currentVideo.id);
+              if (t?.segments?.length) {
+                setTranscript(t);
+                setTranscriptStatus('ready');
+                return;
+              }
+            } else if (st?.status === 'error') {
+              setTranscriptStatus('error');
               return;
             }
+            // 'processing' / 'idle' → keep waiting
           } catch {
-            // still processing
+            // transient error — keep polling
           }
         }
         setTranscriptStatus('error');

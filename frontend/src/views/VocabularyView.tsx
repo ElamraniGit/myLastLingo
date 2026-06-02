@@ -1,11 +1,12 @@
 /**
  * Vocabulary — Apple-style redesign.
  */
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
 import type { SavedWord, VocabularyListParams, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
+import { vocabularyApi, downloadVocabularyExport } from '@/lib/api';
 
 const STATUS_COLOR: Record<string, string> = {
   learning:  'bg-amber-500/10 text-amber-500',
@@ -36,6 +37,8 @@ export default function VocabularyView() {
   const [sort,    setSort]    = useState('newest');
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [ioMsg,   setIoMsg]   = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +52,56 @@ export default function VocabularyView() {
   }, [status, search, sort, loadVocabulary, loadReviewSummary, loadStats]);
 
   useEffect(() => { if (currentPage === 'vocabulary') load(); }, [currentPage]); // eslint-disable-line
+
+  // Phase 5: export / import vocabulary
+  const handleExport = useCallback(async (format: 'csv' | 'json') => {
+    try {
+      setIoMsg('Exporting…');
+      await downloadVocabularyExport(format);
+      setIoMsg(`Exported ${format.toUpperCase()} ✓`);
+    } catch {
+      setIoMsg('Export failed');
+    }
+    setTimeout(() => setIoMsg(null), 3000);
+  }, []);
+
+  const parseWordsFromFile = useCallback((text: string, name: string): { word: string }[] => {
+    const trimmed = text.trim();
+    // JSON export (our own format) → {words:[{word}]}
+    if (name.endsWith('.json') || trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const data = JSON.parse(trimmed);
+        const arr = Array.isArray(data) ? data : data.words || [];
+        return arr
+          .map((w: any) => ({ word: String(typeof w === 'string' ? w : w.word || '').trim() }))
+          .filter((w: any) => w.word);
+      } catch { /* fall through to line/CSV parsing */ }
+    }
+    // CSV or plain text: take the first column / whole line as the word.
+    return trimmed
+      .split(/\r?\n/)
+      .map((line, i) => {
+        const first = line.split(',')[0].trim().replace(/^"|"$/g, '');
+        return { line: first, i };
+      })
+      .filter(({ line, i }) => line && !(i === 0 && line.toLowerCase() === 'word'))
+      .map(({ line }) => ({ word: line }));
+  }, []);
+
+  const handleImportFile = useCallback(async (file: File) => {
+    try {
+      setIoMsg('Importing…');
+      const text = await file.text();
+      const words = parseWordsFromFile(text, file.name.toLowerCase()).slice(0, 500);
+      if (!words.length) { setIoMsg('No words found in file'); setTimeout(() => setIoMsg(null), 3000); return; }
+      const res = await vocabularyApi.import(words);
+      setIoMsg(`Imported ${res.added} · skipped ${res.skipped}${res.failed ? ` · failed ${res.failed}` : ''}`);
+      await load();
+    } catch {
+      setIoMsg('Import failed');
+    }
+    setTimeout(() => setIoMsg(null), 4000);
+  }, [parseWordsFromFile, load]);
 
   const FILTERS = [
     { id: undefined,    label: 'All' },
@@ -74,15 +127,47 @@ export default function VocabularyView() {
             <h2 className="text-xl font-bold text-heading">My Words</h2>
             <p className="text-xs text-muted mt-0.5">{savedWords.length} saved · tap for details</p>
           </div>
-          {(summary?.due_now ?? 0) > 0 && (
+          <div className="flex items-center gap-1.5">
+            {/* Phase 5: export / import */}
             <button
-              onClick={() => setPage('flashcards')}
-              className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all"
-            >
-              🃏 Review {summary!.due_now}
-            </button>
-          )}
+              onClick={() => handleExport('csv')}
+              title="Export vocabulary (CSV)"
+              aria-label="Export vocabulary as CSV"
+              className="flex items-center justify-center w-9 h-9 rounded-xl bg-card border border-default text-body hover:text-heading active:scale-95 transition-all"
+            >⬇️</button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Import words (CSV / JSON / text)"
+              aria-label="Import words from file"
+              className="flex items-center justify-center w-9 h-9 rounded-xl bg-card border border-default text-body hover:text-heading active:scale-95 transition-all"
+            >⬆️</button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.json,.txt,text/csv,application/json,text/plain"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImportFile(f);
+                e.target.value = '';
+              }}
+            />
+            {(summary?.due_now ?? 0) > 0 && (
+              <button
+                onClick={() => setPage('flashcards')}
+                className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all"
+              >
+                🃏 Review {summary!.due_now}
+              </button>
+            )}
+          </div>
         </div>
+
+        {ioMsg && (
+          <div className="mb-3 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
+            {ioMsg}
+          </div>
+        )}
 
         {/* Stats pills */}
         <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none pb-0.5">

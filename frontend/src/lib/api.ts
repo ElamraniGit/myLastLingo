@@ -144,6 +144,13 @@ export const transcriptsApi = {
     }),
 
   get: (videoId: string, language = 'en') => req<any>(`/transcripts/${videoId}?language=${language}`),
+
+  // Phase 2: poll real status (idle|processing|ready|error) instead of guessing
+  // from repeated 404s on get().
+  status: (videoId: string, language = 'en') =>
+    req<{ status: 'idle' | 'processing' | 'ready' | 'error'; error: string; segment_count: number }>(
+      `/transcripts/${videoId}/status?language=${language}`
+    ),
 };
 
 export const dictionaryApi = {
@@ -192,7 +199,40 @@ export const vocabularyApi = {
   stats: () => req<any>('/vocabulary/stats'),
 
   delete: (savedId: string) => req<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
+
+  // Phase 5: bulk import (looks up + adds words the user doesn't have yet).
+  import: (words: { word: string; sentence?: string; context?: string }[]) =>
+    req<{ added: number; skipped: number; failed: number }>('/vocabulary/import', {
+      method: 'POST',
+      body: { words },
+      timeout: 120000,
+    }),
+
+  // Export URL (CSV/JSON) — the token is sent via fetch in downloadExport().
+  exportUrl: (format: 'csv' | 'json' = 'csv') =>
+    `${API_BASE}/vocabulary/export?format=${format}`,
 };
+
+/**
+ * Phase 5: download a vocabulary export as a file, with the auth header attached
+ * (a plain <a download> can't set Authorization, so we fetch + blob).
+ */
+export async function downloadVocabularyExport(format: 'csv' | 'json' = 'csv') {
+  const token = tokenStore.get();
+  const res = await fetch(vocabularyApi.exportUrl(format), {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) throw new ApiError(`Export failed (HTTP ${res.status})`, res.status);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lingualearn-vocabulary.${format}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export const playerApi = {
   saveState: (state: any) => req<any>('/player/state', { method: 'POST', body: state }),

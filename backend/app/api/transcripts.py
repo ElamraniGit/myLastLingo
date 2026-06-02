@@ -75,9 +75,10 @@ async def extract_transcript(
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
 
-    # Return cached transcript if already exists
+    # Return cached transcript only if it actually has segments (a status-only
+    # placeholder row, e.g. 'processing', must not be treated as ready).
     existing = await db_manager.get_transcript(video_id, language)
-    if existing:
+    if existing and existing.get("segments"):
         logger.info(f"Transcript already exists for {video_id}")
         return existing
 
@@ -91,6 +92,8 @@ async def extract_transcript(
     except Exception as e:
         logger.warning(f"YouTube captions not available: {e}. Falling back to Whisper.")
         _ensure_whisper_dependencies()
+        # Mark as processing so the frontend can poll a real state machine.
+        await db_manager.set_transcript_status(video_id, language, "processing")
         # Queue audio-only download + Whisper transcription
         background_tasks.add_task(
             _transcribe_with_whisper_audio_only, video_id, youtube_id, language
@@ -617,10 +620,12 @@ async def _transcribe_with_whisper_audio_only(
         except asyncio.TimeoutError:
             proc.kill()
             logger.error("yt-dlp audio download timed out")
+            await db_manager.set_transcript_status(video_id, language, "error", "Audio download timed out")
             return
 
         if proc.returncode != 0:
             logger.error(f"Audio download failed: {stderr.decode(errors='replace')[:300]}")
+            await db_manager.set_transcript_status(video_id, language, "error", "Audio download failed")
             return
 
         # Find the downloaded wav file
@@ -646,6 +651,7 @@ async def _transcribe_with_whisper_audio_only(
 
         if not wav_files:
             logger.error("Audio extraction produced no WAV file")
+            await db_manager.set_transcript_status(video_id, language, "error", "Audio extraction failed")
             return
 
         actual_audio = wav_files[0]
@@ -661,9 +667,12 @@ async def _transcribe_with_whisper_audio_only(
 
         if not segments:
             logger.warning(f"Whisper produced 0 segments for {video_id}")
+            await db_manager.set_transcript_status(
+                video_id, language, "error", "No speech could be transcribed"
+            )
             return
 
-        # Step 3: Persist transcript
+        # Step 3: Persist transcript (status ready)
         transcript_id = str(uuid.uuid4())
         full_text = " ".join([seg["text"] for seg in segments])
 
@@ -675,6 +684,8 @@ async def _transcribe_with_whisper_audio_only(
             "segments": segments,
             "full_text": full_text,
             "word_timings": _generate_word_timings(segments),
+            "status": "ready",
+            "error": "",
         }
 
         await db_manager.save_transcript(transcript_data)
@@ -682,6 +693,12 @@ async def _transcribe_with_whisper_audio_only(
 
     except Exception as e:
         logger.error(f"Whisper transcription failed for {video_id}: {e}", exc_info=True)
+        try:
+            await db_manager.set_transcript_status(
+                video_id, language, "error", "Transcription failed"
+            )
+        except Exception:
+            pass
     finally:
         import shutil
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -691,6 +708,21 @@ async def _transcribe_with_whisper_audio_only(
 # REST endpoints
 # ---------------------------------------------------------------------------
 
+@router.get("/{video_id}/status")
+async def get_transcript_status(
+    video_id: str,
+    language: str = Query("en", description="Language code"),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Phase 2: report transcript progress as a real state machine so the client
+    can distinguish 'processing' from 'error' instead of blindly polling.
+
+    Returns: {status: idle|processing|ready|error, error, segment_count}
+    """
+    return await db_manager.get_transcript_status(video_id, language)
+
+
 @router.get("/{video_id}")
 async def get_transcript(
     video_id: str,
@@ -699,7 +731,8 @@ async def get_transcript(
 ):
     """Get transcript for a video."""
     transcript = await db_manager.get_transcript(video_id, language)
-    if not transcript:
+    # A status-only placeholder row (no segments) is not a usable transcript.
+    if not transcript or not transcript.get("segments"):
         raise HTTPException(status_code=404, detail="Transcript not found")
     return transcript
 

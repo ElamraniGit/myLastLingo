@@ -91,6 +91,8 @@ class DatabaseManager:
                 segments TEXT NOT NULL,
                 full_text TEXT,
                 word_timings TEXT,
+                status TEXT DEFAULT 'ready',
+                error TEXT DEFAULT '',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (video_id) REFERENCES videos(id) ON DELETE CASCADE
             )
@@ -279,6 +281,19 @@ class DatabaseManager:
         for column, sql in migrations.items():
             if column not in columns:
                 logger.info(f"Applying migration: add saved_words.{column}")
+                await conn.execute(sql)
+
+        # Phase 2: transcript status/error tracking so the frontend can tell
+        # "processing" apart from "failed" instead of blindly polling.
+        async with conn.execute("PRAGMA table_info(transcripts)") as tcur:
+            transcript_cols = {dict(r)["name"] for r in await tcur.fetchall()}
+        transcript_migrations = {
+            "status": "ALTER TABLE transcripts ADD COLUMN status TEXT DEFAULT 'ready'",
+            "error": "ALTER TABLE transcripts ADD COLUMN error TEXT DEFAULT ''",
+        }
+        for column, sql in transcript_migrations.items():
+            if column not in transcript_cols:
+                logger.info(f"Applying migration: add transcripts.{column}")
                 await conn.execute(sql)
 
         # FIX-CRIT-1: Create user_id indexes here, now that the columns exist.
@@ -476,11 +491,18 @@ class DatabaseManager:
 
     async def save_transcript(self, transcript_data: Dict[str, Any]) -> str:
         async with self.get_connection() as conn:
+            # Dedupe by (video_id, language): a prior status-only placeholder row
+            # may exist with a different id. Remove it so we don't end up with two
+            # rows for the same transcript (which would shadow the real one).
+            await conn.execute(
+                "DELETE FROM transcripts WHERE video_id = ? AND language = ?",
+                (transcript_data["video_id"], transcript_data.get("language", "en")),
+            )
             await conn.execute(
                 """
                 INSERT OR REPLACE INTO transcripts
-                    (id, video_id, language, source, segments, full_text, word_timings)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (id, video_id, language, source, segments, full_text, word_timings, status, error)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     transcript_data.get("id"),
@@ -490,9 +512,58 @@ class DatabaseManager:
                     json.dumps(transcript_data.get("segments", []), ensure_ascii=False),
                     transcript_data.get("full_text", ""),
                     json.dumps(transcript_data.get("word_timings", {}), ensure_ascii=False),
+                    transcript_data.get("status", "ready"),
+                    transcript_data.get("error", ""),
                 ),
             )
         return transcript_data.get("id", "")
+
+    async def set_transcript_status(
+        self, video_id: str, language: str, status: str, error: str = ""
+    ) -> None:
+        """
+        Phase 2: upsert a status row for a (video, language) transcript so the
+        frontend can poll a real state machine: processing -> ready | error.
+        """
+        import uuid as _uuid
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                "SELECT id FROM transcripts WHERE video_id = ? AND language = ?",
+                (video_id, language),
+            ) as cur:
+                row = await cur.fetchone()
+            if row:
+                await conn.execute(
+                    "UPDATE transcripts SET status = ?, error = ? WHERE video_id = ? AND language = ?",
+                    (status, error, video_id, language),
+                )
+            else:
+                await conn.execute(
+                    """
+                    INSERT INTO transcripts
+                        (id, video_id, language, source, segments, full_text, word_timings, status, error)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (str(_uuid.uuid4()), video_id, language, "pending", "[]", "", "{}", status, error),
+                )
+
+    async def get_transcript_status(self, video_id: str, language: str = "en") -> Dict[str, Any]:
+        """Return {status, error, segment_count} for a transcript (or 'idle')."""
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                "SELECT status, error, segments FROM transcripts WHERE video_id = ? AND language = ?",
+                (video_id, language),
+            ) as cur:
+                row = await cur.fetchone()
+        if not row:
+            return {"status": "idle", "error": "", "segment_count": 0}
+        data = dict(row)
+        segs = self._decode_json_field(data.get("segments"), [])
+        return {
+            "status": data.get("status") or "ready",
+            "error": data.get("error") or "",
+            "segment_count": len(segs),
+        }
 
     async def get_transcript(self, video_id: str, language: str = "en") -> Optional[Dict[str, Any]]:
         async with self.get_connection() as conn:

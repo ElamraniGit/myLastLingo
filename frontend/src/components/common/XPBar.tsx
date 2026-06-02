@@ -7,6 +7,7 @@ import { xpApi } from '@/lib/api';
 interface XPData {
   total_xp: number; level: number; streak_days: number;
   daily_xp: number; next_level_xp: number; progress: number;
+  daily_goal?: number; daily_goal_met?: boolean;
 }
 
 export default function XPBar() {
@@ -18,6 +19,8 @@ export default function XPBar() {
 
   if (!data) return null;
   const pct = Math.min(data.progress, 100);
+  const goal = data.daily_goal ?? 50;
+  const dailyPct = Math.min(Math.round((data.daily_xp / Math.max(goal, 1)) * 100), 100);
 
   return (
     <div className="flex items-center gap-2.5">
@@ -28,6 +31,18 @@ export default function XPBar() {
           <span className="text-xs font-semibold text-orange-500">{data.streak_days}</span>
         </div>
       )}
+
+      {/* Daily goal (Phase 5): small progress pill toward today's XP goal */}
+      <div
+        className="flex items-center gap-1 bg-green-500/10 rounded-lg px-2 py-1"
+        title={`Daily goal: ${data.daily_xp}/${goal} XP`}
+        aria-label={`Daily goal ${data.daily_xp} of ${goal} XP`}
+      >
+        <span className="text-xs">{data.daily_goal_met ? '✅' : '🎯'}</span>
+        <span className={`text-[11px] font-semibold ${data.daily_goal_met ? 'text-green-500' : 'text-muted'}`}>
+          {dailyPct}%
+        </span>
+      </div>
 
       {/* Level + bar */}
       <div className="flex items-center gap-1.5">
