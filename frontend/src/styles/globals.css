@@ -185,14 +185,33 @@
   }
 
   /* ── Flashcard 3D ────────────────────────────────────────────── */
-  .flashcard-wrap  { perspective: 1200px; }
+  .flashcard-wrap  { perspective: 1200px; -webkit-perspective: 1200px; }
   .flashcard-inner {
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
   }
-  .flashcard-inner.flipped { transform: rotateY(180deg); }
-  .flashcard-face  { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .flashcard-back  { backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg); }
+  .flashcard-inner.flipped { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
+  .flashcard-face  {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    z-index: 2;
+  }
+  .flashcard-back  {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    z-index: 1;
+  }
+  /* FIX-CRIT-flip: opacity crossfade ensures the inactive face is never
+     visible on browsers where backface-visibility fails (Android WebKit). */
+  .flashcard-face  { transition: opacity 0.28s ease; opacity: 1; }
+  .flashcard-back  { transition: opacity 0.28s ease; opacity: 0; }
+  .flashcard-inner.flipped .flashcard-face  { opacity: 0; pointer-events: none; }
+  .flashcard-inner.flipped .flashcard-back   { opacity: 1; pointer-events: auto;  }
 
   /* ── Input field ─────────────────────────────────────────────── */
   .input-field {

@@ -355,7 +355,8 @@ export default function FlashcardsView() {
 
               {/* ── BACK ──────────────────────────────────────── */}
               <div className="flashcard-back absolute inset-0 bg-card border border-default
-                              rounded-3xl flex flex-col p-6 overflow-y-auto gap-4">
+                              rounded-3xl flex flex-col">
+                <div className="flex flex-col p-6 overflow-y-auto gap-4 h-full">
 
                 {/* Word + pronunciation header */}
                 <div className="flex items-center justify-between">
@@ -423,6 +424,7 @@ export default function FlashcardsView() {
                 >
                   View full details →
                 </button>
+                </div>
               </div>
             </div>
           </div>
