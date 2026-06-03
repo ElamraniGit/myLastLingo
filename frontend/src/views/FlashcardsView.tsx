@@ -34,6 +34,57 @@ function quizLabel(w: SavedWord, type: QuizType): string {
   return w.meaning_en?.trim() || w.word;
 }
 
+/** Escape regex special characters for safe RegExp construction */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Create a fill-in-the-blank version of a sentence by replacing the target word.
+ * Handles Unicode (Arabic, accented Latin) and regex-special words (C++, $100, etc.)
+ * safely without throwing or leaving the sentence unchanged.
+ */
+function makeFillBlank(sentence: string | undefined, word: string): string {
+  const s = (sentence ?? '').trim();
+  const w = (word ?? '').trim();
+  if (!s || !w) return '________ — can you guess this word?';
+
+  const escaped = escapeRegExp(w);
+
+  // Tier 1: Unicode-aware word boundaries (works for café, Arabic, C++, $100, etc.)
+  try {
+    const pattern = new RegExp(
+      `(?<![\\p{L}\\p{M}\\p{N}_])${escaped}(?![\\p{L}\\p{M}\\p{N}_])`,
+      'giu'
+    );
+    const result = s.replace(pattern, '________');
+    if (result !== s) return result;
+  } catch {
+    // Browser lacks Unicode property / lookbehind support
+  }
+
+  // Tier 2: classic ASCII \b boundaries (covers plain English words)
+  try {
+    const pattern = new RegExp(`\\b${escaped}\\b`, 'gi');
+    const result = s.replace(pattern, '________');
+    if (result !== s) return result;
+  } catch {
+    // Shouldn't happen after escaping, but be safe
+  }
+
+  // Tier 3: literal case-insensitive substring replacement (last resort)
+  let out = '';
+  let rest = s;
+  const lowerW = w.toLowerCase();
+  while (rest.length > 0) {
+    const idx = rest.toLowerCase().indexOf(lowerW);
+    if (idx === -1) { out += rest; break; }
+    out += rest.slice(0, idx) + '________';
+    rest = rest.slice(idx + w.length);
+  }
+  return out;
+}
+
 /* ── Rating config ─────────────────────────────────────────────── */
 const RATINGS = [
   { value: 0, label: 'Again',  hint: '10 min',  cls: 'border-red-500/30    bg-red-500/8    text-red-400'    },
@@ -118,8 +169,11 @@ export default function FlashcardsView() {
 
     // Pick quiz type based on available data
     const types: QuizType[] = ['definition'];
-    if (current.sentence) types.push('fillblank');
-    types.push('word');
+    const meaningfulSentence =
+      current.sentence?.trim().length > 0 &&
+      current.sentence.trim().toLowerCase().includes(current.word.toLowerCase());
+    if (meaningfulSentence) types.push('fillblank');
+    if (current.meaning_en?.trim()) types.push('word');
     setQuizType(types[Math.floor(Math.random() * types.length)]);
   }, [current?.id]); // eslint-disable-line
 
@@ -356,7 +410,7 @@ export default function FlashcardsView() {
                 {current.meaning_ar && (
                   <div className="flex items-center gap-2 pt-1 border-t border-default">
                     <span className="text-[10px] text-faint uppercase tracking-wider shrink-0">AR</span>
-                    <p className="text-xs text-muted" style={{ direction: 'rtl' }}>
+                    <p className="text-xs text-muted" style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
                       {current.meaning_ar}
                     </p>
                   </div>
@@ -427,11 +481,7 @@ export default function FlashcardsView() {
 
             {quizType === 'fillblank' ? (
               <p className="text-base text-heading leading-relaxed font-medium">
-                {current.sentence
-                  ? current.sentence.replace(
-                      new RegExp(`\\b${current.word}\\b`, 'gi'), '________'
-                    )
-                  : `________ — can you guess this word?`}
+                {makeFillBlank(current.sentence, current.word)}
               </p>
             ) : quizType === 'word' ? (
               /* Show English definition, ask for the word */
@@ -505,7 +555,7 @@ export default function FlashcardsView() {
               {/* Arabic hint after answer */}
               {current.meaning_ar && (
                 <p className="text-center text-xs text-faint mb-4">
-                  Arabic: <span style={{ direction: 'rtl' }}>{current.meaning_ar}</span>
+                  Arabic: <span style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>{current.meaning_ar}</span>
                 </p>
               )}
 

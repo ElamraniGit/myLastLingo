@@ -257,7 +257,7 @@ export default function VocabularyView() {
                   {w.meaning_en ? (
                     <div className="text-xs text-muted mt-0.5 truncate">{w.meaning_en}</div>
                   ) : w.meaning_ar ? (
-                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl' }}>{w.meaning_ar}</div>
+                    <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>{w.meaning_ar}</div>
                   ) : null}
                 </div>
 
