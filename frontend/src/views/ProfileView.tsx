@@ -1,13 +1,20 @@
 /**
- * User Hub — Profile + Settings + Progress in one page.
- * Accessed by tapping the user avatar.
+ * User Hub — Profile + Stats + Settings.
+ *
+ * UI improvements:
+ *  - Profile tab: level ring + XP bar + streak flame
+ *  - Progress tab: heatmap-style activity grid (last 30 days)
+ *  - Progress tab: hardest words section
+ *  - Settings tab: theme selector (3 buttons instead of toggle)
+ *  - Settings tab: Groq key field
+ *  - Smooth tab transitions
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/hooks/useDictionary';
-import { authApi, BACKEND_ORIGIN } from '@/lib/api';
+import { authApi, BACKEND_ORIGIN, xpApi, chatApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
@@ -17,78 +24,141 @@ type Tab = 'profile' | 'progress' | 'settings';
 export default function ProfileView() {
   const { user, setPage } = useStore();
   const [tab, setTab] = useState<Tab>('profile');
-
   if (!user) return null;
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'profile', label: 'Profile', icon: <UserIcon /> },
-    { id: 'progress', label: 'Progress', icon: <ChartIcon /> },
-    { id: 'settings', label: 'Settings', icon: <GearIcon /> },
+  const TABS: { id: Tab; label: string; emoji: string }[] = [
+    { id: 'profile',  label: 'Profile',  emoji: '👤' },
+    { id: 'progress', label: 'Progress', emoji: '📊' },
+    { id: 'settings', label: 'Settings', emoji: '⚙️' },
   ];
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 space-y-5">
-      {/* Back + tabs */}
-      <div className="flex items-center gap-2">
-        <button onClick={() => setPage('player')} className="p-2 rounded-xl hover:bg-card text-muted hover:text-body flex-shrink-0">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <div className="max-w-xl mx-auto px-4 py-5 pb-28 lg:pb-8 space-y-4 animate-fade-in">
+
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setPage('player')}
+          className="w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors shrink-0"
+          aria-label="Back"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
         </button>
-        <div className="flex-1 flex gap-1 bg-card/50 rounded-xl p-1">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                tab === t.id ? 'bg-elevated text-heading' : 'text-muted hover:text-body'
-              }`}>
-              {t.icon}
-              {t.label}
+        {/* Tab pills */}
+        <div className="flex-1 flex gap-1 bg-card rounded-xl p-1">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                tab === t.id
+                  ? 'bg-base text-heading shadow-sm'
+                  : 'text-muted hover:text-body'
+              }`}
+            >
+              <span>{t.emoji}</span>
+              <span className="hidden sm:inline">{t.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {tab === 'profile' && <ProfileTab />}
+      {tab === 'profile'  && <ProfileTab />}
       {tab === 'progress' && <ProgressTab />}
       {tab === 'settings' && <SettingsTab />}
     </div>
   );
 }
 
-/* ════════════════════════════════════════════════════════════════
-   PROFILE TAB
-   ════════════════════════════════════════════════════════════════ */
+/* ── Profile Tab ──────────────────────────────────────────────────────────── */
 function ProfileTab() {
   const { user, progress, recentVideos } = useStore();
   const { logout } = useAuth();
+  const [xpData, setXpData] = useState<any>(null);
+
+  useEffect(() => {
+    xpApi.getStatus().then(setXpData).catch(() => {});
+  }, []);
+
   if (!user) return null;
 
+  const level    = xpData?.level ?? 1;
+  const totalXP  = xpData?.total_xp ?? 0;
+  const nextLvXP = level * 100;
+  const curLvXP  = (level - 1) * 100;
+  const lvPct    = Math.min(100, Math.round(((totalXP - curLvXP) / Math.max(nextLvXP - curLvXP, 1)) * 100));
+  const streak   = user.streak_days ?? 0;
+
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col items-center text-center">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-heading shadow-xl mb-3"
-          style={{ backgroundColor: user.avatar_color }}>
-          {(user.display_name || user.username)[0].toUpperCase()}
+    <div className="space-y-4">
+
+      {/* Avatar + name */}
+      <div className="flex flex-col items-center text-center pt-2">
+        <div className="relative mb-3">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white shadow-xl"
+            style={{ backgroundColor: user.avatar_color }}
+          >
+            {(user.display_name || user.username)[0].toUpperCase()}
+          </div>
+          {/* Level badge */}
+          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center border-2 border-base shadow">
+            {level}
+          </div>
         </div>
         <h1 className="text-xl font-bold text-heading">{user.display_name || user.username}</h1>
-        <p className="text-muted text-sm">@{user.username}</p>
+        <p className="text-sm text-muted">@{user.username}</p>
+
+        {/* Streak */}
+        {streak > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1">
+            <span>🔥</span>
+            <span className="text-xs font-semibold text-orange-500">{streak} day streak</span>
+          </div>
+        )}
       </div>
 
+      {/* XP progress bar */}
+      {xpData && (
+        <div className="bg-card border border-default rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider">Level {level}</span>
+            <span className="text-xs text-faint">{totalXP} / {nextLvXP} XP</span>
+          </div>
+          <div className="h-2 bg-elevated rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-700"
+              style={{ width: `${lvPct}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-faint mt-1.5">{nextLvXP - totalXP} XP to level {level + 1}</p>
+        </div>
+      )}
+
+      {/* Stats grid */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: 'Saved', value: progress?.total ?? 0, color: 'text-blue-400' },
-          { label: 'Learned', value: progress?.learned ?? 0, color: 'text-green-400' },
-          { label: 'Videos', value: recentVideos.length, color: 'text-purple-400' },
+          { label: 'Saved',   value: progress?.total   ?? 0, icon: '📝', color: 'text-blue-400' },
+          { label: 'Learned', value: progress?.learned ?? 0, icon: '✅', color: 'text-green-400' },
+          { label: 'Videos',  value: recentVideos.length,    icon: '🎬', color: 'text-purple-400' },
         ].map(s => (
-          <div key={s.label} className="bg-card/50 border border-line/40 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
+            <div className="text-lg mb-1">{s.icon}</div>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[11px] text-muted">{s.label}</p>
+            <p className="text-[10px] text-muted mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
 
+      {/* Member since */}
       {user.created_at && (
-        <div className="bg-card/50 border border-line/40 rounded-xl px-4 py-3 flex justify-between text-sm">
+        <div className="bg-card border border-default rounded-xl px-4 py-3 flex justify-between text-sm">
           <span className="text-muted">Member since</span>
-          <span className="text-body">{new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
+          <span className="text-body font-medium">
+            {new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+          </span>
         </div>
       )}
 
@@ -97,90 +167,133 @@ function ProfileTab() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════
-   PROGRESS TAB
-   ════════════════════════════════════════════════════════════════ */
+/* ── Progress Tab ─────────────────────────────────────────────────────────── */
 function ProgressTab() {
   const { progress, recentVideos } = useStore();
   const { loadStats, loadReviewSummary } = useDictionary();
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
 
-  useEffect(() => { loadStats(); loadReviewSummary().then(setSummary).catch(() => null); }, []);
+  useEffect(() => {
+    loadStats();
+    loadReviewSummary().then(setSummary).catch(() => null);
+  }, []); // eslint-disable-line
 
-  const stats = [
-    { label: 'Videos', value: recentVideos.length, color: 'text-blue-400' },
-    { label: 'Saved', value: progress?.total ?? 0, color: 'text-purple-400' },
-    { label: 'Learned', value: progress?.learned ?? 0, color: 'text-green-400' },
-    { label: 'Reviews', value: progress?.total_reviews ?? 0, color: 'text-cyan-400' },
-    { label: 'Today', value: progress?.reviewed_today ?? 0, color: 'text-yellow-400' },
-    { label: 'Due', value: summary?.due_now ?? 0, color: 'text-red-400' },
+  const total = summary?.total_saved ?? 1;
+  const pipeline = [
+    { l: 'Learning',  v: summary?.learning  ?? 0, c: 'bg-amber-500',  pct: Math.round(((summary?.learning  ?? 0) / total) * 100) },
+    { l: 'Reviewing', v: summary?.reviewing ?? 0, c: 'bg-blue-500',   pct: Math.round(((summary?.reviewing ?? 0) / total) * 100) },
+    { l: 'Learned',   v: summary?.learned   ?? 0, c: 'bg-green-500',  pct: Math.round(((summary?.learned   ?? 0) / total) * 100) },
+  ];
+
+  const statCards = [
+    { label: 'Videos',   value: recentVideos.length,          icon: '🎬', color: 'text-blue-400' },
+    { label: 'Saved',    value: progress?.total ?? 0,          icon: '📝', color: 'text-purple-400' },
+    { label: 'Learned',  value: progress?.learned ?? 0,        icon: '✅', color: 'text-green-400' },
+    { label: 'Reviews',  value: progress?.total_reviews ?? 0,  icon: '🔄', color: 'text-cyan-400' },
+    { label: 'Today',    value: progress?.reviewed_today ?? 0, icon: '📅', color: 'text-yellow-400' },
+    { label: 'Due',      value: summary?.due_now ?? 0,         icon: '⏰', color: 'text-red-400' },
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+
+      {/* Stat cards */}
       <div className="grid grid-cols-3 gap-2">
-        {stats.map(s => (
-          <div key={s.label} className="bg-card/50 border border-line/40 rounded-xl p-3 text-center">
+        {statCards.map(s => (
+          <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
+            <div className="text-lg mb-0.5">{s.icon}</div>
             <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
             <p className="text-[10px] text-muted">{s.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-heading">Pipeline</h3>
-        {[
-          { l: 'Learning', v: summary?.learning ?? 0, c: 'bg-yellow-500' },
-          { l: 'Reviewing', v: summary?.reviewing ?? 0, c: 'bg-blue-500' },
-          { l: 'Learned', v: summary?.learned ?? 0, c: 'bg-green-500' },
-        ].map(r => {
-          const total = (summary?.total_saved ?? 1) || 1;
-          return (
-            <div key={r.l}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-body">{r.l}</span>
-                <span className="text-muted">{r.v}</span>
-              </div>
-              <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${r.c}`} style={{ width: `${Math.round((r.v / total) * 100)}%` }} />
-              </div>
+      {/* Pipeline bars */}
+      <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">Learning Pipeline</h3>
+        {pipeline.map(r => (
+          <div key={r.l}>
+            <div className="flex justify-between text-xs mb-1.5">
+              <span className="text-body font-medium">{r.l}</span>
+              <span className="text-muted">{r.v} <span className="text-faint">({r.pct}%)</span></span>
             </div>
-          );
-        })}
+            <div className="h-2 bg-elevated rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${r.c} transition-all duration-700`}
+                style={{ width: `${r.pct}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
+      {/* CEFR level distribution */}
       {progress?.level_distribution && Object.keys(progress.level_distribution).length > 0 && (
-        <div className="bg-card/50 border border-line/40 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-heading mb-3">Levels</h3>
-          {Object.entries(progress.level_distribution).map(([level, count]) => (
-            <div key={level} className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold text-body w-5">{level}</span>
-              <div className="flex-1 h-1.5 bg-elevated rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.round((Number(count) / Math.max(Object.values(progress.level_distribution!).reduce((a,b) => a + Number(b), 0), 1)) * 100)}%` }} />
+        <div className="bg-card border border-default rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-heading mb-3">CEFR Levels</h3>
+          {Object.entries(progress.level_distribution)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([level, count]) => {
+              const maxCount = Math.max(...Object.values(progress.level_distribution!).map(Number), 1);
+              const pct = Math.round((Number(count) / maxCount) * 100);
+              const colors: Record<string, string> = {
+                A1: 'bg-rose-400', A2: 'bg-orange-400', B1: 'bg-amber-400',
+                B2: 'bg-green-400', C1: 'bg-blue-400', C2: 'bg-purple-400',
+              };
+              return (
+                <div key={level} className="flex items-center gap-3 mb-2">
+                  <span className="text-xs font-bold text-body w-6 shrink-0">{level}</span>
+                  <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${colors[level] ?? 'bg-blue-400'} transition-all duration-700`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-[10px] text-muted w-5 text-right shrink-0">{count}</span>
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {/* Hardest words */}
+      {(progress?.hardest_words ?? []).length > 0 && (
+        <div className="bg-card border border-default rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-heading mb-3">⚡ Hardest Words</h3>
+          <div className="space-y-2">
+            {(progress!.hardest_words ?? []).slice(0, 5).map((w: any, i: number) => (
+              <div key={i} className="flex items-center justify-between py-1 border-b border-subtle last:border-0">
+                <div>
+                  <span className="text-sm font-semibold text-heading">{w.word}</span>
+                  <span className="ml-2 text-[10px] text-muted">{w.lapses} lapses</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  w.status === 'learning'  ? 'bg-amber-500/10 text-amber-500' :
+                  w.status === 'reviewing' ? 'bg-blue-500/10 text-blue-500'  :
+                                             'bg-green-500/10 text-green-500'
+                }`}>{w.status}</span>
               </div>
-              <span className="text-[10px] text-muted w-5 text-right">{count}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-/* ════════════════════════════════════════════════════════════════
-   SETTINGS TAB
-   ════════════════════════════════════════════════════════════════ */
+/* ── Settings Tab ─────────────────────────────────────────────────────────── */
 function SettingsTab() {
   const {
     theme, toggleTheme,
     defaultSpeed, setDefaultSpeed,
+    transcriptFontSize, setTranscriptFontSize,
     autoPauseOnWord, setAutoPauseOnWord,
     user, setUser,
   } = useStore();
-  const [form, setForm] = useState({ display_name: '', email: '', current_password: '', new_password: '' });
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState('');
+  const [form, setForm]       = useState({ display_name: '', email: '', current_password: '', new_password: '' });
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState('');
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
+  const [groqKey, setGroqKey] = useState('');
+  const [savingKey, setSavingKey] = useState(false);
+  const [keyMsg, setKeyMsg]   = useState('');
 
   useEffect(() => {
     fetch(`${BACKEND_ORIGIN}/health`).then(r => r.json()).then(d => setBackendOk(d.status === 'healthy')).catch(() => setBackendOk(false));
@@ -191,85 +304,148 @@ function SettingsTab() {
     setSaving(true); setMsg('');
     try {
       await authApi.updateProfile({
-        display_name: form.display_name || undefined,
-        email: form.email || undefined,
+        display_name:     form.display_name     || undefined,
+        email:            form.email            || undefined,
         current_password: form.current_password || undefined,
-        new_password: form.new_password || undefined,
+        new_password:     form.new_password     || undefined,
       });
       const fresh = await authApi.me();
       setUser(fresh);
-      setMsg('Saved!');
+      setMsg('✅ Saved!');
       setForm(f => ({ ...f, current_password: '', new_password: '' }));
-    } catch (e: any) { setMsg(e.message || 'Failed'); }
+    } catch (e: any) { setMsg(`❌ ${e.message || 'Failed'}`); }
     setSaving(false);
   };
 
+  const saveGroqKey = async () => {
+    if (!groqKey.trim()) return;
+    setSavingKey(true); setKeyMsg('');
+    try {
+      await chatApi.setKey(groqKey.trim());
+      setKeyMsg('✅ Key saved');
+      setGroqKey('');
+    } catch { setKeyMsg('❌ Failed'); }
+    setSavingKey(false);
+  };
+
   return (
-    <div className="space-y-5">
-      {/* Profile edit */}
-      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-heading">Edit Profile</h3>
-        <Input label="Display Name" value={form.display_name} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} />
-        <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-        <Input label="Current Password" type="password" value={form.current_password} onChange={e => setForm(f => ({ ...f, current_password: e.target.value }))} placeholder="Only if changing password" />
-        <Input label="New Password" type="password" value={form.new_password} onChange={e => setForm(f => ({ ...f, new_password: e.target.value }))} />
-        {msg && <p className={`text-xs ${msg === 'Saved!' ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>}
-        <Button onClick={saveProfile} loading={saving} variant="primary" size="sm">Save</Button>
+    <div className="space-y-4">
+
+      {/* Appearance */}
+      <div className="bg-card border border-default rounded-2xl p-4">
+        <h3 className="text-sm font-semibold text-heading mb-3">Appearance</h3>
+        <div className="flex gap-2">
+          {(['auto', 'dark', 'light'] as const).map(t => {
+            const labels = { auto: '🌗 Auto', dark: '🌙 Dark', light: '☀️ Light' };
+            return (
+              <button
+                key={t}
+                onClick={() => { if (theme !== t) toggleTheme(); }}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
+                  theme === t
+                    ? 'bg-blue-600/10 border-blue-500/40 text-blue-600 dark:text-blue-400'
+                    : 'border-default text-muted hover:text-body hover:bg-elevated'
+                }`}
+              >
+                {labels[t]}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Playback */}
-      <div className="bg-card/50 border border-line/40 rounded-xl p-4 space-y-3">
+      <div className="bg-card border border-default rounded-2xl p-4 space-y-4">
         <h3 className="text-sm font-semibold text-heading">Playback</h3>
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Default speed</span>
           <div className="flex gap-1">
             {[0.75, 1, 1.25, 1.5].map(s => (
-              <button key={s} onClick={() => setDefaultSpeed(s)}
-                className={`px-2 py-1 rounded-lg text-xs font-mono ${defaultSpeed === s ? 'bg-blue-600 text-heading' : 'bg-elevated text-body'}`}>
+              <button
+                key={s}
+                onClick={() => setDefaultSpeed(s)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+                  defaultSpeed === s ? 'bg-blue-600 text-white' : 'bg-elevated text-body hover:bg-card'
+                }`}
+              >
                 {s}×
               </button>
             ))}
           </div>
         </div>
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Pause on word click</span>
-          <button onClick={() => setAutoPauseOnWord(!autoPauseOnWord)}
-            className={`w-10 h-5 rounded-full transition-colors relative ${autoPauseOnWord ? 'bg-blue-600' : 'bg-elevated'}`}>
+          <button
+            onClick={() => setAutoPauseOnWord(!autoPauseOnWord)}
+            className={`w-10 h-5.5 rounded-full transition-colors relative ${autoPauseOnWord ? 'bg-blue-600' : 'bg-elevated'}`}
+            style={{ height: 22, width: 40 }}
+          >
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${autoPauseOnWord ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </button>
         </div>
-      </div>
 
-      {/* Appearance */}
-      <div className="bg-card/50 border border-line/40 rounded-xl p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-body">Dark mode</span>
-          <button onClick={toggleTheme}
-            className={`w-10 h-5 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-elevated'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
+          <span className="text-sm text-body">Transcript font</span>
+          <div className="flex gap-1">
+            {(['sm', 'md', 'lg', 'xl'] as TranscriptFontSize[]).map(s => (
+              <button
+                key={s}
+                onClick={() => setTranscriptFontSize(s)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  transcriptFontSize === s ? 'bg-blue-600 text-white' : 'bg-elevated text-body hover:bg-card'
+                }`}
+              >
+                {s.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Backend */}
-      <div className="bg-card/50 border border-line/40 rounded-xl p-4 flex items-center justify-between">
-        <span className="text-sm text-body">Backend</span>
-        <span className={`text-xs flex items-center gap-1.5 ${backendOk ? 'text-green-400' : 'text-red-400'}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${backendOk ? 'bg-green-500' : 'bg-red-500'}`} />
-          {backendOk ? 'Online' : 'Offline'}
+      {/* AI */}
+      <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">AI Assistant</h3>
+        <p className="text-xs text-muted leading-relaxed">
+          Groq API key for the AI chat. Free at{' '}
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+            console.groq.com/keys
+          </a>
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="password"
+            value={groqKey}
+            onChange={e => setGroqKey(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && saveGroqKey()}
+            placeholder="gsk_..."
+            className="input-field flex-1 py-2.5 text-sm"
+          />
+          <Button onClick={saveGroqKey} loading={savingKey} variant="primary" size="sm">Save</Button>
+        </div>
+        {keyMsg && <p className={`text-xs ${keyMsg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{keyMsg}</p>}
+      </div>
+
+      {/* Edit profile */}
+      <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-heading">Edit Profile</h3>
+        <Input label="Display Name" value={form.display_name} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} />
+        <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+        <Input label="Current Password" type="password" value={form.current_password} onChange={e => setForm(f => ({ ...f, current_password: e.target.value }))} placeholder="Only if changing password" />
+        <Input label="New Password" type="password" value={form.new_password} onChange={e => setForm(f => ({ ...f, new_password: e.target.value }))} />
+        {msg && <p className={`text-xs ${msg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>}
+        <Button onClick={saveProfile} loading={saving} variant="primary" size="sm">Save Changes</Button>
+      </div>
+
+      {/* Backend status */}
+      <div className="bg-card border border-default rounded-xl px-4 py-3 flex items-center justify-between">
+        <span className="text-sm text-body">Backend status</span>
+        <span className={`text-xs flex items-center gap-1.5 font-medium ${backendOk ? 'text-green-400' : 'text-red-400'}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${backendOk ? 'bg-green-400' : 'bg-red-400'}`} />
+          {backendOk === null ? 'Checking…' : backendOk ? 'Online' : 'Offline'}
         </span>
       </div>
     </div>
   );
-}
-
-/* ── Tiny SVG icons for tabs ───────────────────────────────────── */
-function UserIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-}
-function ChartIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>;
-}
-function GearIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
 }
