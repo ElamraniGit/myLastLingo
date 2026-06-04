@@ -1,6 +1,15 @@
 /**
  * AI Chat — conversational English learning assistant.
- * Has full access to user's vocabulary data.
+ *
+ * UI improvements:
+ *  - Markdown-like rendering (bold, code, bullet lists)
+ *  - Categorised suggestions with icons
+ *  - Typing indicator with staggered dots
+ *  - Message timestamps
+ *  - Copy message button
+ *  - Character counter in input
+ *  - Smooth scroll on new message
+ *  - Better empty state with feature cards
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -12,75 +21,161 @@ import { Input } from '@/components/ui/Input';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  ts?: number;
 }
 
-const SUGGESTIONS = [
-  "What are my weakest words?",
-  "Create a short story using my words",
-  "Quiz me on 5 random words",
-  "Which words should I review today?",
-  "Explain the difference between my similar words",
-  "Give me example sentences for my newest words",
+// Categorised suggestions
+const SUGGESTION_GROUPS = [
+  {
+    label: 'My Vocabulary',
+    icon: '📚',
+    items: [
+      "What are my weakest words?",
+      "Quiz me on 5 random words",
+      "Create a story using my saved words",
+    ],
+  },
+  {
+    label: 'Today',
+    icon: '📅',
+    items: [
+      "Which words should I review today?",
+      "How many words have I learned this week?",
+    ],
+  },
+  {
+    label: 'Grammar & Usage',
+    icon: '✍️',
+    items: [
+      "Explain the difference between my similar words",
+      "Give me example sentences for my newest words",
+      "What collocations go with my verb words?",
+    ],
+  },
 ];
 
-export default function ChatView() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [convId, setConvId] = useState<string | null>(null);
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
-  const [keyInput, setKeyInput] = useState('');
-  const [settingKey, setSettingKey] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+/* ── Simple Markdown renderer (no deps) ──────────────────────── */
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let key = 0;
 
-  // Check if API key exists
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Bullet list
+    if (/^[\-\*•]\s+/.test(line)) {
+      elements.push(
+        <div key={key++} className="flex items-start gap-2 my-0.5">
+          <span className="text-blue-400 shrink-0 mt-0.5">•</span>
+          <span>{inlineMarkdown(line.replace(/^[\-\*•]\s+/, ''))}</span>
+        </div>
+      );
+      continue;
+    }
+    // Numbered list
+    if (/^\d+\.\s+/.test(line)) {
+      const num = line.match(/^(\d+)\./)?.[1];
+      elements.push(
+        <div key={key++} className="flex items-start gap-2 my-0.5">
+          <span className="text-blue-400 shrink-0 font-mono text-xs mt-0.5">{num}.</span>
+          <span>{inlineMarkdown(line.replace(/^\d+\.\s+/, ''))}</span>
+        </div>
+      );
+      continue;
+    }
+    // Empty line
+    if (!line.trim()) {
+      elements.push(<div key={key++} className="h-2" />);
+      continue;
+    }
+    // Normal line
+    elements.push(<div key={key++}>{inlineMarkdown(line)}</div>);
+  }
+
+  return <>{elements}</>;
+}
+
+function inlineMarkdown(text: string): React.ReactNode {
+  // Split on **bold** and `code`
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (/^\*\*(.+)\*\*$/.test(part)) {
+          return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+        }
+        if (/^`(.+)`$/.test(part)) {
+          return (
+            <code key={i} className="bg-white/10 px-1 py-0.5 rounded text-[12px] font-mono text-blue-200">
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+function fmtTime(ts?: number): string {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+/* ════════════════════════════════════════════════════════════════ */
+
+export default function ChatView() {
+  const [messages,   setMessages]   = useState<Message[]>([]);
+  const [input,      setInput]      = useState('');
+  const [sending,    setSending]    = useState(false);
+  const [convId,     setConvId]     = useState<string | null>(null);
+  const [hasKey,     setHasKey]     = useState<boolean | null>(null);
+  const [keyInput,   setKeyInput]   = useState('');
+  const [settingKey, setSettingKey] = useState(false);
+  const [copied,     setCopied]     = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    chatApi.hasKey()
-      .then(d => setHasKey(d.has_key))
-      .catch(() => setHasKey(false));
+    chatApi.hasKey().then(d => setHasKey(d.has_key)).catch(() => setHasKey(false));
   }, []);
 
-  // Load history
   useEffect(() => {
-    if (hasKey) {
-      chatApi.getHistory()
-        .then(d => {
-          if (d.messages?.length) {
-            const sorted = [...d.messages].reverse();
-            setMessages(sorted.map((m: any) => ({ role: m.role, content: m.content })));
-            if (sorted[0]?.conversation_id) setConvId(sorted[0].conversation_id);
-          }
-        })
-        .catch(() => {});
-    }
+    if (!hasKey) return;
+    chatApi.getHistory()
+      .then(d => {
+        if (d.messages?.length) {
+          const sorted = [...d.messages].reverse();
+          setMessages(sorted.map((m: any) => ({ role: m.role, content: m.content })));
+          if (sorted[0]?.conversation_id) setConvId(sorted[0].conversation_id);
+        }
+      })
+      .catch(() => {});
   }, [hasKey]);
 
-  // Auto-scroll
+  // Scroll to bottom on new message
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, sending]);
 
   const send = useCallback(async (text?: string) => {
     const msg = (text || input).trim();
     if (!msg || sending) return;
-
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: msg }]);
+    setMessages(prev => [...prev, { role: 'user', content: msg, ts: Date.now() }]);
     setSending(true);
-
     try {
       const res = await chatApi.sendMessage(msg, convId || undefined);
-      setMessages(prev => [...prev, { role: 'assistant', content: res.reply }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: res.reply, ts: Date.now() }]);
       awardXP('chat_message');
       if (res.conversation_id) setConvId(res.conversation_id);
     } catch (e) {
       const errMsg = e instanceof ApiError ? e.message : 'Failed to send message';
-      setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${errMsg}` }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${errMsg}`, ts: Date.now() }]);
     }
-
     setSending(false);
     inputRef.current?.focus();
   }, [input, sending, convId]);
@@ -92,45 +187,68 @@ export default function ChatView() {
       await chatApi.setKey(keyInput.trim());
       setHasKey(true);
       setKeyInput('');
-    } catch { }
+    } catch {}
     setSettingKey(false);
   };
 
   const clearChat = async () => {
+    if (!confirm('Clear all chat history?')) return;
     try {
       await chatApi.clearHistory();
       setMessages([]);
       setConvId(null);
-    } catch { }
+    } catch {}
   };
 
-  // API key setup screen
+  const copyMessage = (content: string, idx: number) => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(idx);
+      setTimeout(() => setCopied(null), 2000);
+    }).catch(() => {});
+  };
+
+  /* ── API key setup ──────────────────────────────────────────── */
   if (hasKey === false) {
     return (
-      <div className="max-w-md mx-auto px-4 py-8 space-y-5">
+      <div className="max-w-md mx-auto px-4 py-8 space-y-5 animate-fade-in">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4
+                          flex items-center justify-center shadow-xl shadow-blue-500/20">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
           <h1 className="text-xl font-bold text-heading">AI Learning Assistant</h1>
-          <p className="text-muted text-sm mt-2">
-            Chat with AI that knows your vocabulary and helps you learn.
+          <p className="text-muted text-sm mt-2 leading-relaxed">
+            Your personal English tutor — knows your vocabulary, answers questions, creates quizzes.
           </p>
         </div>
 
-        <div className="bg-card border border-line rounded-2xl p-5 space-y-4">
+        {/* Feature cards */}
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: '🎯', label: 'Personalised', sub: 'Uses your words' },
+            { icon: '🧠', label: 'Smart Quizzes', sub: 'Test your memory' },
+            { icon: '⚡', label: 'Instant', sub: 'Powered by Groq' },
+          ].map(f => (
+            <div key={f.label} className="bg-card border border-default rounded-2xl p-3 text-center">
+              <div className="text-xl mb-1">{f.icon}</div>
+              <div className="text-[11px] font-semibold text-heading">{f.label}</div>
+              <div className="text-[10px] text-muted">{f.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-card border border-default rounded-2xl p-5 space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-heading mb-1">Setup (one time)</h3>
             <p className="text-xs text-muted leading-relaxed">
               Get a free API key from{' '}
               <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer"
-                className="text-blue-400 underline">console.groq.com/keys</a>
+                 className="text-blue-400 underline">console.groq.com/keys</a>
               {' '}and paste it below.
             </p>
           </div>
-
           <Input
             label="Groq API Key"
             type="password"
@@ -139,114 +257,181 @@ export default function ChatView() {
             onKeyDown={e => { if (e.key === 'Enter') saveKey(); }}
             placeholder="gsk_..."
           />
-
           <Button onClick={saveKey} loading={settingKey} variant="primary" className="w-full">
             Save & Start Chatting
           </Button>
         </div>
-
-        <div className="text-center">
-          <p className="text-[11px] text-faint">Free tier: 30 requests/minute • Your key stays on your device</p>
-        </div>
+        <p className="text-center text-[11px] text-faint">Free tier: 30 req/min · Key stored on your device only</p>
       </div>
     );
   }
 
-  // Loading state
+  /* ── Loading ────────────────────────────────────────────────── */
   if (hasKey === null) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-line border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-default border-t-blue-500 rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Chat UI
+  /* ── Chat UI ────────────────────────────────────────────────── */
   return (
     <div className="flex flex-col h-full">
+
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-line-s flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <div className="flex items-center justify-between px-4 py-3 nav-bar border-b border-default shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl
+                          flex items-center justify-center shadow-sm shadow-blue-500/20">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
           <div>
             <h2 className="text-sm font-semibold text-heading">AI Assistant</h2>
-            <p className="text-[10px] text-muted">Knows your vocabulary</p>
+            <p className="text-[10px] text-muted flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft"/>
+              Knows your vocabulary
+            </p>
           </div>
         </div>
         {messages.length > 0 && (
-          <button onClick={clearChat} className="text-xs text-muted hover:text-body px-2 py-1 rounded-lg hover:bg-card">
-            Clear
+          <button
+            onClick={clearChat}
+            className="text-xs text-muted hover:text-red-400 px-2.5 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+          >
+            🗑 Clear
           </button>
         )}
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center py-8 space-y-5">
-            <p className="text-muted text-sm">Ask me anything about your vocabulary!</p>
-            <div className="grid grid-cols-1 gap-2 max-w-sm mx-auto">
-              {SUGGESTIONS.map((s, i) => (
-                <button key={i} onClick={() => send(s)}
-                  className="text-left text-xs text-body bg-card border border-line-s rounded-xl px-3 py-2.5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-colors">
-                  💬 {s}
-                </button>
-              ))}
-            </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-thin">
+
+        {/* Empty state */}
+        {messages.length === 0 && !sending && (
+          <div className="space-y-5 animate-fade-in">
+            <p className="text-center text-muted text-sm pt-2">
+              Ask me anything about your English learning!
+            </p>
+            {SUGGESTION_GROUPS.map(group => (
+              <div key={group.label}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-sm">{group.icon}</span>
+                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">{group.label}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {group.items.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => send(s)}
+                      className="w-full text-left text-xs text-body bg-card border border-default
+                                 rounded-xl px-3.5 py-2.5 hover:border-blue-500/30 hover:bg-blue-500/5
+                                 transition-colors leading-relaxed"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
+        {/* Messages */}
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-              msg.role === 'user'
-                ? 'bg-blue-600 text-white rounded-br-md'
-                : 'bg-card border border-line-s text-body rounded-bl-md'
-            }`}>
-              {msg.role === 'assistant' ? (
-                <div className="whitespace-pre-wrap">{msg.content}</div>
-              ) : (
-                msg.content
-              )}
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
+            <div className={`max-w-[88%] ${msg.role === 'user' ? '' : 'flex flex-col'}`}>
+              <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                msg.role === 'user'
+                  ? 'bg-blue-600 text-white rounded-br-md'
+                  : 'bg-card border border-default text-body rounded-bl-md'
+              }`}>
+                {msg.role === 'assistant' ? (
+                  <div className="text-sm leading-relaxed">
+                    {renderMarkdown(msg.content)}
+                  </div>
+                ) : (
+                  <span>{msg.content}</span>
+                )}
+              </div>
+              {/* Timestamp + copy */}
+              <div className={`flex items-center gap-2 mt-1 px-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.ts && (
+                  <span className="text-[10px] text-faint">{fmtTime(msg.ts)}</span>
+                )}
+                <button
+                  onClick={() => copyMessage(msg.content, i)}
+                  className="text-[10px] text-faint hover:text-muted opacity-0 group-hover:opacity-100 transition-all"
+                  aria-label="Copy"
+                >
+                  {copied === i ? '✅' : '📋'}
+                </button>
+              </div>
             </div>
           </div>
         ))}
 
+        {/* Typing indicator */}
         {sending && (
           <div className="flex justify-start">
-            <div className="bg-card border border-line-s rounded-2xl rounded-bl-md px-4 py-3">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-card border border-default rounded-2xl rounded-bl-md px-4 py-3.5">
+              <div className="flex gap-1.5 items-center">
+                {[0, 150, 300].map(d => (
+                  <span
+                    key={d}
+                    className="w-2 h-2 bg-muted rounded-full animate-bounce"
+                    style={{ animationDelay: `${d}ms`, animationDuration: '900ms' }}
+                  />
+                ))}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Input */}
-      <div className="flex-shrink-0 border-t border-line-s px-3 py-3">
-        <div className="flex gap-2 max-w-2xl mx-auto">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Ask about your words..."
-            disabled={sending}
-            className="flex-1 bg-input-bg border border-line rounded-xl px-4 py-2.5 text-sm text-heading placeholder-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
-          />
-          <button onClick={() => send()} disabled={sending || !input.trim()}
-            className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-xl disabled:opacity-40 transition-colors flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
+      {/* Input bar */}
+      <div className="shrink-0 border-t border-default px-3 py-3 nav-bar">
+        <div className="flex gap-2 max-w-2xl mx-auto items-end">
+          <div className="flex-1 relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder="Ask about your words…"
+              disabled={sending}
+              maxLength={500}
+              className="w-full bg-card border border-default rounded-2xl px-4 py-3 pr-12
+                         text-sm text-heading placeholder-muted focus:outline-none
+                         focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/15
+                         disabled:opacity-50 transition-all"
+            />
+            {/* Character count */}
+            {input.length > 400 && (
+              <span className="absolute right-3 bottom-3 text-[10px] text-faint">
+                {500 - input.length}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => send()}
+            disabled={sending || !input.trim()}
+            className="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-500
+                       text-white rounded-2xl disabled:opacity-40 transition-all active:scale-95
+                       shadow-sm shadow-blue-500/20 shrink-0"
+            aria-label="Send"
+          >
+            {sending ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            )}
           </button>
         </div>
       </div>

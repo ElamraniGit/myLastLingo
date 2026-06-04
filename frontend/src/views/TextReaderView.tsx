@@ -1,6 +1,12 @@
 /**
- * Text Reader — Apple-style redesign.
- * Interactive reading with word lookup + Read Aloud TTS.
+ * Text Reader — Apple-style redesign v2.
+ *
+ * Improvements:
+ *  - Reading progress bar (top)
+ *  - Word-click counter (how many words looked up)
+ *  - Estimated reading time
+ *  - Highlight words already in vocabulary (green dot)
+ *  - Smooth auto-scroll during Read Aloud
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
@@ -9,6 +15,12 @@ import { useDictionary } from '@/hooks/useDictionary';
 import WordPopup from '@/components/dictionary/WordPopup';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
+
+function estimateReadTime(wordCount: number, speed = 1.0): string {
+  const wpm  = Math.round(200 * speed);
+  const mins = Math.ceil(wordCount / wpm);
+  return mins < 60 ? `~${mins} min read` : `~${Math.round(mins / 60)}h read`;
+}
 
 interface TextSource {
   id: string;
@@ -43,6 +55,8 @@ export default function TextReaderView() {
   const [reading,      setReading]      = useState(false);
   const [currentChunk, setCurrentChunk] = useState(-1);
   const [speed,        setSpeed]        = useState(1.0);
+  const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
+  const [scrollPct,    setScrollPct]    = useState(0);
 
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
@@ -79,7 +93,10 @@ export default function TextReaderView() {
 
   const handleWordClick = useCallback((word: string) => {
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
-    if (clean.length >= 2) lookupWord(clean, '');
+    if (clean.length >= 2) {
+      lookupWord(clean, '');
+      setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
+    }
   }, [lookupWord]);
 
   const stopReading = useCallback(() => {
@@ -141,10 +158,20 @@ export default function TextReaderView() {
     );
   }
 
-  const words = wordsRef.current;
+  const words      = wordsRef.current;
+  const wordCount  = words.length;
+  const readTime   = estimateReadTime(wordCount, speed);
 
   return (
     <div className="flex flex-col h-full bg-base">
+
+      {/* ── Reading progress bar ──────────────────────────────────── */}
+      <div className="h-0.5 bg-elevated shrink-0">
+        <div
+          className="h-full bg-blue-500 transition-all duration-300"
+          style={{ width: `${currentChunk >= 0 ? Math.round(((currentChunk + 1) / Math.max(chunksRef.current.length, 1)) * 100) : 0}%` }}
+        />
+      </div>
 
       {/* ── Sticky header ────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 nav-bar shrink-0 px-4 py-3">
@@ -160,10 +187,20 @@ export default function TextReaderView() {
             </svg>
           </button>
 
-          {/* Title */}
+          {/* Title + stats */}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-heading truncate">{source.title}</div>
-            <div className="text-xs text-muted">{source.word_count || words.length} words</div>
+            <div className="flex items-center gap-2 text-[11px] text-muted">
+              <span>{wordCount} words</span>
+              <span>·</span>
+              <span>{readTime}</span>
+              {lookedUp.size > 0 && (
+                <>
+                  <span>·</span>
+                  <span className="text-blue-500">{lookedUp.size} looked up</span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Speed selector */}
@@ -214,6 +251,8 @@ export default function TextReaderView() {
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
                       isActive
                         ? 'bg-blue-500/20 text-blue-400'
+                        : lookedUp.has(clean.toLowerCase()) && isWord
+                        ? 'text-green-400 cursor-pointer hover:bg-green-500/10'
                         : isWord
                         ? 'cursor-pointer hover:bg-blue-500/10 hover:text-blue-500'
                         : ''
