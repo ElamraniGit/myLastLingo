@@ -25,6 +25,7 @@ import LibraryView from '@/views/LibraryView';
 import ChatView from '@/views/ChatView';
 import TextReaderView from '@/views/TextReaderView';
 import StatsView from '@/views/StatsView';
+import OnboardingView from '@/views/OnboardingView';
 
 function NotificationsBootstrap() {
   useNotifications();
@@ -35,9 +36,10 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   // Read store values — but split them so theme change doesn't remount everything
-  const currentPage    = useStore(s => s.currentPage);
-  const isAuthenticated = useStore(s => s.isAuthenticated);
-  const theme          = useStore(s => s.theme);
+  const currentPage             = useStore(s => s.currentPage);
+  const isAuthenticated         = useStore(s => s.isAuthenticated);
+  const hasCompletedOnboarding  = useStore(s => s.hasCompletedOnboarding);
+  const theme                   = useStore(s => s.theme);
   const setUser        = useStore(s => s.setUser);
   const setPage        = useStore(s => s.setPage);
 
@@ -127,6 +129,11 @@ export default function App({ Component, pageProps }: AppProps) {
     return <LoginPage />;
   }
 
+  // New user — show onboarding tour before the main app
+  if (!hasCompletedOnboarding || currentPage === ('onboarding' as any)) {
+    return <OnboardingView />;
+  }
+
   // ── App ──────────────────────────────────────────────────────────
   const Page = () => {
     switch (currentPage) {
@@ -140,6 +147,7 @@ export default function App({ Component, pageProps }: AppProps) {
       case 'profile':
       case 'settings':
       case 'stats':      return <StatsView />;
+      case 'onboarding' as any: return <OnboardingView />;
       default:           return <PlayerView />;
     }
   };

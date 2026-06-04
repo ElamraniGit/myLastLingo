@@ -124,6 +124,10 @@ interface AppState {
   autoPauseOnWord: boolean;
   setAutoPauseOnWord: (v: boolean) => void;
 
+  // ── Onboarding ────────────────────────────────────────────────────────────
+  hasCompletedOnboarding: boolean;
+  setHasCompletedOnboarding: (v: boolean) => void;
+
   // ── Actions ───────────────────────────────────────────────────────────────
   currentTextId: string | null;
   setCurrentTextId: (id: string | null) => void;
@@ -259,6 +263,10 @@ export const useStore = create<AppState>()(
       autoPauseOnWord: true,
       setAutoPauseOnWord: (v) => set({ autoPauseOnWord: v }),
 
+      // ── Onboarding ───────────────────────────────────────────────────────
+      hasCompletedOnboarding: false,
+      setHasCompletedOnboarding: (v) => set({ hasCompletedOnboarding: v }),
+
       // ── Actions ──────────────────────────────────────────────────────────
       currentTextId: null,
       setCurrentTextId: (id) => set({ currentTextId: id }),
@@ -288,6 +296,7 @@ export const useStore = create<AppState>()(
         defaultVideoQuality: s.defaultVideoQuality,
         transcriptFontSize: s.transcriptFontSize,
         autoPauseOnWord: s.autoPauseOnWord,
+        hasCompletedOnboarding: s.hasCompletedOnboarding,
       }),
     }
   )

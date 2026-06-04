@@ -40,7 +40,9 @@ export function useAuth() {
         const res = await authApi.register(username, email, password, displayName);
         tokenStore.set(res.token);
         setUser(res.user);
-        setPage('player');
+        // New user → show onboarding before home
+        useStore.getState().setHasCompletedOnboarding(false);
+        setPage('onboarding' as any);
         return true;
       } catch (e) {
         setAuthError(e instanceof ApiError ? e.message : 'Registration failed');
