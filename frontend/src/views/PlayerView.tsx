@@ -209,10 +209,10 @@ function HomeDashboard() {
       {/* ── Quick actions ─────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          { icon: '📚', label: 'Library',   page: 'library'    },
-          { icon: '✏️', label: 'Words',     page: 'vocabulary' },
-          { icon: '🃏', label: 'Review',    page: 'flashcards' },
-          { icon: '🤖', label: 'AI Chat',   page: 'chat'       },
+          { icon: '📚', label: 'Library',  page: 'library'    },
+          { icon: '✏️', label: 'Words',    page: 'vocabulary' },
+          { icon: '🃏', label: 'Review',   page: 'flashcards' },
+          { icon: '📈', label: 'Stats',    page: 'stats'      },
         ].map(a => (
           <button
             key={a.page}
