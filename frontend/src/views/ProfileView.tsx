@@ -15,6 +15,11 @@ import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/hooks/useDictionary';
 import { authApi, BACKEND_ORIGIN, xpApi, chatApi } from '@/lib/api';
+import {
+  NotifSettings,
+  requestNotificationPermission,
+  notificationPermission,
+} from '@/lib/notifications';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
@@ -460,6 +465,9 @@ function SettingsTab() {
         <Button onClick={saveProfile} loading={saving} variant="primary" size="sm">Save Changes</Button>
       </div>
 
+      {/* Notifications */}
+      <NotificationSettings />
+
       {/* Backend status */}
       <div className="bg-card border border-default rounded-xl px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-body">Backend status</span>
@@ -468,6 +476,117 @@ function SettingsTab() {
           {backendOk === null ? 'Checking…' : backendOk ? 'Online' : 'Offline'}
         </span>
       </div>
+    </div>
+  );
+}
+
+/* ── Notification Settings ────────────────────────────────────────────────── */
+function NotificationSettings() {
+  const [enabled,    setEnabled]    = React.useState(false);
+  const [streakWarn, setStreakWarn] = React.useState(true);
+  const [time,       setTime]       = React.useState('09:00');
+  const [permission, setPermission] = React.useState<string>('default');
+  const [requesting, setRequesting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setEnabled(NotifSettings.isEnabled());
+    setStreakWarn(NotifSettings.isStreakWarn());
+    setTime(NotifSettings.getTime());
+    setPermission(notificationPermission());
+  }, []);
+
+  const handleToggle = async () => {
+    if (!enabled) {
+      if (permission !== 'granted') {
+        setRequesting(true);
+        const granted = await requestNotificationPermission();
+        setRequesting(false);
+        setPermission(notificationPermission());
+        if (!granted) return;
+      }
+      NotifSettings.setEnabled(true);
+      setEnabled(true);
+    } else {
+      NotifSettings.setEnabled(false);
+      setEnabled(false);
+    }
+  };
+
+  const handleStreakToggle = () => {
+    const next = !streakWarn;
+    NotifSettings.setStreakWarn(next);
+    setStreakWarn(next);
+  };
+
+  const handleTimeChange = (t: string) => {
+    setTime(t);
+    NotifSettings.setTime(t);
+  };
+
+  const isUnsupported = permission === 'unsupported';
+  const isDenied      = permission === 'denied';
+
+  return (
+    <div className="bg-card border border-default rounded-2xl p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-heading">🔔 Notifications</h3>
+
+      {isUnsupported && (
+        <p className="text-xs text-muted bg-elevated rounded-xl p-3">
+          Notifications are not supported in this browser.
+        </p>
+      )}
+
+      {isDenied && (
+        <p className="text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+          ⚠️ Notifications blocked. Enable them in your device settings.
+        </p>
+      )}
+
+      {!isUnsupported && !isDenied && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-sm text-body">Daily review reminder</span>
+              <p className="text-[10px] text-muted">Push notification when words are due</p>
+            </div>
+            <button
+              onClick={handleToggle}
+              disabled={requesting}
+              style={{ height: 22, width: 40 }}
+              className={`rounded-full transition-colors relative disabled:opacity-50 ${enabled ? 'bg-blue-600' : 'bg-elevated'}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+
+          {enabled && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-body">Reminder time</span>
+              <input
+                type="time"
+                value={time}
+                onChange={e => handleTimeChange(e.target.value)}
+                className="bg-elevated border border-default rounded-lg px-2 py-1 text-xs text-body outline-none focus:border-blue-500/50"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-sm text-body">Streak warning</span>
+              <p className="text-[10px] text-muted">Alert if you haven't reviewed today</p>
+            </div>
+            <button
+              onClick={handleStreakToggle}
+              style={{ height: 22, width: 40 }}
+              className={`rounded-full transition-colors relative ${streakWarn ? 'bg-orange-500' : 'bg-elevated'}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${streakWarn ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -13,6 +13,8 @@ import { authApi, tokenStore } from '@/lib/api';
 import Layout from '@/components/common/Layout';
 import InstallPrompt from '@/components/common/InstallPrompt';
 import OfflineBanner from '@/components/common/OfflineBanner';
+import NotificationCenter from '@/components/common/NotificationCenter';
+import { useNotifications } from '@/hooks/useNotifications';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 import PlayerView from '@/views/PlayerView';
@@ -23,6 +25,11 @@ import LibraryView from '@/views/LibraryView';
 import ChatView from '@/views/ChatView';
 import TextReaderView from '@/views/TextReaderView';
 import StatsView from '@/views/StatsView';
+
+function NotificationsBootstrap() {
+  useNotifications();
+  return null;
+}
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -144,6 +151,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <Layout>
+        <NotificationsBootstrap />
+        <NotificationCenter />
         <OfflineBanner />
         <InstallPrompt />
         <Page />

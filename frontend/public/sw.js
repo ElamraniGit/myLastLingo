@@ -158,28 +158,102 @@ async function networkThenCache(req, cacheName, ttlSeconds = 0) {
 // ── Background Sync (if supported) ───────────────────────────────────────────
 self.addEventListener('sync', (event) => {
   if (event.tag === 'll:sync') {
-    // The actual sync is handled by useOffline.ts in the app
-    // SW sync event just signals the app to wake up
     event.waitUntil(Promise.resolve());
   }
 });
 
-// ── Push message from app ─────────────────────────────────────────────────────
+// ── Push event (Web Push API) ─────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  try {
+    const payload = event.data.json();
+    event.waitUntil(
+      self.registration.showNotification(payload.title || 'LinguaLearn', {
+        body:  payload.body  || '',
+        icon:  payload.icon  || '/icons/icon-192x192.svg',
+        badge: payload.badge || '/icons/icon-192x192.svg',
+        tag:   payload.tag   || 'll-push',
+        data:  payload.data  || {},
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+      })
+    );
+  } catch {}
+});
+
+// ── Notification click ────────────────────────────────────────────────────────
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const page = event.notification.data?.page || 'flashcards';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      // Focus existing window if open
+      for (const client of list) {
+        if ('focus' in client) {
+          client.focus();
+          client.postMessage({ type: 'NAVIGATE', page });
+          return;
+        }
+      }
+      // Open new window
+      if (clients.openWindow) {
+        return clients.openWindow(`/?page=${page}`);
+      }
+    })
+  );
+});
+
+// ── Scheduled notification timers (in-memory) ─────────────────────────────────
+// Map of tag → timeoutId so we can cancel/replace
+const scheduledTimers = new Map();
+
+// ── Messages from app ─────────────────────────────────────────────────────────
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    // Only skip waiting if explicitly requested by user action
+  const { type, payload } = event.data || {};
+
+  if (type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
   }
-  if (event.data?.type === 'CACHE_WORDS') {
-    // Pre-cache a word lookup result sent from the app
-    const { url, data } = event.data;
+
+  if (type === 'CACHE_WORDS') {
+    const { url, data } = payload || event.data;
     if (url && data) {
       caches.open(API_CACHE).then(cache => {
-        const res = new Response(JSON.stringify(data), {
+        cache.put(url, new Response(JSON.stringify(data), {
           headers: { 'Content-Type': 'application/json' },
-        });
-        cache.put(url, res);
+        }));
       });
+    }
+    return;
+  }
+
+  if (type === 'SCHEDULE_NOTIFICATION') {
+    const { delayMs, title, body, icon, badge, tag, data } = payload || {};
+    // Cancel any existing timer with the same tag
+    if (scheduledTimers.has(tag)) {
+      clearTimeout(scheduledTimers.get(tag));
+    }
+    if (delayMs === 0) {
+      // Immediate
+      self.registration.showNotification(title, { body, icon, badge, tag, data,
+        vibrate: [200, 100, 200], requireInteraction: false });
+    } else {
+      const tid = setTimeout(() => {
+        self.registration.showNotification(title, { body, icon, badge, tag, data,
+          vibrate: [200, 100, 200], requireInteraction: false });
+        scheduledTimers.delete(tag);
+      }, delayMs);
+      scheduledTimers.set(tag, tid);
+    }
+    return;
+  }
+
+  if (type === 'CANCEL_NOTIFICATION') {
+    const { tag } = payload || {};
+    if (tag && scheduledTimers.has(tag)) {
+      clearTimeout(scheduledTimers.get(tag));
+      scheduledTimers.delete(tag);
     }
   }
 });
