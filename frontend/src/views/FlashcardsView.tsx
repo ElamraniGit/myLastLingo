@@ -2,6 +2,11 @@
  * Flashcards & Quiz — 100% English UI.
  * Primary language: English (meaning_en, definitions, examples).
  * Arabic translation shown only as a small hint on the back of the card.
+ *
+ * Improvements:
+ *  - Quiz: richer feedback panel after answering (full definition + example)
+ *  - Quiz: correct answer highlighted clearly on wrong pick
+ *  - Flashcard header shows session stats (done / streak)
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
@@ -543,23 +548,44 @@ export default function FlashcardsView() {
           {/* Feedback + Next */}
           {answered ? (
             <>
-              {/* Result message */}
-              <div className={`text-center text-sm font-semibold mb-4 py-3 rounded-2xl ${
+              {/* Result banner — larger and more visible */}
+              <div className={`rounded-2xl p-4 mb-3 animate-fade-in ${
                 picked === current.id
-                  ? 'bg-green-500/10 text-green-400'
-                  : 'bg-red-500/10 text-red-400'
+                  ? 'bg-green-500/10 border border-green-500/30'
+                  : 'bg-red-500/10 border border-red-500/30'
               }`}>
-                {picked === current.id
-                  ? '✓ Correct!'
-                  : `✗ The answer was: "${primaryMeaning(current)}"`}
-              </div>
-
-              {/* Arabic hint after answer */}
-              {current.meaning_ar && (
-                <p className="text-center text-xs text-faint mb-4">
-                  Arabic: <span style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>{current.meaning_ar}</span>
+                <p className={`text-sm font-bold mb-1 ${
+                  picked === current.id ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {picked === current.id ? '✅ Correct!' : '❌ Wrong'}
                 </p>
-              )}
+                {picked !== current.id && (
+                  <p className="text-xs text-muted">
+                    Correct answer: <span className="font-semibold text-heading">{primaryMeaning(current)}</span>
+                  </p>
+                )}
+                {/* Show full English definition after answering */}
+                {current.meaning_en && (
+                  <p className="text-xs text-body mt-2 leading-relaxed border-t border-default/50 pt-2">
+                    {current.meaning_en}
+                  </p>
+                )}
+                {/* Example for context */}
+                {(current.examples?.length ?? 0) > 0 && (
+                  <p className="text-xs text-muted italic mt-1 leading-relaxed">
+                    "{current.examples![0]}"
+                  </p>
+                )}
+                {/* Arabic hint */}
+                {current.meaning_ar && (
+                  <p className="text-xs text-faint mt-1.5">
+                    <span className="opacity-60">AR: </span>
+                    <span style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
+                      {current.meaning_ar}
+                    </span>
+                  </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <button

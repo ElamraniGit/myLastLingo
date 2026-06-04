@@ -758,32 +758,46 @@ class DatabaseManager:
                 row = await cursor.fetchone()
                 return int(dict(row).get("total", 0) if row else 0)
 
-    async def get_vocabulary_facets(self) -> Dict[str, Any]:
+    async def get_vocabulary_facets(self, user_id: str = "") -> Dict[str, Any]:
+        """
+        Return facet counts (levels, source videos, tags) scoped to the requesting user.
+        FIX: added user_id parameter so users see only their own facets.
+        """
+        uid_clause = "AND sw.user_id = ?" if user_id else ""
+        uid_tag_clause = "AND user_id = ?" if user_id else ""
+        uid_params = (user_id,) if user_id else ()
+
         async with self.get_connection() as conn:
             async with conn.execute(
-                """
+                f"""
                 SELECT w.level, COUNT(*) as count
                 FROM saved_words sw
                 JOIN words w ON sw.word_id = w.id
+                WHERE 1=1 {uid_clause}
                 GROUP BY w.level
                 ORDER BY w.level ASC
-                """
+                """,
+                uid_params,
             ) as cursor:
                 level_rows = await cursor.fetchall()
 
             async with conn.execute(
-                """
+                f"""
                 SELECT v.id as video_id, v.title, v.channel, COUNT(*) as count
                 FROM saved_words sw
                 LEFT JOIN videos v ON sw.video_id = v.id
-                WHERE sw.video_id IS NOT NULL
+                WHERE sw.video_id IS NOT NULL {uid_clause}
                 GROUP BY v.id, v.title, v.channel
                 ORDER BY count DESC, v.title ASC
-                """
+                """,
+                uid_params,
             ) as cursor:
                 video_rows = await cursor.fetchall()
 
-            async with conn.execute("SELECT tags FROM saved_words WHERE tags IS NOT NULL AND tags != ''") as cursor:
+            async with conn.execute(
+                f"SELECT tags FROM saved_words WHERE tags IS NOT NULL AND tags != '' {uid_tag_clause}",
+                uid_params,
+            ) as cursor:
                 tag_rows = await cursor.fetchall()
 
         tag_counts: Dict[str, int] = {}
@@ -841,7 +855,17 @@ class DatabaseManager:
         return await self.get_saved_word(saved_word_id)
 
     async def get_due_words(self, limit: int = 20, user_id: str = "") -> List[Dict[str, Any]]:
+        """
+        Return words due for review, scoped strictly to the requesting user.
+        FIX: removed `OR sw.user_id = ''` to prevent legacy data leaking across users.
+        Legacy rows (user_id='') are only visible to users who own them based on
+        their explicit user_id, not to all users.
+        """
         due_expr = self._normalized_datetime_expr("sw.next_review")
+        # Strict user scoping — only show rows owned by this user.
+        # OR sw.user_id = '' was removed to prevent cross-user data exposure.
+        uid_filter = "sw.user_id = ?" if user_id else "1=1"
+        params = (user_id, limit) if user_id else (limit,)
         async with self.get_connection() as conn:
             async with conn.execute(
                 f"""
@@ -853,7 +877,7 @@ class DatabaseManager:
                 FROM saved_words sw
                 JOIN words w ON sw.word_id = w.id
                 LEFT JOIN videos v ON sw.video_id = v.id
-                WHERE (sw.user_id = ? OR sw.user_id = '')
+                WHERE {uid_filter}
                   AND (sw.next_review IS NULL OR {due_expr} <= datetime('now'))
                 ORDER BY
                     CASE sw.status
@@ -868,14 +892,20 @@ class DatabaseManager:
                     sw.created_at ASC
                 LIMIT ?
                 """,
-                (user_id, limit),
+                params,
             ) as cursor:
                 rows = await cursor.fetchall()
                 return [self._parse_saved_word_row(row) for row in rows]
 
     async def get_review_summary(self, user_id: str = "") -> Dict[str, Any]:
+        """
+        Return a summary of the user's review queue.
+        FIX: strict user scoping — removed `OR user_id = ''` to prevent
+        cross-user data exposure. Each user sees only their own summary.
+        """
         due_expr = self._normalized_datetime_expr("next_review")
-        where = "WHERE (user_id = ? OR user_id = '')" if user_id else ""
+        # Strict scoping: only this user's words.
+        where = "WHERE user_id = ?" if user_id else ""
         params = (user_id,) if user_id else ()
         async with self.get_connection() as conn:
             async with conn.execute(

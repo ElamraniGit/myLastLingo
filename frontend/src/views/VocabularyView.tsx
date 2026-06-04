@@ -1,10 +1,17 @@
 /**
  * Vocabulary — Apple-style redesign.
+ * Improvements:
+ *  - auto-reload on filter/sort change (no manual Enter required)
+ *  - debounced search input (300ms)
+ *  - SM-2 progress bar visible per word
+ *  - total count from server (not just current page length)
  */
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
 import type { SavedWord, VocabularyListParams, ReviewSummary } from '@/types';
+
+type SortOption = 'next_review' | 'newest' | 'oldest' | 'alphabetical' | 'level' | 'difficulty';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { vocabularyApi, downloadVocabularyExport } from '@/lib/api';
 
@@ -29,29 +36,73 @@ function fmtRelative(v?: string) {
   return `${Math.round(h / 24)}d`;
 }
 
+/** SM-2 progress: ease_factor from 1.3→3.0 mapped to 0→100% */
+function sm2Progress(w: SavedWord): number {
+  const ef = w.ease_factor ?? 2.5;
+  return Math.round(Math.max(0, Math.min(100, ((ef - 1.3) / (3.0 - 1.3)) * 100)));
+}
+
+/** Colour for SM-2 progress bar */
+function sm2Color(w: SavedWord): string {
+  const pct = sm2Progress(w);
+  if (pct >= 70) return 'bg-green-500';
+  if (pct >= 40) return 'bg-blue-500';
+  return 'bg-amber-500';
+}
+
 export default function VocabularyView() {
   const { savedWords, setPage, currentPage } = useStore();
   const { loadVocabulary, loadStats, loadReviewSummary, deleteWord, lookupWord } = useDictionary();
   const [status,  setStatus]  = useState<string | undefined>(undefined);
   const [search,  setSearch]  = useState('');
-  const [sort,    setSort]    = useState('newest');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sort,    setSort]    = useState<SortOption>('newest');
   const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
   const [ioMsg,   setIoMsg]   = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce search input — fire load 300ms after user stops typing
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [search]);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [, s] = await Promise.all([
-      loadVocabulary({ status: status as any, search, sort, page: 1, limit: 200 }),
-      loadReviewSummary().catch(() => null),
-    ]);
-    setSummary(s);
-    loadStats();
-    setLoading(false);
-  }, [status, search, sort, loadVocabulary, loadReviewSummary, loadStats]);
+    try {
+      const [vocabResult, s] = await Promise.all([
+        loadVocabulary({ status: status as any, search: debouncedSearch, sort, page: 1, limit: 200 }),
+        loadReviewSummary().catch(() => null),
+      ]);
+      // Capture total from server response if available
+      if (vocabResult && typeof (vocabResult as any).total === 'number') {
+        setTotalCount((vocabResult as any).total);
+      }
+      setSummary(s);
+      loadStats();
+    } finally {
+      setLoading(false);
+    }
+  }, [status, debouncedSearch, sort, loadVocabulary, loadReviewSummary, loadStats]);
 
+  // Reload when page becomes active
   useEffect(() => { if (currentPage === 'vocabulary') load(); }, [currentPage]); // eslint-disable-line
+
+  // Auto-reload when status or sort changes (instant)
+  useEffect(() => {
+    if (currentPage === 'vocabulary') load();
+  }, [status, sort]); // eslint-disable-line
+
+  // Auto-reload when debounced search changes
+  useEffect(() => {
+    if (currentPage === 'vocabulary') load();
+  }, [debouncedSearch]); // eslint-disable-line
 
   // Phase 5: export / import vocabulary
   const handleExport = useCallback(async (format: 'csv' | 'json') => {
@@ -110,11 +161,14 @@ export default function VocabularyView() {
     { id: 'learned',    label: 'Learned' },
   ];
 
+  // Use server total when available, fall back to local count
+  const displayTotal = totalCount > 0 ? totalCount : savedWords.length;
+
   const STATS = [
-    { label: 'Total',     val: savedWords.length,       color: 'text-heading' },
-    { label: 'Learning',  val: summary?.learning  ?? 0, color: 'text-amber-500' },
-    { label: 'Reviewing', val: summary?.reviewing ?? 0, color: 'text-blue-500' },
-    { label: 'Learned',   val: summary?.learned   ?? 0, color: 'text-green-500' },
+    { label: 'Total',     val: displayTotal,             color: 'text-heading' },
+    { label: 'Learning',  val: summary?.learning  ?? 0,  color: 'text-amber-500' },
+    { label: 'Reviewing', val: summary?.reviewing ?? 0,  color: 'text-blue-500' },
+    { label: 'Learned',   val: summary?.learned   ?? 0,  color: 'text-green-500' },
   ];
 
   return (
@@ -125,7 +179,7 @@ export default function VocabularyView() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-heading">My Words</h2>
-            <p className="text-xs text-muted mt-0.5">{savedWords.length} saved · tap for details</p>
+            <p className="text-xs text-muted mt-0.5">{displayTotal} saved · tap for details</p>
           </div>
           <div className="flex items-center gap-1.5">
             {/* Phase 5: export / import */}
@@ -188,7 +242,7 @@ export default function VocabularyView() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && load()}
-            placeholder="Search words…"
+            placeholder="Search words… (auto-updates)"
             className="input-field pl-9 text-sm py-2.5"
           />
         </div>
@@ -208,7 +262,7 @@ export default function VocabularyView() {
           ))}
           <select
             value={sort}
-            onChange={e => setSort(e.target.value)}
+            onChange={e => setSort(e.target.value as SortOption)}
             className="ml-auto shrink-0 bg-card border border-default rounded-lg px-2 py-1.5 text-xs text-body outline-none"
           >
             <option value="newest">Newest</option>
@@ -259,6 +313,18 @@ export default function VocabularyView() {
                   ) : w.meaning_ar ? (
                     <div className="text-xs text-muted mt-0.5 truncate" style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>{w.meaning_ar}</div>
                   ) : null}
+                  {/* SM-2 progress bar */}
+                  {w.reviewed_count != null && w.reviewed_count > 0 && (
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <div className="flex-1 h-1 bg-elevated rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${sm2Color(w)}`}
+                          style={{ width: `${sm2Progress(w)}%` }}
+                        />
+                      </div>
+                      <span className="text-[9px] text-faint tabular-nums">{sm2Progress(w)}%</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right */}

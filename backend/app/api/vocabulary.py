@@ -192,8 +192,8 @@ async def list_vocabulary(
 
 @router.get("/filters")
 async def get_vocabulary_filters(current_user: dict = Depends(get_current_user)):
-    """Get available levels, source videos, and tags for filtering."""
-    return await db_manager.get_vocabulary_facets()
+    """Get available levels, source videos, and tags for filtering (scoped to this user)."""
+    return await db_manager.get_vocabulary_facets(user_id=current_user["sub"])
 
 
 @router.patch("/{saved_id}")
@@ -271,6 +271,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
         due_expr = db_manager._normalized_datetime_expr("next_review")
 
         uid = current_user["sub"]
+        # Strict user scoping — removed OR user_id='' to prevent cross-user data leaks.
         async with conn.execute(
             f"""
             SELECT
@@ -284,28 +285,34 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
                 COALESCE(SUM(lapses), 0) as total_lapses,
                 COALESCE(SUM(reviewed_count), 0) as total_reviews,
                 ROUND(COALESCE(AVG(ease_factor), 0), 2) as avg_ease
-            FROM saved_words WHERE (user_id = ? OR user_id = '')
+            FROM saved_words WHERE user_id = ?
             """, (uid,)
         ) as cur:
             row = await cur.fetchone()
             stats = dict(row) if row else {}
 
+        # reviewed_today scoped to this user's reviews
         async with conn.execute(
             """
             SELECT COUNT(*) as today_reviews
-            FROM word_reviews
-            WHERE date(replace(substr(reviewed_at, 1, 19), 'T', ' ')) = date('now')
-            """
+            FROM word_reviews wr
+            JOIN saved_words sw ON wr.saved_word_id = sw.id
+            WHERE sw.user_id = ?
+              AND date(replace(substr(wr.reviewed_at, 1, 19), 'T', ' ')) = date('now')
+            """, (uid,)
         ) as cur:
             today = await cur.fetchone()
             stats["reviewed_today"] = dict(today)["today_reviews"] if today else 0
 
+        # active days in last 30 — scoped to this user
         async with conn.execute(
             """
-            SELECT COUNT(DISTINCT date(replace(substr(reviewed_at, 1, 19), 'T', ' '))) as streak
-            FROM word_reviews
-            WHERE datetime(replace(substr(reviewed_at, 1, 19), 'T', ' ')) >= date('now', '-30 days')
-            """
+            SELECT COUNT(DISTINCT date(replace(substr(wr.reviewed_at, 1, 19), 'T', ' '))) as streak
+            FROM word_reviews wr
+            JOIN saved_words sw ON wr.saved_word_id = sw.id
+            WHERE sw.user_id = ?
+              AND datetime(replace(substr(wr.reviewed_at, 1, 19), 'T', ' ')) >= date('now', '-30 days')
+            """, (uid,)
         ) as cur:
             streak_data = await cur.fetchone()
             stats["active_days_30"] = dict(streak_data)["streak"] if streak_data else 0
@@ -315,7 +322,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             SELECT w.level, COUNT(*) as count
             FROM saved_words sw
             JOIN words w ON sw.word_id = w.id
-            WHERE (sw.user_id = ? OR sw.user_id = '')
+            WHERE sw.user_id = ?
             GROUP BY w.level
             ORDER BY w.level
             """, (uid,)
@@ -323,13 +330,16 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             rows = await cur.fetchall()
             stats["level_distribution"] = {dict(r)["level"]: dict(r)["count"] for r in rows}
 
+        # quality breakdown scoped to this user
         async with conn.execute(
             """
-            SELECT quality, COUNT(*) as count
-            FROM word_reviews
-            GROUP BY quality
-            ORDER BY quality
-            """
+            SELECT wr.quality, COUNT(*) as count
+            FROM word_reviews wr
+            JOIN saved_words sw ON wr.saved_word_id = sw.id
+            WHERE sw.user_id = ?
+            GROUP BY wr.quality
+            ORDER BY wr.quality
+            """, (uid,)
         ) as cur:
             rows = await cur.fetchall()
             stats["recent_quality_breakdown"] = {str(dict(r)["quality"]): dict(r)["count"] for r in rows}
@@ -339,7 +349,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             SELECT w.word, sw.status, sw.lapses, sw.reviewed_count, sw.next_review
             FROM saved_words sw
             JOIN words w ON sw.word_id = w.id
-            WHERE (sw.user_id = ? OR sw.user_id = '')
+            WHERE sw.user_id = ?
             ORDER BY sw.lapses DESC, sw.reviewed_count DESC, {due_expr} ASC
             LIMIT 5
             """, (uid,)
@@ -351,7 +361,7 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             f"""
             SELECT date({due_expr}) as review_day, COUNT(*) as count
             FROM saved_words
-            WHERE (user_id = ? OR user_id = '')
+            WHERE user_id = ?
               AND next_review IS NOT NULL
               AND {due_expr} <= datetime('now', '+7 days')
             GROUP BY date({due_expr})
@@ -361,7 +371,10 @@ async def get_vocabulary_stats(current_user: dict = Depends(get_current_user)):
             rows = await cur.fetchall()
             stats["upcoming_review_days"] = {dict(r)["review_day"]: dict(r)["count"] for r in rows if dict(r)["review_day"]}
 
-        async with conn.execute("SELECT tags FROM saved_words WHERE (user_id = ? OR user_id = '') AND tags IS NOT NULL AND tags != ''", (uid,)) as cur:
+        async with conn.execute(
+            "SELECT tags FROM saved_words WHERE user_id = ? AND tags IS NOT NULL AND tags != ''",
+            (uid,)
+        ) as cur:
             rows = await cur.fetchall()
             top_tags: Dict[str, int] = {}
             for row in rows:
