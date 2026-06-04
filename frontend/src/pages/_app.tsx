@@ -15,6 +15,7 @@ import InstallPrompt from '@/components/common/InstallPrompt';
 import OfflineBanner from '@/components/common/OfflineBanner';
 import NotificationCenter from '@/components/common/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
+import { warmUpTTS } from '@/lib/tts';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 import PlayerView from '@/views/PlayerView';
@@ -85,6 +86,8 @@ export default function App({ Component, pageProps }: AppProps) {
         setUser(u);
         const page = useStore.getState().currentPage;
         if (page === 'login' || page === 'register') setPage('player');
+        // Pre-warm neural TTS so first word plays instantly
+        warmUpTTS().catch(() => {});
       })
       .catch(() => {
         if (!cancelled) tokenStore.clear();

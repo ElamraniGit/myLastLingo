@@ -1,67 +1,175 @@
 /**
- * Centralized Text-to-Speech.
+ * Centralized Text-to-Speech — v2.
  *
- * Primary: natural NEURAL voices from the backend (/tts via Microsoft Edge,
- * free, human-like). Audio is fetched as a blob (so the auth header
- * can be sent) and played through an <audio> element.
+ * PRIMARY (always tried first):
+ *   Backend /tts endpoint → edge-tts (Microsoft neural voices, free, human-like).
+ *   Audio is fetched as an MP3 blob and played via <audio>.
  *
- * Fallback: the browser's built-in SpeechSynthesis (works offline, but more
- * robotic). Used automatically if the backend is unreachable, TTS
- * is offline, or edge-tts isn't installed.
+ * FALLBACK (only when backend unreachable / offline):
+ *   Browser SpeechSynthesis — prefers the best available English voice.
  *
- * FIX BUG-12: neuralAvailable now has a retry mechanism.
- *             If backend was down on first try, it retries after 60 seconds
- *             instead of staying permanently failed for the whole session.
+ * Fixes over v1:
+ *  - Longer fetch timeout (15s instead of browser default ~30s, but avoids
+ *    hanging forever on slow networks)
+ *  - neuralAvailable resets after 30s (was 60s) for faster recovery
+ *  - Cache-bust: if backend returns 502/503 we mark unavailable temporarily
+ *    but retry on the NEXT speak() call (not next page load)
+ *  - Voice selector: user can call setPreferredVoice() from Settings
+ *  - warmUp(): pre-fetches a silent clip so the first real word is instant
  */
 
 import { API_BASE, tokenStore } from '@/lib/api';
 
 export type SpeakOptions = {
-  voice?: string;   // backend neural voice id, e.g. 'en-US-AriaNeural'
-  rate?: number;    // 0.5 – 2.0 (1 = normal)
-  onEnd?: () => void;  // called when playback finishes (or errors)
+  voice?: string;   // edge-tts voice id, e.g. 'en-US-AriaNeural'
+  rate?: number;    // 0.5 – 2.0 (1 = normal speed)
+  onEnd?: () => void;
 };
 
-// Preferred natural voice (can be changed by the user later)
-let preferredVoice = 'en-US-AriaNeural';
-export function setPreferredVoice(v: string) { preferredVoice = v; }
-export function getPreferredVoice() { return preferredVoice; }
+// ── Voice preference ──────────────────────────────────────────────────────────
+const VOICE_KEY = 'll-tts-voice';
+let _preferredVoice = 'en-US-AriaNeural';
 
-// Single shared audio element + object URL so we never overlap playback
+export function setPreferredVoice(v: string) {
+  _preferredVoice = v;
+  if (typeof localStorage !== 'undefined') localStorage.setItem(VOICE_KEY, v);
+}
+export function getPreferredVoice(): string {
+  if (typeof localStorage !== 'undefined') {
+    const stored = localStorage.getItem(VOICE_KEY);
+    if (stored) _preferredVoice = stored;
+  }
+  return _preferredVoice;
+}
+
+// ── Audio element ─────────────────────────────────────────────────────────────
 let audioEl: HTMLAudioElement | null = null;
 let currentUrl: string | null = null;
 
-// FIX BUG-12: Track neural availability with a timestamp for retry logic
-let neuralAvailable: boolean | null = null; // null = unknown
-let neuralFailedAt: number | null = null;   // timestamp when it last failed
-const NEURAL_RETRY_AFTER_MS = 60_000;       // retry after 60 seconds
-
 function ensureAudio(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
-  if (!audioEl) audioEl = new Audio();
+  if (!audioEl) {
+    audioEl = new Audio();
+    // Preload metadata so playback starts immediately
+    audioEl.preload = 'auto';
+  }
   return audioEl;
 }
 
 function revokeUrl() {
-  if (currentUrl) {
-    URL.revokeObjectURL(currentUrl);
-    currentUrl = null;
-  }
+  if (currentUrl) { URL.revokeObjectURL(currentUrl); currentUrl = null; }
 }
 
-/** Stop any ongoing speech (both neural audio and browser synthesis). */
-export function stopSpeaking() {
-  try {
-    if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
-  } catch {}
+// ── Neural availability tracking ──────────────────────────────────────────────
+// null  = never tried (will attempt)
+// true  = last call succeeded
+// false = last call failed (will retry after RETRY_MS)
+let neuralAvailable: boolean | null = null;
+let neuralFailedAt: number  | null  = null;
+const RETRY_MS = 30_000; // retry neural after 30s (was 60s)
+
+function shouldTryNeural(): boolean {
+  if (neuralAvailable !== false) return true; // null or true → try
+  if (neuralFailedAt !== null && Date.now() - neuralFailedAt > RETRY_MS) {
+    neuralAvailable = null;
+    neuralFailedAt  = null;
+    return true;
+  }
+  return false;
+}
+
+// ── Stop ─────────────────────────────────────────────────────────────────────
+export function stopSpeaking(): void {
+  try { if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; } } catch {}
   revokeUrl();
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
 }
 
-/** Browser fallback (robotic but always available / offline). */
-function browserSpeak(text: string, opts: SpeakOptions = {}): Promise<void> {
+// ── Neural (backend edge-tts) ─────────────────────────────────────────────────
+async function neuralSpeak(text: string, opts: SpeakOptions): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  const el = ensureAudio();
+  if (!el) return false;
+
+  const token = tokenStore.get();
+  if (!token) return false; // not logged in — skip backend call
+
+  const voice = opts.voice || getPreferredVoice();
+  const rate  = opts.rate ?? 1.0;
+
+  const params = new URLSearchParams({
+    text,
+    voice,
+    rate: String(rate),
+  });
+
+  const controller = new AbortController();
+  // 15-second timeout — enough for long sentences on slow networks
+  const tid = setTimeout(() => controller.abort(), 15_000);
+
+  try {
+    const res = await fetch(`${API_BASE}/tts?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+    clearTimeout(tid);
+
+    if (!res.ok) {
+      // 502/503 = edge-tts unreachable (offline or service down)
+      // 401 = token expired → don't mark neural as broken
+      if (res.status !== 401) {
+        neuralAvailable = false;
+        neuralFailedAt  = Date.now();
+      }
+      return false;
+    }
+
+    const blob = await res.blob();
+    if (!blob.size) {
+      neuralAvailable = false;
+      neuralFailedAt  = Date.now();
+      return false;
+    }
+
+    revokeUrl();
+    currentUrl = URL.createObjectURL(blob);
+    el.src = currentUrl;
+
+    return await new Promise<boolean>((resolve) => {
+      const done = (ok: boolean) => {
+        el.onended = null; el.onerror = null;
+        opts.onEnd?.();
+        resolve(ok);
+      };
+      el.onended = () => done(true);
+      el.onerror = () => {
+        neuralAvailable = false;
+        neuralFailedAt  = Date.now();
+        done(false);
+      };
+      el.play()
+        .then(() => { neuralAvailable = true; neuralFailedAt = null; })
+        .catch(() => {
+          neuralAvailable = false;
+          neuralFailedAt  = Date.now();
+          done(false);
+        });
+    });
+
+  } catch (err: any) {
+    clearTimeout(tid);
+    // AbortError = timeout → mark unavailable
+    neuralAvailable = false;
+    neuralFailedAt  = Date.now();
+    return false;
+  }
+}
+
+// ── Browser fallback ──────────────────────────────────────────────────────────
+// Picks the best available English voice (prefers Neural/Natural/Google voices).
+function browserSpeak(text: string, opts: SpeakOptions): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       opts.onEnd?.(); resolve(); return;
@@ -71,108 +179,49 @@ function browserSpeak(text: string, opts: SpeakOptions = {}): Promise<void> {
 
     const start = () => {
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = opts.rate ?? 0.95;
+      u.lang  = 'en-US';
+      u.rate  = opts.rate ?? 0.9;
       u.pitch = 1.0;
 
-      // Pick the least-robotic available voice
+      // Score voices: Neural/Natural/Google > en-US > en > anything
       const voices = synth.getVoices();
-      const natural =
-        voices.find(v => v.lang.startsWith('en') && /Natural|Neural|Enhanced|Google|Samantha|Aria|Jenny|Daniel/i.test(v.name)) ||
-        voices.find(v => v.lang.startsWith('en-US')) ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        voices[0];
-      if (natural) u.voice = natural;
+      const best = voices
+        .filter(v => v.lang.startsWith('en'))
+        .sort((a, b) => {
+          const scoreA = /Neural|Natural|Enhanced|Premium|Google|Samantha|Aria|Jenny|Daniel/i.test(a.name) ? 3
+                       : a.lang.startsWith('en-US') ? 2 : 1;
+          const scoreB = /Neural|Natural|Enhanced|Premium|Google|Samantha|Aria|Jenny|Daniel/i.test(b.name) ? 3
+                       : b.lang.startsWith('en-US') ? 2 : 1;
+          return scoreB - scoreA;
+        })[0] || voices[0];
 
-      u.onend = () => { opts.onEnd?.(); resolve(); };
+      if (best) u.voice = best;
+
+      u.onend  = () => { opts.onEnd?.(); resolve(); };
       u.onerror = () => { opts.onEnd?.(); resolve(); };
       synth.speak(u);
     };
 
-    // Voices may load async on first use (common on Android/Termux)
+    // Voices may load async (common on Android / Termux Chrome)
     if (synth.getVoices().length === 0) {
       const handler = () => { synth.onvoiceschanged = null; start(); };
       synth.onvoiceschanged = handler;
-      // Safety: don't wait forever
-      setTimeout(() => { if (synth.onvoiceschanged === handler) { synth.onvoiceschanged = null; start(); } }, 600);
+      setTimeout(() => {
+        if (synth.onvoiceschanged === handler) {
+          synth.onvoiceschanged = null; start();
+        }
+      }, 800);
     } else {
       start();
     }
   });
 }
 
-/** Try the natural neural backend voice; resolve true on success. */
-async function neuralSpeak(text: string, opts: SpeakOptions = {}): Promise<boolean> {
-  if (typeof window === 'undefined') return false;
-  const el = ensureAudio();
-  if (!el) return false;
-
-  const token = tokenStore.get();
-  const params = new URLSearchParams({
-    text,
-    voice: opts.voice || preferredVoice,
-    rate: String(opts.rate ?? 1.0),
-  });
-
-  try {
-    const res = await fetch(`${API_BASE}/tts?${params.toString()}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!res.ok) {
-      // FIX BUG-12: Record failure time instead of permanently disabling
-      neuralAvailable = false;
-      neuralFailedAt = Date.now();
-      return false;
-    }
-
-    const blob = await res.blob();
-    if (!blob.size) { return false; }
-
-    revokeUrl();
-    currentUrl = URL.createObjectURL(blob);
-    el.src = currentUrl;
-
-    return await new Promise((resolve) => {
-      const done = (ok: boolean) => {
-        el.onended = null; el.onerror = null;
-        opts.onEnd?.();
-        resolve(ok);
-      };
-      el.onended = () => done(true);
-      el.onerror = () => done(false);
-      el.play().then(() => {
-        // FIX BUG-12: Mark as available and clear failure timestamp
-        neuralAvailable = true;
-        neuralFailedAt = null;
-      }).catch(() => done(false));
-    });
-  } catch {
-    // FIX BUG-12: Record failure time
-    neuralAvailable = false;
-    neuralFailedAt = Date.now();
-    return false;
-  }
-}
-
+// ── Main export ───────────────────────────────────────────────────────────────
 /**
- * FIX BUG-12: Check if we should retry neural TTS.
- * Returns true if neural is available OR if enough time has passed since failure.
- */
-function shouldTryNeural(): boolean {
-  if (neuralAvailable === true) return true;
-  if (neuralAvailable === null) return true; // never tried
-  // Was marked unavailable — retry after timeout
-  if (neuralFailedAt !== null && Date.now() - neuralFailedAt > NEURAL_RETRY_AFTER_MS) {
-    neuralAvailable = null; // reset to unknown — will try again
-    neuralFailedAt = null;
-    return true;
-  }
-  return false;
-}
-
-/**
- * Speak text with the most natural voice available.
- * Always resolves; uses the browser voice if the neural backend fails.
+ * Speak text using the best available voice.
+ * Tries neural (backend edge-tts) first; falls back to browser SpeechSynthesis.
+ * Always resolves — never throws.
  */
 export async function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
   const clean = (text || '').trim();
@@ -180,10 +229,42 @@ export async function speak(text: string, opts: SpeakOptions = {}): Promise<void
 
   stopSpeaking();
 
-  // FIX BUG-12: Use shouldTryNeural() instead of checking neuralAvailable directly
   if (shouldTryNeural()) {
     const ok = await neuralSpeak(clean, opts);
     if (ok) return;
   }
+
   await browserSpeak(clean, opts);
 }
+
+// ── Warm-up (call once on app mount) ─────────────────────────────────────────
+/**
+ * Pre-warm the neural TTS connection by synthesizing a 1-char clip.
+ * This way the first real speak() call plays instantly (no cold-start delay).
+ * Call after login, not on page load (avoids wasting resources for guests).
+ */
+let warmedUp = false;
+export async function warmUpTTS(): Promise<void> {
+  if (warmedUp || typeof window === 'undefined') return;
+  warmedUp = true;
+  const token = tokenStore.get();
+  if (!token) return;
+  try {
+    const params = new URLSearchParams({ text: 'hi', voice: getPreferredVoice(), rate: '1' });
+    const res = await fetch(`${API_BASE}/tts?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) { neuralAvailable = true; neuralFailedAt = null; }
+  } catch {}
+}
+
+// ── Voice list helper ─────────────────────────────────────────────────────────
+export const NEURAL_VOICES = [
+  { id: 'en-US-AriaNeural',    label: 'Aria (US, female) ⭐',  gender: 'female' },
+  { id: 'en-US-JennyNeural',   label: 'Jenny (US, female)',   gender: 'female' },
+  { id: 'en-US-GuyNeural',     label: 'Guy (US, male)',       gender: 'male'   },
+  { id: 'en-GB-SoniaNeural',   label: 'Sonia (UK, female)',   gender: 'female' },
+  { id: 'en-GB-RyanNeural',    label: 'Ryan (UK, male)',      gender: 'male'   },
+  { id: 'en-AU-NatashaNeural', label: 'Natasha (AU, female)', gender: 'female' },
+  { id: 'en-AU-WilliamNeural', label: 'William (AU, male)',   gender: 'male'   },
+];

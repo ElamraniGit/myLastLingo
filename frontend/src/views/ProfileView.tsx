@@ -20,6 +20,12 @@ import {
   requestNotificationPermission,
   notificationPermission,
 } from '@/lib/notifications';
+import {
+  NEURAL_VOICES,
+  getPreferredVoice,
+  setPreferredVoice,
+  speak as ttsSpeak,
+} from '@/lib/tts';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
@@ -465,6 +471,9 @@ function SettingsTab() {
         <Button onClick={saveProfile} loading={saving} variant="primary" size="sm">Save Changes</Button>
       </div>
 
+      {/* Voice Settings */}
+      <VoiceSettings />
+
       {/* Notifications */}
       <NotificationSettings />
 
@@ -587,6 +596,80 @@ function NotificationSettings() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ── Voice Settings ──────────────────────────────────────────────────────── */
+function VoiceSettings() {
+  const [selected,  setSelected]  = React.useState(getPreferredVoice);
+  const [testing,   setTesting]   = React.useState<string | null>(null);
+
+  const handleSelect = (id: string) => {
+    setSelected(id);
+    setPreferredVoice(id);
+  };
+
+  const handleTest = async (id: string) => {
+    if (testing) return;
+    setTesting(id);
+    setPreferredVoice(id);
+    setSelected(id);
+    await ttsSpeak('Hello! This is how I sound.', { voice: id, rate: 1.0 });
+    setTesting(null);
+  };
+
+  return (
+    <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
+      <div>
+        <h3 className="text-sm font-semibold text-heading">🔊 Voice</h3>
+        <p className="text-xs text-muted mt-0.5">
+          Neural voices via Microsoft Edge TTS (free, requires internet)
+        </p>
+      </div>
+      <div className="space-y-2">
+        {NEURAL_VOICES.map(v => (
+          <div
+            key={v.id}
+            className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+              selected === v.id
+                ? 'border-blue-500/40 bg-blue-500/8'
+                : 'border-default hover:border-blue-500/20 hover:bg-card'
+            }`}
+          >
+            <button
+              onClick={() => handleSelect(v.id)}
+              className="flex items-center gap-3 flex-1 text-left"
+            >
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                selected === v.id ? 'border-blue-500 bg-blue-500' : 'border-muted'
+              }`}>
+                {selected === v.id && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                )}
+              </div>
+              <div>
+                <div className="text-sm font-medium text-heading">{v.label}</div>
+              </div>
+            </button>
+            <button
+              onClick={() => handleTest(v.id)}
+              disabled={!!testing}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm transition-all ${
+                testing === v.id
+                  ? 'bg-blue-500/20 text-blue-400 animate-pulse'
+                  : 'hover:bg-blue-500/10 text-muted hover:text-blue-500'
+              } disabled:opacity-50`}
+              title="Test this voice"
+            >
+              {testing === v.id ? '⏳' : '▶'}
+            </button>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-faint leading-relaxed">
+        If neural voice is unavailable (offline), the app falls back to your device's built-in voice automatically.
+      </p>
     </div>
   );
 }
