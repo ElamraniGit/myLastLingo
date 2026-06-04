@@ -1,16 +1,26 @@
 /**
  * TranscriptViewer — synchronized subtitles panel.
  * Auto-scrolls to the active segment as the video plays.
- * Click word → dictionary popup + player pause.
- * Click segment → seek.
+ *
+ * Interactions:
+ *  - Single tap on a word   → dictionary popup (single word)
+ *  - Long-press / drag      → multi-word selection → SelectionToolbar
+ *  - Tap on segment row     → seek video to that time
+ *
+ * Multi-word selection:
+ *  On pointerdown, record the start word index.
+ *  On pointermove, extend the selection range.
+ *  On pointerup, if >1 word selected → show SelectionToolbar.
+ *  If 1 word → fall through to single-word lookup.
  */
 
-import React, { useRef, useEffect, memo, useCallback } from 'react';
+import React, { useRef, useEffect, memo, useCallback, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
 import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
 import { Button } from '@/components/ui/Button';
+import SelectionToolbar from '@/components/common/SelectionToolbar';
 
 const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: string; meta: string }> = {
   sm: { row: 'text-sm', current: 'text-sm', meta: 'text-[11px]' },
@@ -90,13 +100,30 @@ function StatusBanner() {
   return null;
 }
 
+// ── Global selection state (shared across all segments) ───────────────────────
+interface WordSelection {
+  segIndex: number;
+  startWord: number;
+  endWord: number;
+}
+
 export default function TranscriptViewer() {
-  const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize } = useStore();
+  const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize, currentVideo } = useStore();
   const { seekTo } = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
   const lastScrolledSegment = useRef<number>(-1);
+
+  // Multi-word selection state
+  const [selection,  setSelection]  = useState<WordSelection | null>(null);
+  const [toolbar, setToolbar] = useState<{
+    phrase: string;
+    sentence: string;
+    position: { x: number; y: number };
+  } | null>(null);
+  const dragStartRef = useRef<{ segIndex: number; wordIndex: number } | null>(null);
+  const isDraggingRef = useRef(false);
 
   // Auto-scroll active segment into view within the transcript container
   useEffect(() => {
@@ -114,6 +141,78 @@ export default function TranscriptViewer() {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
 
+  // ── Multi-word selection handlers ──────────────────────────────────────────
+  const handleWordPointerDown = useCallback((
+    e: React.PointerEvent,
+    segIndex: number,
+    wordIndex: number
+  ) => {
+    e.stopPropagation();
+    dragStartRef.current = { segIndex, wordIndex };
+    isDraggingRef.current = false;
+    setSelection({ segIndex, startWord: wordIndex, endWord: wordIndex });
+    setToolbar(null);
+    // Capture pointer for smooth drag
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const handleWordPointerMove = useCallback((
+    e: React.PointerEvent,
+    segIndex: number,
+    wordIndex: number
+  ) => {
+    if (!dragStartRef.current || dragStartRef.current.segIndex !== segIndex) return;
+    isDraggingRef.current = true;
+    const start = dragStartRef.current.wordIndex;
+    setSelection({
+      segIndex,
+      startWord: Math.min(start, wordIndex),
+      endWord:   Math.max(start, wordIndex),
+    });
+  }, []);
+
+  const handleWordPointerUp = useCallback((
+    e: React.PointerEvent,
+    segIndex: number,
+    wordIndex: number,
+    word: string,
+    segText: string,
+    allWords: string[]
+  ) => {
+    e.stopPropagation();
+    if (!dragStartRef.current) return;
+    const start = dragStartRef.current.wordIndex;
+    dragStartRef.current = null;
+
+    const isDrag = isDraggingRef.current;
+    isDraggingRef.current = false;
+
+    if (!isDrag || (Math.min(start, wordIndex) === Math.max(start, wordIndex))) {
+      // Single word tap — normal lookup
+      setSelection(null);
+      lookupWord(word, segText);
+      return;
+    }
+
+    // Multi-word — show SelectionToolbar
+    const lo = Math.min(start, wordIndex);
+    const hi = Math.max(start, wordIndex);
+    const phrase = allWords.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
+    if (!phrase) { setSelection(null); return; }
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setToolbar({
+      phrase,
+      sentence: segText,
+      position: { x: rect.left + rect.width / 2, y: rect.top },
+    });
+  }, [lookupWord]);
+
+  const closeToolbar = useCallback(() => {
+    setToolbar(null);
+    setSelection(null);
+  }, []);
+
   if (transcriptStatus !== 'ready' || !transcript?.segments?.length) {
     return <StatusBanner />;
   }
@@ -127,6 +226,7 @@ export default function TranscriptViewer() {
           <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
+          <span className="text-[10px] text-faint hidden sm:block">· hold & drag to select phrase</span>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
           transcript.source === 'youtube'
@@ -149,12 +249,26 @@ export default function TranscriptViewer() {
               fontSize={transcriptFontSize}
               onSeek={() => seekTo(seg.start)}
               onWordClick={(word) => lookupWord(word, seg.text)}
+              selection={selection?.segIndex === seg.index ? selection : null}
+              onWordPointerDown={(e, wi, w) => handleWordPointerDown(e, seg.index, wi)}
+              onWordPointerMove={(e, wi, w) => handleWordPointerMove(e, seg.index, wi)}
+              onWordPointerUp={(e, wi, w, allW) => handleWordPointerUp(e, seg.index, wi, w, seg.text, allW)}
               ref={isActive ? activeRef : undefined}
             />
           );
         })}
       </div>
 
+      {/* Multi-word selection toolbar */}
+      {toolbar && (
+        <SelectionToolbar
+          phrase={toolbar.phrase}
+          sentence={toolbar.sentence}
+          position={toolbar.position}
+          onClose={closeToolbar}
+          videoId={currentVideo?.id}
+        />
+      )}
     </div>
   );
 }
@@ -166,10 +280,24 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
   fontSize: TranscriptFontSize;
   onSeek: () => void;
   onWordClick: (word: string) => void;
-}>(({ segment, isActive, currentTime, fontSize, onSeek, onWordClick }, ref) => {
+  selection: { startWord: number; endWord: number } | null;
+  onWordPointerDown: (e: React.PointerEvent, wi: number, word: string) => void;
+  onWordPointerMove: (e: React.PointerEvent, wi: number, word: string) => void;
+  onWordPointerUp:   (e: React.PointerEvent, wi: number, word: string, allWords: string[]) => void;
+}>(({ segment, isActive, currentTime, fontSize, onSeek, onWordClick, selection,
+     onWordPointerDown, onWordPointerMove, onWordPointerUp }, ref) => {
+
   const clean = (w: string) => w.replace(/[^\w'-]/g, '').trim();
   const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
   const activeWordIndex = getActiveWordIndex(segment.words || [], currentTime);
+
+  // Build word list for pointer events
+  const wordTokens: string[] = segment.words && segment.words.length > 0
+    ? segment.words.map(w => w.word)
+    : segment.text.split(' ');
+
+  const isWordSelected = (wi: number) =>
+    selection !== null && wi >= selection.startWord && wi <= selection.endWord;
 
   return (
     <div
@@ -198,22 +326,32 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
                 fontSize={fontSize}
                 isCurrentWord={activeWordIndex === wi}
                 isActiveSentence={isActive}
+                isSelected={isWordSelected(wi)}
                 onClick={(e) => {
                   e.stopPropagation();
                   const w = clean(word.word);
                   if (w) onWordClick(w);
                 }}
+                onPointerDown={e => onWordPointerDown(e, wi, word.word)}
+                onPointerMove={e => onWordPointerMove(e, wi, word.word)}
+                onPointerUp={e => onWordPointerUp(e, wi, clean(word.word), wordTokens.map(clean))}
               />
             ))
           : segment.text.split(' ').map((w, i) => {
               const c = clean(w);
+              const selected = isWordSelected(i);
               return (
                 <span
                   key={i}
-                  onClick={(e) => { e.stopPropagation(); if (c) onWordClick(c); }}
-                  style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-                  className={`${font.row} cursor-pointer select-none px-0.5 rounded ${
-                    isActive
+                  style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'none' }}
+                  onPointerDown={e => { e.stopPropagation(); onWordPointerDown(e, i, w); }}
+                  onPointerMove={e => { e.stopPropagation(); onWordPointerMove(e, i, w); }}
+                  onPointerUp={e => { e.stopPropagation(); onWordPointerUp(e, i, c, wordTokens.map(clean)); }}
+                  onClick={e => e.stopPropagation()}
+                  className={`${font.row} cursor-pointer select-none px-0.5 py-px rounded transition-colors ${
+                    selected
+                      ? 'bg-amber-400/30 text-amber-300'
+                      : isActive
                       ? 'text-heading hover:text-blue-300 hover:bg-blue-500/15'
                       : 'text-muted hover:text-heading hover:bg-elevated/60'
                   }`}
@@ -231,27 +369,42 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
         <span className={`${font.meta} text-faint`}>
           {(segment.end - segment.start).toFixed(1)}s
         </span>
+        {selection && (
+          <span className="text-[10px] text-amber-400 ml-1">
+            {selection.endWord - selection.startWord + 1} words selected
+          </span>
+        )}
       </div>
     </div>
   );
 }));
 SegmentRow.displayName = 'SegmentRow';
 
-function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }: {
+function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, isSelected, onClick,
+  onPointerDown, onPointerMove, onPointerUp }: {
   word: WordTiming;
   fontSize: TranscriptFontSize;
   isCurrentWord: boolean;
   isActiveSentence: boolean;
+  isSelected: boolean;
   onClick: (e: React.MouseEvent) => void;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerMove: (e: React.PointerEvent) => void;
+  onPointerUp:   (e: React.PointerEvent) => void;
 }) {
   const font = FONT_SIZE_CLASSES[fontSize] ?? FONT_SIZE_CLASSES.md;
 
   return (
     <span
       onClick={onClick}
-      style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
-      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded ${
-        isCurrentWord
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'none' }}
+      className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-colors ${
+        isSelected
+          ? 'bg-amber-400/30 text-amber-300 font-semibold'
+          : isCurrentWord
           ? 'text-blue-300 font-semibold bg-blue-500/20'
           : isActiveSentence
           ? 'text-heading hover:text-blue-300 hover:bg-blue-500/15'
@@ -259,7 +412,7 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, onClick }:
       }`}
     >
       {word.word}
-      {isCurrentWord && (
+      {isCurrentWord && !isSelected && (
         <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-400 rounded-full" />
       )}
     </span>

@@ -13,6 +13,7 @@ import { useStore } from '@/store/appStore';
 import { libraryApi } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 import WordPopup from '@/components/dictionary/WordPopup';
+import SelectionToolbar from '@/components/common/SelectionToolbar';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
 
@@ -58,6 +59,15 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
+  // Multi-word selection state
+  const [toolbar, setToolbar] = useState<{
+    phrase: string;
+    position: { x: number; y: number };
+  } | null>(null);
+  const selectionRef = useRef<{ start: number; end: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const pointerDownWordRef = useRef<number>(-1);
+
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
   const readingRef = useRef(false);
@@ -91,12 +101,73 @@ export default function TextReaderView() {
   // Cleanup TTS on unmount
   useEffect(() => () => { readingRef.current = false; stopSpeaking(); }, []);
 
-  const handleWordClick = useCallback((word: string) => {
+  const handleWordClick = useCallback((word: string, wordIndex: number) => {
+    // Only fire single-word lookup if no drag happened
+    if (isDraggingRef.current) return;
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
       lookupWord(clean, '');
       setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
     }
+  }, [lookupWord]);
+
+  const handleWordPointerDown = useCallback((e: React.PointerEvent, wordIndex: number) => {
+    pointerDownWordRef.current = wordIndex;
+    isDraggingRef.current = false;
+    selectionRef.current = { start: wordIndex, end: wordIndex };
+    setToolbar(null);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const handleWordPointerMove = useCallback((e: React.PointerEvent, wordIndex: number) => {
+    if (pointerDownWordRef.current < 0) return;
+    const dist = Math.abs(wordIndex - pointerDownWordRef.current);
+    if (dist >= 1) {
+      isDraggingRef.current = true;
+      selectionRef.current = {
+        start: Math.min(pointerDownWordRef.current, wordIndex),
+        end:   Math.max(pointerDownWordRef.current, wordIndex),
+      };
+    }
+  }, []);
+
+  const handleWordPointerUp = useCallback((
+    e: React.PointerEvent,
+    wordIndex: number,
+    word: string
+  ) => {
+    const wasDragging = isDraggingRef.current;
+    const sel = selectionRef.current;
+    isDraggingRef.current = false;
+    pointerDownWordRef.current = -1;
+
+    if (!wasDragging || !sel || sel.start === sel.end) {
+      // Single tap — normal lookup
+      setToolbar(null);
+      const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
+      if (clean.length >= 2) {
+        lookupWord(clean, '');
+        setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
+      }
+      return;
+    }
+
+    // Multi-word selection
+    const words = wordsRef.current;
+    const phrase = words
+      .slice(sel.start, sel.end + 1)
+      .join(' ')
+      .replace(/[.,!?;:]+$/, '')
+      .trim();
+
+    if (!phrase) { setToolbar(null); selectionRef.current = null; return; }
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setToolbar({
+      phrase,
+      position: { x: rect.left + rect.width / 2, y: rect.top },
+    });
+    selectionRef.current = null;
   }, [lookupWord]);
 
   const stopReading = useCallback(() => {
@@ -235,7 +306,7 @@ export default function TextReaderView() {
       {/* ── Text content ─────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6">
         <div className="max-w-2xl mx-auto">
-          <p className="leading-8 text-[17px] text-heading select-text">
+          <p className="leading-8 text-[17px] text-heading select-none">
             {words.map((word, i) => {
               const active  = chunksRef.current[currentChunk];
               const isActive = !!active && i >= active.start && i < active.end;
@@ -247,7 +318,11 @@ export default function TextReaderView() {
                 <React.Fragment key={i}>
                   <span
                     ref={isStart ? activeRef : null}
-                    onClick={() => isWord && handleWordClick(word)}
+                    onPointerDown={isWord ? e => handleWordPointerDown(e, i) : undefined}
+                    onPointerMove={isWord ? e => handleWordPointerMove(e, i) : undefined}
+                    onPointerUp={isWord ? e => handleWordPointerUp(e, i, word) : undefined}
+                    onClick={isWord ? () => handleWordClick(word, i) : undefined}
+                    style={{ touchAction: isWord ? 'none' : undefined }}
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
                       isActive
                         ? 'bg-blue-500/20 text-blue-400'
@@ -269,6 +344,16 @@ export default function TextReaderView() {
       </div>
 
       <WordPopup />
+
+      {/* Multi-word selection toolbar */}
+      {toolbar && (
+        <SelectionToolbar
+          phrase={toolbar.phrase}
+          sentence={toolbar.phrase}
+          position={toolbar.position}
+          onClose={() => setToolbar(null)}
+        />
+      )}
     </div>
   );
 }
