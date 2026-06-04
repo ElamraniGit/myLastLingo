@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { BACKEND_ORIGIN } from '@/lib/api';
 import type { AppPage } from '@/types';
 import XPBar from './XPBar';
+import { getPendingCount } from '@/lib/offlineStore';
 
 const NAV: { id: AppPage; label: string; icon: (active: boolean) => React.ReactNode }[] = [
   {
@@ -132,6 +133,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               L
             </div>
             <span className="font-semibold text-sm text-heading">LinguaLearn</span>
+            <NetworkDot />
           </div>
           <div className="flex items-center gap-3">
             <XPBar />
@@ -176,8 +178,46 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Small dot for mobile nav — green=online, amber=offline */
+function NetworkDot() {
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setOnline(navigator.onLine);
+    const on  = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online',  on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  if (online) return null;
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] text-amber-500 font-medium">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+      Offline
+    </span>
+  );
+}
+
 function BackendStatus() {
-  const [ok, setOk] = useState<boolean | null>(null);
+  const [ok,      setOk]      = useState<boolean | null>(null);
+  const [pending, setPending] = useState(0);
+  const [netOnline, setNetOnline] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setNetOnline(navigator.onLine);
+      const onOnline  = () => setNetOnline(true);
+      const onOffline = () => setNetOnline(false);
+      window.addEventListener('online',  onOnline);
+      window.addEventListener('offline', onOffline);
+      return () => {
+        window.removeEventListener('online',  onOnline);
+        window.removeEventListener('offline', onOffline);
+      };
+    }
+  }, []);
+
   useEffect(() => {
     const check = () => {
       fetch(`${BACKEND_ORIGIN}/health`).then(r => setOk(r.ok)).catch(() => setOk(false));
@@ -186,13 +226,37 @@ function BackendStatus() {
     const iv = setInterval(check, 30_000);
     return () => clearInterval(iv);
   }, []);
+
+  useEffect(() => {
+    const refresh = () => getPendingCount().then(setPending).catch(() => {});
+    refresh();
+    const iv = setInterval(refresh, 10_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const label = !netOnline
+    ? '📵 Offline'
+    : ok === null ? 'Connecting…'
+    : ok ? 'Backend online'
+    : 'Backend offline';
+
+  const dotColor = !netOnline
+    ? 'bg-amber-400'
+    : ok === null ? 'bg-yellow-400 animate-pulse'
+    : ok ? 'bg-green-400'
+    : 'bg-red-400';
+
   return (
-    <div className="flex items-center gap-2 px-1">
-      <div className={`w-1.5 h-1.5 rounded-full transition-colors ${
-        ok === null ? 'bg-yellow-400 animate-pulse' :
-        ok ? 'bg-green-400' : 'bg-red-400'
-      }`} />
-      <span className="text-xs text-muted">{ok === null ? 'Connecting…' : ok ? 'Backend online' : 'Backend offline'}</span>
+    <div className="flex items-center justify-between gap-2 px-1">
+      <div className="flex items-center gap-2">
+        <div className={`w-1.5 h-1.5 rounded-full transition-colors ${dotColor}`} />
+        <span className="text-xs text-muted">{label}</span>
+      </div>
+      {pending > 0 && (
+        <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-semibold">
+          {pending} pending
+        </span>
+      )}
     </div>
   );
 }

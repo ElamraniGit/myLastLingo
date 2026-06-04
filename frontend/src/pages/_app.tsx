@@ -12,6 +12,7 @@ import { useStore } from '@/store/appStore';
 import { authApi, tokenStore } from '@/lib/api';
 import Layout from '@/components/common/Layout';
 import InstallPrompt from '@/components/common/InstallPrompt';
+import OfflineBanner from '@/components/common/OfflineBanner';
 import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 import PlayerView from '@/views/PlayerView';
@@ -142,6 +143,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <Layout>
+        <OfflineBanner />
         <InstallPrompt />
         <Page />
       </Layout>
