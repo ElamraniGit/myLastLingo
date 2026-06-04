@@ -8,6 +8,7 @@ import { BACKEND_ORIGIN } from '@/lib/api';
 import type { AppPage } from '@/types';
 import XPBar from './XPBar';
 import { getPendingCount } from '@/lib/offlineStore';
+import { isMuted, toggleMuted } from '@/lib/sfx';
 
 const NAV: { id: AppPage; label: string; icon: (active: boolean) => React.ReactNode }[] = [
   {
@@ -135,7 +136,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span className="font-semibold text-sm text-heading">LinguaLearn</span>
             <NetworkDot />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <MuteButton />
             <XPBar />
             <button
               onClick={() => setPage('profile')}
@@ -175,6 +177,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
       </div>
     </div>
+  );
+}
+
+/** Mute/Unmute sound effects button */
+function MuteButton() {
+  const [muted, setMuted] = React.useState(false);
+  React.useEffect(() => { setMuted(isMuted()); }, []);
+  const toggle = () => { const m = toggleMuted(); setMuted(m); };
+  return (
+    <button
+      onClick={toggle}
+      title={muted ? 'Unmute sounds' : 'Mute sounds'}
+      className="w-7 h-7 rounded-lg flex items-center justify-center text-sm text-muted hover:text-body hover:bg-card transition-colors"
+    >
+      {muted ? '🔇' : '🔔'}
+    </button>
   );
 }
 

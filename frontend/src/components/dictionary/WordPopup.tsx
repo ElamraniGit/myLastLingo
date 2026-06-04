@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
 import PronunciationTrainer from './PronunciationTrainer';
 import { speak as ttsSpeak } from '@/lib/tts';
+import * as sfx from '@/lib/sfx';
 
 /* ── Part-of-speech colors ───────────────────────────────────── */
 const POS: Record<string, { color: string; label: string }> = {
@@ -91,7 +92,7 @@ export default function WordPopup() {
       wordPopupSentence,
       `Learned from: ${currentVideo?.title || 'video'}`
     );
-    if (ok) setSaved(true);
+    if (ok) { sfx.save(); setSaved(true); }
     setSaving(false);
   }, [selectedWord, saving, saved, saveWord, currentVideo, wordPopupSentence]);
 

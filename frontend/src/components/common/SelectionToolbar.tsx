@@ -20,6 +20,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
 import { speak } from '@/lib/tts';
+import * as sfx from '@/lib/sfx';
 
 interface Props {
   phrase: string;
@@ -73,7 +74,7 @@ export default function SelectionToolbar({ phrase, sentence, position, onClose, 
     if (saving || saved) return;
     setSaving(true);
     const ok = await saveWord(phrase.trim(), videoId, sentence || phrase, '');
-    if (ok) setSaved(true);
+    if (ok) { sfx.save(); setSaved(true); }
     setSaving(false);
     setTimeout(onClose, 800);
   }, [phrase, sentence, videoId, saveWord, saving, saved, onClose]);

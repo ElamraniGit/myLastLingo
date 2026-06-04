@@ -14,6 +14,7 @@ import type { SavedWord, VocabularyListParams, ReviewSummary } from '@/types';
 type SortOption = 'next_review' | 'newest' | 'oldest' | 'alphabetical' | 'level' | 'difficulty';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { vocabularyApi, downloadVocabularyExport } from '@/lib/api';
+import * as sfx from '@/lib/sfx';
 
 const STATUS_COLOR: Record<string, string> = {
   learning:  'bg-amber-500/10 text-amber-500',
@@ -335,7 +336,7 @@ export default function VocabularyView() {
                     className="w-8 h-8 rounded-xl hover:bg-blue-500/10 text-faint hover:text-blue-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"
                   >🔊</button>
                   <button
-                    onClick={e => { e.stopPropagation(); if (confirm(`Delete "${w.word}"?`)) deleteWord(w.id); }}
+                    onClick={e => { e.stopPropagation(); if (confirm(`Delete "${w.word}"?`)) { sfx.deleteSfx(); deleteWord(w.id); } }}
                     className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-faint hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"
                   >🗑</button>
                 </div>

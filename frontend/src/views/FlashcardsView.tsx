@@ -7,12 +7,14 @@
  *  - Quiz: richer feedback panel after answering (full definition + example)
  *  - Quiz: correct answer highlighted clearly on wrong pick
  *  - Flashcard header shows session stats (done / streak)
+ *  - Sound effects: flip, correct, wrong, complete
  */
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useStore } from '@/store/appStore';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
+import * as sfx from '@/lib/sfx';
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 function speak(t: string) { ttsSpeak(t, { rate: 0.9 }); }
@@ -187,7 +189,7 @@ export default function FlashcardsView() {
     const onKey = (e: KeyboardEvent) => {
       if (!current || busy || mode !== 'flashcards') return;
       if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault(); setFlipped(v => !v); return;
+        e.preventDefault(); sfx.flip(); setFlipped(v => !v); return;
       }
       if (!flipped) return;
       const idx = ['1','2','3','4'].indexOf(e.key);
@@ -201,13 +203,18 @@ export default function FlashcardsView() {
   const handleRate = useCallback(async (quality: number) => {
     if (!current || busy) return;
     setBusy(true);
+    // Sound: quality 3-5 = correct, 0-2 = wrong
+    if (quality >= 3) sfx.correct(); else sfx.wrong();
     try {
       const res = await reviewWord(current.id, quality);
       setSummary((res as any)?.summary ?? null);
       setDone(v => v + 1);
       setQueue(prev => {
         const next = prev.slice(1);
-        if (!next.length) setCompleted(true);
+        if (!next.length) {
+          setCompleted(true);
+          setTimeout(() => sfx.complete(), 300);
+        }
         return next;
       });
       setFlipped(false);
@@ -308,7 +315,7 @@ export default function FlashcardsView() {
           {/* 3D Card */}
           <div
             className="flashcard-wrap cursor-pointer mb-5 select-none"
-            onClick={() => setFlipped(v => !v)}
+            onClick={() => { sfx.flip(); setFlipped(v => !v); }}
           >
             <div className={`flashcard-inner relative ${flipped ? 'flipped' : ''}`}
               style={{ minHeight: 300 }}>
@@ -438,7 +445,7 @@ export default function FlashcardsView() {
           {!flipped ? (
             <div className="flex gap-2">
               <button
-                onClick={() => setFlipped(true)}
+                onClick={() => { sfx.flip(); setFlipped(true); }}
                 className="btn-primary flex-1 py-3.5 rounded-2xl text-sm font-semibold"
               >
                 Show Answer
@@ -528,7 +535,14 @@ export default function FlashcardsView() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => { if (!answered) { setPicked(c.id); setAnswered(true); } }}
+                  onClick={() => {
+                    if (!answered) {
+                      const isCorrect = c.id === current.id;
+                      if (isCorrect) sfx.correct(); else sfx.wrong();
+                      setPicked(c.id);
+                      setAnswered(true);
+                    }
+                  }}
                   disabled={answered}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border
                               text-left transition-all ${style}`}

@@ -26,6 +26,7 @@ import {
   setPreferredVoice,
   speak as ttsSpeak,
 } from '@/lib/tts';
+import { isMuted, setMuted } from '@/lib/sfx';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
@@ -420,6 +421,14 @@ function SettingsTab() {
         </div>
 
         <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-body">Sound effects</span>
+            <p className="text-[10px] text-muted">Flip, correct, wrong, save…</p>
+          </div>
+          <SfxToggle />
+        </div>
+
+        <div className="flex items-center justify-between">
           <span className="text-sm text-body">Transcript font</span>
           <div className="flex gap-1">
             {(['sm', 'md', 'lg', 'xl'] as TranscriptFontSize[]).map(s => (
@@ -490,6 +499,26 @@ function SettingsTab() {
 }
 
 /* ── Notification Settings ────────────────────────────────────────────────── */
+/* ── SFX Toggle ──────────────────────────────────────────────────────────── */
+function SfxToggle() {
+  const [muted, setMutedState] = React.useState(false);
+  React.useEffect(() => { setMutedState(isMuted()); }, []);
+  const toggle = () => {
+    const next = !muted;
+    setMuted(next);
+    setMutedState(next);
+  };
+  return (
+    <button
+      onClick={toggle}
+      style={{ height: 22, width: 40 }}
+      className={`rounded-full transition-colors relative ${!muted ? 'bg-blue-600' : 'bg-elevated'}`}
+    >
+      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${!muted ? 'translate-x-5' : 'translate-x-0.5'}`} />
+    </button>
+  );
+}
+
 function NotificationSettings() {
   const [enabled,    setEnabled]    = React.useState(false);
   const [streakWarn, setStreakWarn] = React.useState(true);
