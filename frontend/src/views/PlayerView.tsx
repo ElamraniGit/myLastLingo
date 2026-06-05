@@ -89,7 +89,7 @@ export default function PlayerView() {
       <div className="shrink-0"><VideoPlayer /></div>
 
       {/* Transcript */}
-      <div className="flex-1 overflow-hidden"><TranscriptViewer /></div>
+      <div className="flex-1 overflow-clip"><TranscriptViewer /></div>
 
       <WordPopup />
     </div>

@@ -72,7 +72,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-screen bg-base overflow-hidden">
+    <div className="flex h-screen bg-base overflow-clip">
 
       {/* ── Desktop sidebar ───────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-60 bg-surface shrink-0 border-r border-default">
@@ -135,7 +135,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main content ──────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-clip">
 
         {/* Mobile top bar */}
         <header className="lg:hidden flex items-center justify-between px-4 py-3 nav-bar shrink-0 sticky top-0 z-30">
