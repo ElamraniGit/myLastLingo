@@ -9,11 +9,12 @@
  *  - Single tap (< 500ms, no drag) → single word lookup (unchanged)
  */
 
-import React, { useRef, useEffect, memo, useCallback, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
-import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
+import { useTranscriptMultiWordSelection } from '@/hooks/useTranscriptMultiWordSelection';
+import type { WordTiming, TranscriptFontSize } from '@/types';
 import { Button } from '@/components/ui/Button';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
 import PhraseInput from '@/components/common/PhraseInput';
@@ -25,7 +26,6 @@ const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: stri
   xl: { row: 'text-xl',   current: 'text-lg',  meta: 'text-sm'     },
 };
 
-const LONG_PRESS_MS = 500;
 
 function getActiveWordIndex(words: WordTiming[], currentTime: number) {
   if (!Array.isArray(words) || words.length === 0) return -1;
@@ -73,30 +73,22 @@ function StatusBanner() {
   return null;
 }
 
-// ── Selection state ─────────────────────────────────────────────────────────
-
-interface WordKey { segIndex: number; wordIndex: number; word: string; segText: string; }
-
 export default function TranscriptViewer() {
   const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize, currentVideo } = useStore();
   const { seekTo }     = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const containerRef   = useRef<HTMLDivElement>(null);
+  const activeRef      = useRef<HTMLDivElement | null>(null);
+  const lastScrolled   = useRef<number | null>(null);
 
-  // ── Custom selection state ────────────────────────────────────────────────
-  const [toolbar,  setToolbar]  = useState<{ phrase: string; sentence: string } | null>(null);
-  const [selRange, setSelRange] = useState<{ segIndex: number; lo: number; hi: number } | null>(null);
-
-  // All drag state in refs (no re-render during drag)
-  const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isSelecting     = useRef(false);
-  const isTap           = useRef(true);
-  const startSeg        = useRef(-1);
-  const startWi         = useRef(-1);
-  const startWord       = useRef('');
-  const startSegText    = useRef('');
-  const dragLo          = useRef(-1);
-  const dragHi          = useRef(-1);
+  const {
+    toolbar,
+    isWordSelected,
+    onWordTouchStart,
+    onWordMouseDown,
+    onWordClickCapture,
+    closeToolbar,
+  } = useTranscriptMultiWordSelection({ containerRef, lookupWord });
 
   // ── Auto-scroll ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -107,144 +99,6 @@ export default function TranscriptViewer() {
     lastScrolled.current = idx;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
-
-  // ── Block native selection ─────────────────────────────────────────────────
-  useEffect(() => {
-    const prevent = (e: Event) => e.preventDefault();
-    document.addEventListener('selectstart', prevent);
-    return () => document.removeEventListener('selectstart', prevent);
-  }, []);
-
-  // ── Find word element at screen coordinates ────────────────────────────────
-  const getWordAt = useCallback((x: number, y: number): HTMLElement | null => {
-    const container = containerRef.current;
-    if (!container) return null;
-
-    const hit = (px: number, py: number) => {
-      const el = document.elementFromPoint(px, py) as HTMLElement | null;
-      if (!el) return null;
-      let cur: HTMLElement | null = el;
-      while (cur && cur !== container) {
-        if (cur.dataset?.wordIndex !== undefined && cur.dataset?.segIndex !== undefined) return cur;
-        cur = cur.parentElement;
-      }
-      return null;
-    };
-
-    return hit(x, y)
-      || hit(x - 15, y) || hit(x + 15, y)
-      || hit(x - 30, y) || hit(x + 30, y)
-      || hit(x, y - 6)  || hit(x, y + 6);
-  }, []);
-
-  // ── Touch handlers (more reliable than pointer on Android) ─────────────────
-  const onWordTouchStart = useCallback((
-    e: React.TouchEvent,
-    segIndex: number, wordIndex: number, word: string, segText: string
-  ) => {
-    e.stopPropagation(); // prevent row onClick (seek)
-    // Do NOT preventDefault here — allows scroll if no long-press
-
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    isSelecting.current = false;
-    isTap.current       = true;
-    startSeg.current    = segIndex;
-    startWi.current     = wordIndex;
-    startWord.current   = word;
-    startSegText.current = segText;
-    dragLo.current      = wordIndex;
-    dragHi.current      = wordIndex;
-    setToolbar(null);
-    setSelRange(null);
-
-    const touch = e.touches[0];
-    const startX = touch.clientX;
-    const startY = touch.clientY;
-
-    longPressTimer.current = setTimeout(() => {
-      longPressTimer.current = null;
-      isSelecting.current   = true;
-      isTap.current         = false;
-      if ('vibrate' in navigator) navigator.vibrate(40);
-      setSelRange({ segIndex, lo: wordIndex, hi: wordIndex });
-    }, 500);
-  }, []);
-
-  const onContainerTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isSelecting.current) {
-      // Cancel long press if user scrolls
-      if (longPressTimer.current) {
-        const touch = e.touches[0];
-        // Let natural scroll happen — cancel our timer
-        clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
-      }
-      return;
-    }
-
-    // We are selecting — prevent scroll
-    e.preventDefault();
-
-    const touch = e.touches[0];
-    const el = getWordAt(touch.clientX, touch.clientY);
-    if (!el) return;
-
-    const si = parseInt(el.dataset.segIndex  || '-1', 10);
-    const wi = parseInt(el.dataset.wordIndex || '-1', 10);
-    if (si < 0 || wi < 0 || si !== startSeg.current) return;
-
-    dragLo.current = Math.min(startWi.current, wi);
-    dragHi.current = Math.max(startWi.current, wi);
-    setSelRange({ segIndex: si, lo: dragLo.current, hi: dragHi.current });
-  }, [getWordAt]);
-
-  const onContainerTouchEnd = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-
-    if (!isSelecting.current) {
-      // Tap → single word lookup
-      if (isTap.current && startWord.current) {
-        const clean = startWord.current.replace(/[^\w'-]/g, '').trim();
-        if (clean.length >= 2) lookupWord(clean, startSegText.current);
-      }
-      startWord.current = '';
-      return;
-    }
-
-    isSelecting.current = false;
-    const si  = startSeg.current;
-    const lo  = dragLo.current;
-    const hi  = dragHi.current;
-    const txt = startSegText.current;
-    startWord.current = '';
-
-    if (si < 0 || lo < 0 || hi < lo) { setSelRange(null); return; }
-
-    // Build phrase from DOM
-    const container = containerRef.current;
-    if (!container) { setSelRange(null); return; }
-    const spans = container.querySelectorAll<HTMLElement>(
-      `[data-seg-index="${si}"][data-word-index]`
-    );
-    const words: string[] = [];
-    spans.forEach(sp => {
-      const wi = parseInt(sp.dataset.wordIndex || '-1', 10);
-      if (wi >= lo && wi <= hi) words.push(sp.dataset.word || '');
-    });
-    const phrase = words.filter(Boolean).join(' ').replace(/[.,!?;:]+$/, '').trim();
-    if (!phrase) { setSelRange(null); return; }
-
-    setToolbar({ phrase, sentence: txt || phrase });
-  }, [lookupWord]);
-
-  const closeToolbar = useCallback(() => {
-    setToolbar(null);
-    setSelRange(null);
-    isSelecting.current = false;
-  }, []);
 
   if (transcriptStatus !== 'ready' || !transcript?.segments?.length) {
     return <StatusBanner />;
@@ -273,20 +127,17 @@ export default function TranscriptViewer() {
         </div>
       </div>
 
-      {/* transcript-words disables all native browser selection */}
+      {/* Multi-word selection is attached as a layer over the existing word tokens. */}
       <div
         ref={containerRef}
         className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin transcript-words"
         dir="ltr"
         onContextMenu={e => e.preventDefault()}
-        onTouchMove={onContainerTouchMove}
-        onTouchEnd={onContainerTouchEnd}
       >
         {transcript.segments.map((seg) => {
           const isActive = playerState.current_segment === seg.index;
           const activeWordIdx = getActiveWordIndex(seg.words || [], currentTime);
           const font = FONT_SIZE_CLASSES[transcriptFontSize] ?? FONT_SIZE_CLASSES.md;
-          const segSel = selRange?.segIndex === seg.index ? selRange : null;
 
           return (
             <div
@@ -304,7 +155,7 @@ export default function TranscriptViewer() {
                 {seg.words && seg.words.length > 0
                   ? seg.words.map((word, wi) => {
                       const clean = word.word.replace(/[^\w'-]/g, '').trim();
-                      const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
+                      const isSel = isWordSelected(seg.index, wi);
                       const isCur = activeWordIdx === wi;
                       return (
                         <span
@@ -323,6 +174,8 @@ export default function TranscriptViewer() {
                           data-word-index={wi}
                           data-seg-text={seg.text}
                           onTouchStart={e => onWordTouchStart(e, seg.index, wi, clean, seg.text)}
+                          onMouseDown={e => onWordMouseDown(e, seg.index, wi, clean, seg.text)}
+                          onClickCapture={onWordClickCapture}
                         >
                           {word.word}{wi < seg.words!.length - 1 ? ' ' : ''}
                         </span>
@@ -336,6 +189,8 @@ export default function TranscriptViewer() {
                       data-word-index={0}
                       data-seg-text={seg.text}
                       onTouchStart={e => onWordTouchStart(e, seg.index, 0, seg.text, seg.text)}
+                      onMouseDown={e => onWordMouseDown(e, seg.index, 0, seg.text, seg.text)}
+                      onClickCapture={onWordClickCapture}
                     >
                       {seg.text}
                     </span>
@@ -347,11 +202,6 @@ export default function TranscriptViewer() {
                 <span className={`${font.meta} text-faint tabular-nums`}>
                   {fmtTime(seg.start)} → {fmtTime(seg.end)}
                 </span>
-                {segSel && segSel.hi > segSel.lo && (
-                  <span className="text-[10px] text-blue-400 ml-1">
-                    {segSel.hi - segSel.lo + 1} words
-                  </span>
-                )}
               </div>
             </div>
           );
