@@ -52,7 +52,7 @@ function sm2Color(w: SavedWord): string {
 }
 
 export default function VocabularyView() {
-  const { savedWords, setPage, currentPage } = useStore();
+  const { savedWords, setPage, currentPage, setCurrentSavedWordId } = useStore();
   const { loadVocabulary, loadStats, loadReviewSummary, deleteWord, lookupWord } = useDictionary();
   const [status,  setStatus]  = useState<string | undefined>(undefined);
   const [search,  setSearch]  = useState('');
@@ -294,7 +294,7 @@ export default function VocabularyView() {
             {savedWords.map(w => (
               <div
                 key={w.id}
-                onClick={() => lookupWord(w.word, w.sentence || '')}
+                onClick={() => { setCurrentSavedWordId(w.id); setPage('worddetail'); }}
                 className="flex items-center gap-3 bg-card border border-default rounded-2xl px-4 py-3.5 cursor-pointer card-hover group"
               >
                 {/* Left */}

@@ -131,6 +131,10 @@ interface AppState {
   // ── Actions ───────────────────────────────────────────────────────────────
   currentTextId: string | null;
   setCurrentTextId: (id: string | null) => void;
+
+  // ── Word detail page ──────────────────────────────────────────────────────
+  currentSavedWordId: string | null;
+  setCurrentSavedWordId: (id: string | null) => void;
   resetPlayer: () => void;
 }
 
@@ -270,6 +274,9 @@ export const useStore = create<AppState>()(
       // ── Actions ──────────────────────────────────────────────────────────
       currentTextId: null,
       setCurrentTextId: (id) => set({ currentTextId: id }),
+
+      currentSavedWordId: null,
+      setCurrentSavedWordId: (id) => set({ currentSavedWordId: id }),
       resetPlayer: () =>
         set({
           currentVideo: null,

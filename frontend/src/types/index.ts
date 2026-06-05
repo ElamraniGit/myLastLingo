@@ -207,6 +207,7 @@ export type AppPage =
   | 'vocabulary'
   | 'flashcards'
   | 'games'
+  | 'worddetail'
   | 'stats'
   | 'settings'
   | 'library'
