@@ -104,12 +104,19 @@ if [ -z "$DEV_FLAG" ]; then
 
     export NEXT_TELEMETRY_DISABLED=1
     export NODE_OPTIONS="--max-old-space-size=1024"
-    # Fix for Node.js v22+: changed IPC serialization breaks next build
-    # NODE_CHANNEL_SERIALIZATION=json restores the old protocol
+    # Fix Node.js v22+/v26 IPC serialization issue with Next.js 14 workers
     export NODE_CHANNEL_SERIALIZATION=json
+    # Also try disabling worker threads as fallback for very new Node versions
+    export NEXT_PRIVATE_SKIP_SIZE_LIMITING=1
 
-    # Run build — on ARM64/Node v22+ may exit non-zero but still produce output
+    # Run build — attempt 1
     npx next build 2>&1 || true
+
+    # If build failed try with --no-experimental-fetch flag
+    if ! is_build_valid; then
+      echo -e "${YELLOW}   ↩️  Retrying build...${NC}"
+      node --no-experimental-fetch node_modules/.bin/next build 2>&1 || true
+    fi
 
     # Fix: if prerender-manifest.json is missing, create a valid empty one
     # This happens on some ARM builds where static generation finishes
@@ -125,10 +132,19 @@ if [ -z "$DEV_FLAG" ]; then
       echo -e "${GREEN}   ✅ Build complete!${NC}"
     else
       echo ""
-      echo -e "${RED}   ❌ Build incomplete — missing required files${NC}"
-      echo -e "${YELLOW}   ↩️  Falling back to dev mode (safe, same features)${NC}"
+      echo -e "${RED}   ❌ Build incomplete — trying alternative method${NC}"
+      
+      # Alternative: use next experimental standalone build without worker
       rm -rf .next 2>/dev/null || true
-      DEV_FLAG="--dev"
+      NODE_CHANNEL_SERIALIZATION=json       NEXT_TELEMETRY_DISABLED=1       node --max-old-space-size=1024         node_modules/next/dist/bin/next build 2>&1 || true
+      
+      if is_build_valid; then
+        echo -e "${GREEN}   ✅ Alternative build succeeded!${NC}"
+      else
+        echo -e "${YELLOW}   ↩️  Falling back to dev mode (same features, slightly slower)${NC}"
+        rm -rf .next 2>/dev/null || true
+        DEV_FLAG="--dev"
+      fi
     fi
   fi
 
