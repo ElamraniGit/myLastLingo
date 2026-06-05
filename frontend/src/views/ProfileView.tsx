@@ -33,9 +33,12 @@ import type { ReviewSummary, TranscriptFontSize, VideoQuality } from '@/types';
 
 type Tab = 'profile' | 'progress' | 'settings';
 
-export default function ProfileView() {
-  const { user, setPage } = useStore();
-  const [tab, setTab] = useState<Tab>('profile');
+export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
+  const { user, setPage, currentPage } = useStore();
+  // إذا أتى من 'settings' يفتح تبويب الإعدادات مباشرة
+  const startTab: Tab =
+    initialTab === 'settings' || currentPage === 'settings' ? 'settings' : 'profile';
+  const [tab, setTab] = useState<Tab>(startTab);
   if (!user) return null;
 
   const TABS: { id: Tab; label: string; emoji: string }[] = [

@@ -147,9 +147,9 @@ export default function App({ Component, pageProps }: AppProps) {
       case 'flashcards': return <FlashcardsView />;
       case 'chat':       return <ChatView />;
       case 'textreader': return <TextReaderView />;
-      case 'profile':
-      case 'settings':
       case 'stats':      return <StatsView />;
+      case 'profile':
+      case 'settings':   return <ProfileView tab="profile" />;
       case 'onboarding' as any: return <OnboardingView />;
       default:           return <PlayerView />;
     }
