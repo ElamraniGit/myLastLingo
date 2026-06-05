@@ -129,11 +129,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile top bar */}
         <header className="lg:hidden flex items-center justify-between px-4 py-3 nav-bar shrink-0 sticky top-0 z-30">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center select-none">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white text-base font-black flex items-center justify-center select-none shadow-sm">
               L
             </div>
-            <span className="font-semibold text-sm text-heading">LinguaLearn</span>
             <NetworkDot />
           </div>
           <div className="flex items-center gap-2">
