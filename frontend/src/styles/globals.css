@@ -261,24 +261,30 @@
   }
 }
 
-/* ── Text selection inside transcript + text reader ──────────────── */
-/* Forces user-select:text even inside overflow:hidden parents.      */
-.transcript-selectable,
-.transcript-selectable * {
-  -webkit-user-select: text !important;
-  user-select: text !important;
+/* ── Custom word selection system ───────────────────────────────── */
+/* Disable ALL native browser selection in transcript areas.        */
+/* We implement our own word-by-word selection instead.             */
+.transcript-words {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+.transcript-words * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
-/* Style the selection highlight — blue like Duocards */
-.transcript-selectable ::selection {
-  background-color: rgb(59 130 246 / 0.35);
-  color: inherit;
+/* Word selected state */
+.word-token.word-selected {
+  background-color: rgb(59 130 246 / 0.3);
+  color: rgb(147 197 253);
+  border-radius: 3px;
 }
 
-/* Hide browser's own context toolbar (Copy/Paste/Share)             */
-/* Our SelectionToolbar replaces it via selectionchange event        */
-.transcript-selectable {
-  -webkit-touch-callout: none;
+/* Long-press visual feedback */
+.word-token.word-pressing {
+  background-color: rgb(59 130 246 / 0.15);
+  border-radius: 3px;
 }
 
 @keyframes slide-up {

@@ -102,8 +102,6 @@ export default function TextReaderView() {
 
   // Single word click
   const handleWordClick = useCallback((word: string) => {
-    const sel = window.getSelection();
-    if (sel && !sel.isCollapsed && sel.toString().trim().split(/\s+/).length >= 2) return;
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
       setToolbar(null);
@@ -112,40 +110,95 @@ export default function TextReaderView() {
     }
   }, [lookupWord]);
 
-  // Native selectionchange → SelectionToolbar
-  useEffect(() => {
-    const container = contentRef.current;
-    if (!container) return;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const blockCtx = (e: Event) => e.preventDefault();
-    container.addEventListener('contextmenu', blockCtx);
+  // Long-press selection for TextReader
+  const trLPTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trIsSelecting = useRef(false);
+  const trStartIdx = useRef(-1);
+  const trLoRef    = useRef(-1);
+  const trHiRef    = useRef(-1);
+  const trActivePtr = useRef(-1);
+  const [trSelRange, setTrSelRange] = useState<{ lo: number; hi: number } | null>(null);
 
-    const onSel = () => {
-      if (timer) clearTimeout(timer);
-      // 20ms: beat browser context menu popup
-      timer = setTimeout(() => {
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || !sel.rangeCount) {
-          setToolbar(null);
-          return;
-        }
-        const text = sel.toString().trim().replace(/\s+/g, ' ');
-        if (text.split(/\s+/).filter(Boolean).length < 1) return;
-        const range = sel.getRangeAt(0);
-        if (!container.contains(range.commonAncestorContainer)) return;
-        const rect = range.getBoundingClientRect();
-        if (!rect.width && !rect.height) return;
-        const phrase = text.replace(/[.,!?;:""''«»]+$/, '').trim();
-        if (!phrase) return;
-        setToolbar({ phrase, position: { x: rect.left + rect.width / 2, y: Math.max(80, rect.top - 8) } });
-      }, 100);
+  const getWordIdxAt = useCallback((x: number, y: number): number => {
+    const container = contentRef.current;
+    if (!container) return -1;
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el) return -1;
+    let cur: HTMLElement | null = el;
+    while (cur && cur !== container) {
+      if (cur.dataset?.trWordIdx !== undefined) return parseInt(cur.dataset.trWordIdx, 10);
+      cur = cur.parentElement;
+    }
+    return -1;
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== trActivePtr.current || !trIsSelecting.current) return;
+      const idx = getWordIdxAt(e.clientX, e.clientY);
+      if (idx < 0) return;
+      trLoRef.current = Math.min(trStartIdx.current, idx);
+      trHiRef.current = Math.max(trStartIdx.current, idx);
+      setTrSelRange({ lo: trLoRef.current, hi: trHiRef.current });
     };
-    document.addEventListener('selectionchange', onSel);
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== trActivePtr.current) return;
+      trActivePtr.current = -1;
+      if (trLPTimer.current) { clearTimeout(trLPTimer.current); trLPTimer.current = null; }
+      if (!trIsSelecting.current) return;
+      trIsSelecting.current = false;
+      const lo = trLoRef.current; const hi = trHiRef.current;
+      setTrSelRange(null);
+      if (lo < 0 || hi < lo) return;
+      const words = wordsRef.current;
+      const phrase = words.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
+      if (!phrase) return;
+      setToolbar({ phrase, position: { x: 0, y: 0 } });
+    };
+    document.addEventListener('pointermove', onMove, { passive: true });
+    document.addEventListener('pointerup',   onUp);
+    document.addEventListener('pointercancel', onUp);
     return () => {
-      container.removeEventListener('contextmenu', blockCtx);
-      document.removeEventListener('selectionchange', onSel);
-      if (timer) clearTimeout(timer);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup',   onUp);
+      document.removeEventListener('pointercancel', onUp);
     };
+  }, [getWordIdxAt]);
+
+  const onWordPointerDown = useCallback((e: React.PointerEvent, idx: number, word: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (trLPTimer.current) clearTimeout(trLPTimer.current);
+    trIsSelecting.current = false;
+    trStartIdx.current = idx;
+    trLoRef.current = idx; trHiRef.current = idx;
+    trActivePtr.current = e.pointerId;
+    setTrSelRange(null);
+    trLPTimer.current = setTimeout(() => {
+      trIsSelecting.current = true;
+      if ('vibrate' in navigator) navigator.vibrate(30);
+      setTrSelRange({ lo: idx, hi: idx });
+    }, 500);
+  }, []);
+
+  const onWordPointerUp = useCallback((e: React.PointerEvent, word: string) => {
+    if (trLPTimer.current) {
+      clearTimeout(trLPTimer.current);
+      trLPTimer.current = null;
+      if (!trIsSelecting.current) {
+        // Was a tap
+        handleWordClick(word);
+      }
+    }
+  }, [handleWordClick]);
+
+  // Prevent native selection + close toolbar on outside tap
+  useEffect(() => {
+    const prevent = (e: Event) => e.preventDefault();
+    document.addEventListener('selectstart', prevent);
+    const container = contentRef.current;
+    if (container) container.addEventListener('contextmenu', prevent);
+    return () => document.removeEventListener('selectstart', prevent);
   }, []);
 
   useEffect(() => {
@@ -154,12 +207,10 @@ export default function TextReaderView() {
       const tb = document.querySelector('[data-selection-toolbar]');
       if (tb?.contains(e.target as Node)) return;
       setToolbar(null);
-      window.getSelection()?.removeAllRanges();
     };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
   }, [toolbar]);
-
   const stopReading = useCallback(() => {
     readingRef.current = false;
     stopSpeaking();
@@ -299,7 +350,7 @@ export default function TextReaderView() {
       {/* ── Text content ─────────────────────────────────────────── */}
       {/* select-text: allow native text selection for multi-word phrases */}
       <div
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 transcript-selectable"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 transcript-words"
         ref={contentRef}
       >
         <div className="max-w-2xl mx-auto">
@@ -316,9 +367,13 @@ export default function TextReaderView() {
                   <span
                     ref={isStart ? activeRef : null}
                     data-word={isWord ? clean : undefined}
-                    onClick={isWord ? () => handleWordClick(word) : undefined}
-                    className={`inline rounded px-0.5 transition-colors duration-100 ${
-                      isActive
+                    data-tr-word-idx={isWord ? i : undefined}
+                    onPointerDown={isWord ? (e) => onWordPointerDown(e, i, word) : undefined}
+                    onPointerUp={isWord ? (e) => onWordPointerUp(e, word) : undefined}
+                    className={`word-token inline rounded px-0.5 transition-colors duration-100 ${
+                      trSelRange && isWord && i >= trSelRange.lo && i <= trSelRange.hi
+                        ? 'word-selected'
+                        : isActive
                         ? 'bg-blue-500/20 text-blue-400'
                         : lookedUp.has(clean.toLowerCase()) && isWord
                         ? 'text-green-400 cursor-pointer hover:bg-green-500/10'
