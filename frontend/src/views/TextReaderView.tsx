@@ -65,9 +65,10 @@ export default function TextReaderView() {
     position: { x: number; y: number };
   } | null>(null);
   const contentRef        = useRef<HTMLDivElement>(null);
-  const ptrDownRef        = useRef<{ x: number; y: number } | null>(null);
+  const ptrDownRef        = useRef<{ x: number; y: number; id: number } | null>(null);
   const isDraggingTR      = useRef(false);
-  const selIndicesRef     = useRef<{ start: number; end: number } | null>(null);
+  const selLoRef          = useRef(-1);
+  const selHiRef          = useRef(-1);
   const [selRange, setSelRange] = useState<{ start: number; end: number } | null>(null);
 
   const wordsRef   = useRef<string[]>([]);
@@ -113,10 +114,10 @@ export default function TextReaderView() {
     }
   }, [lookupWord]);
 
-  // Get word index from element under pointer
-  const getWordIndexAt = useCallback((x: number, y: number): number => {
+  // Helper: get word index from DOM element under pointer
+  const getWordIdxAt = useCallback((x: number, y: number): number => {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el) return -1;
+    if (!el || !contentRef.current) return -1;
     let cur: HTMLElement | null = el;
     while (cur && cur !== contentRef.current) {
       if (cur.dataset?.wordIndex !== undefined) return parseInt(cur.dataset.wordIndex, 10);
@@ -125,58 +126,65 @@ export default function TextReaderView() {
     return -1;
   }, []);
 
-  const onContentPointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    ptrDownRef.current    = { x: e.clientX, y: e.clientY };
-    isDraggingTR.current  = false;
-    selIndicesRef.current = null;
-    setSelRange(null);
-    setToolbar(null);
-  }, []);
+  // Document-level listeners — fire even when child spans stop propagation
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
+      const dx = e.clientX - ptrDownRef.current.x;
+      const dy = e.clientY - ptrDownRef.current.y;
+      if (!isDraggingTR.current && Math.sqrt(dx*dx+dy*dy) < 10) return;
+      isDraggingTR.current = true;
 
-  const onContentPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!ptrDownRef.current) return;
-    const dx = e.clientX - ptrDownRef.current.x;
-    const dy = e.clientY - ptrDownRef.current.y;
-    if (!isDraggingTR.current && Math.sqrt(dx*dx+dy*dy) < 12) return;
-    isDraggingTR.current = true;
+      const startIdx = getWordIdxAt(ptrDownRef.current.x, ptrDownRef.current.y);
+      const curIdx   = getWordIdxAt(e.clientX, e.clientY);
+      if (startIdx < 0 || curIdx < 0) return;
 
-    const startIdx = getWordIndexAt(ptrDownRef.current.x, ptrDownRef.current.y);
-    const curIdx   = getWordIndexAt(e.clientX, e.clientY);
-    if (startIdx < 0 || curIdx < 0) return;
+      selLoRef.current = Math.min(startIdx, curIdx);
+      selHiRef.current = Math.max(startIdx, curIdx);
+      setSelRange({ start: selLoRef.current, end: selHiRef.current });
+    };
 
-    const lo = Math.min(startIdx, curIdx);
-    const hi = Math.max(startIdx, curIdx);
-    selIndicesRef.current = { start: lo, end: hi };
-    setSelRange({ start: lo, end: hi });
-  }, [getWordIndexAt]);
+    const onUp = (e: PointerEvent) => {
+      if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
+      const wasDrag = isDraggingTR.current;
+      ptrDownRef.current   = null;
+      isDraggingTR.current = false;
 
-  const onContentPointerUp = useCallback((e: React.PointerEvent) => {
-    const wasDragging = isDraggingTR.current;
-    ptrDownRef.current   = null;
-    isDraggingTR.current = false;
+      if (!wasDrag) { setSelRange(null); return; }
 
-    if (!wasDragging) { setSelRange(null); return; }
+      const lo = selLoRef.current;
+      const hi = selHiRef.current;
+      selLoRef.current = -1; selHiRef.current = -1;
+      setSelRange(null);
 
-    const sel = selIndicesRef.current;
-    selIndicesRef.current = null;
-    setSelRange(null);
+      if (lo < 0 || hi - lo < 1) return;
 
-    if (!sel || sel.end - sel.start < 1) return;
+      const words  = wordsRef.current;
+      const phrase = words.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
+      if (!phrase || phrase.split(/\s+/).length < 2) return;
 
-    const words = wordsRef.current;
-    const phrase = words.slice(sel.start, sel.end + 1)
-      .join(' ').replace(/[.,!?;:]+$/, '').trim();
-    if (!phrase || phrase.split(/\s+/).length < 2) return;
+      const cr = contentRef.current?.getBoundingClientRect();
+      setToolbar({
+        phrase,
+        position: { x: (cr?.left ?? 0) + (cr?.width ?? 300) / 2, y: e.clientY },
+      });
+    };
 
-    const containerRect = contentRef.current?.getBoundingClientRect();
-    setToolbar({
-      phrase,
-      position: {
-        x: (containerRect?.left ?? 0) + (containerRect?.width ?? 300) / 2,
-        y: e.clientY,
-      },
-    });
+    document.addEventListener('pointermove', onMove, { passive: true });
+    document.addEventListener('pointerup',   onUp);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup',   onUp);
+    };
+  }, [getWordIdxAt]);
+
+  // Block browser context menu inside content area
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const block = (e: Event) => e.preventDefault();
+    el.addEventListener('contextmenu', block);
+    return () => el.removeEventListener('contextmenu', block);
   }, []);
 
   const stopReading = useCallback(() => {
@@ -316,11 +324,16 @@ export default function TextReaderView() {
       <div
         className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 select-none"
         ref={contentRef}
-        onPointerDown={onContentPointerDown}
-        onPointerMove={onContentPointerMove}
-        onPointerUp={onContentPointerUp}
-        onPointerCancel={() => { ptrDownRef.current = null; isDraggingTR.current = false; setSelRange(null); }}
-        onContextMenu={e => e.preventDefault()}
+        onPointerDown={e => {
+          if (e.pointerType === 'mouse' && e.button !== 0) return;
+          if (!contentRef.current?.contains(e.target as Node)) return;
+          ptrDownRef.current   = { x: e.clientX, y: e.clientY, id: e.pointerId };
+          isDraggingTR.current = false;
+          selLoRef.current     = -1;
+          selHiRef.current     = -1;
+          setSelRange(null);
+          setToolbar(null);
+        }}
       >
         <div className="max-w-2xl mx-auto">
           <p className="leading-8 text-[17px] text-heading select-none">
