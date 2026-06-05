@@ -114,7 +114,7 @@ export default function TranscriptViewer() {
 
         const text = sel.toString().trim().replace(/\s+/g, ' ');
         const wordCount = text.split(/\s+/).filter(Boolean).length;
-        if (wordCount < 2) return;
+        if (wordCount < 1) return;
 
         // Verify selection is inside our container
         const range = sel.getRangeAt(0);
@@ -152,9 +152,18 @@ export default function TranscriptViewer() {
     const blockCtx = (e: Event) => e.preventDefault();
     container.addEventListener('contextmenu', blockCtx);
 
+    // Also listen on pointerup — fires after selection is done
+    // and before browser shows its popup
+    const onPointerUp = () => {
+      if (selTimer) clearTimeout(selTimer);
+      selTimer = setTimeout(() => onSelChange(), 50);
+    };
+    container.addEventListener('pointerup', onPointerUp);
+
     document.addEventListener('selectionchange', onSelChange);
     return () => {
       container.removeEventListener('contextmenu', blockCtx);
+      container.removeEventListener('pointerup', onPointerUp);
       document.removeEventListener('selectionchange', onSelChange);
       if (selTimer) clearTimeout(selTimer);
     };

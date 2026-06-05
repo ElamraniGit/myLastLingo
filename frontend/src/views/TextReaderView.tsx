@@ -130,7 +130,7 @@ export default function TextReaderView() {
           return;
         }
         const text = sel.toString().trim().replace(/\s+/g, ' ');
-        if (text.split(/\s+/).filter(Boolean).length < 2) return;
+        if (text.split(/\s+/).filter(Boolean).length < 1) return;
         const range = sel.getRangeAt(0);
         if (!container.contains(range.commonAncestorContainer)) return;
         const rect = range.getBoundingClientRect();
