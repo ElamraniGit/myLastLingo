@@ -1,11 +1,11 @@
 /**
- * SelectionToolbar — appears at the BOTTOM of the screen when text is selected.
+ * SelectionToolbar — bottom sheet shown when text is selected.
  *
- * Positioned at the bottom (like a bottom action sheet) so it never
- * conflicts with the browser's own selection toolbar (Copy/Share/etc.)
- * which appears at the TOP. The user can use both independently.
- *
- * Shows: phrase preview + 🔍 Look up · ➕ Save · 🔊 Hear · ✕ Dismiss
+ * Look up behaviour:
+ *  - Single word  → WordPopup (definition, examples, synonyms…)
+ *  - Multi-word phrase → fetches Arabic translation via MyMemory +
+ *    tries to find definition from Free Dictionary API,
+ *    then shows a phrase-info sheet inline in this toolbar
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -17,73 +17,122 @@ import * as sfx from '@/lib/sfx';
 interface Props {
   phrase: string;
   sentence: string;
-  position?: { x: number; y: number }; // ignored — always bottom
+  position?: { x: number; y: number };
   onClose: () => void;
   videoId?: string;
 }
 
+// Fetch Arabic translation for any text (word or phrase)
+async function fetchTranslation(text: string): Promise<string> {
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ar`;
+    const res  = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return '';
+    const data = await res.json();
+    const tr   = data?.responseData?.translatedText || '';
+    // MyMemory returns the query itself when it fails
+    if (tr && tr.toLowerCase() !== text.toLowerCase()) return tr;
+  } catch {}
+  return '';
+}
+
+// Try to get a definition from Free Dictionary API (works for some phrases)
+async function fetchDefinition(text: string): Promise<string> {
+  // Only try if 1-2 words (phrasal verbs, compound words)
+  const words = text.trim().split(/\s+/);
+  if (words.length > 3) return '';
+  try {
+    const query = words.join('%20');
+    const res   = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${query}`,
+      { signal: AbortSignal.timeout(6000) }
+    );
+    if (!res.ok) return '';
+    const data = await res.json();
+    const def  = data?.[0]?.meanings?.[0]?.definitions?.[0]?.definition || '';
+    return def;
+  } catch {}
+  return '';
+}
+
+interface PhraseInfo {
+  translation: string;
+  definition:  string;
+  loading: boolean;
+}
+
 export default function SelectionToolbar({ phrase, sentence, onClose, videoId }: Props) {
   const { lookupWord, saveWord } = useDictionary();
-  const { setPage } = useStore();
-  const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [saving,    setSaving]    = useState(false);
+  const [saved,     setSaved]     = useState(false);
+  const [visible,   setVisible]   = useState(false);
+  const [phraseInfo, setPhraseInfo] = useState<PhraseInfo | null>(null);
 
-  // Animate in from bottom
+  const wordCount  = phrase.trim().split(/\s+/).filter(Boolean).length;
+  const isMultiWord = wordCount > 1;
+
+  // Animate in
   useEffect(() => {
     const t = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(t);
   }, []);
 
-  const handleLookup = useCallback(async () => {
-    onClose();
-    window.getSelection()?.removeAllRanges();
-    const words = phrase.trim().split(/\s+/);
-    const mainWord = words.find(w => w.replace(/[^\w]/g, '').length > 2)
-      || words[0].replace(/[^\w'-]/g, '');
-    await lookupWord(mainWord, sentence || phrase);
-  }, [phrase, sentence, lookupWord, onClose]);
+  // Auto-fetch phrase info when toolbar opens for multi-word selection
+  useEffect(() => {
+    if (!isMultiWord) return;
+    setPhraseInfo({ translation: '', definition: '', loading: true });
+    Promise.all([
+      fetchTranslation(phrase),
+      fetchDefinition(phrase),
+    ]).then(([translation, definition]) => {
+      setPhraseInfo({ translation, definition, loading: false });
+    });
+  }, [phrase, isMultiWord]);
 
+  // ── Look up ───────────────────────────────────────────────────────────────
+  const handleLookup = useCallback(async () => {
+    if (wordCount === 1) {
+      // Single word → normal WordPopup
+      onClose();
+      const clean = phrase.replace(/[^\w'-]/g, '').trim();
+      if (clean.length >= 2) await lookupWord(clean, sentence || phrase);
+    } else {
+      // Multi-word: fetch and show info inline (already done in useEffect above)
+      // If already loaded, just expand the info section (it's always shown)
+      // If still loading, nothing extra to do — it shows the loading state
+    }
+  }, [phrase, sentence, wordCount, lookupWord, onClose]);
+
+  // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (saving || saved) return;
     setSaving(true);
     const ok = await saveWord(phrase.trim(), videoId, sentence || phrase, '');
     if (ok) { sfx.save(); setSaved(true); }
     setSaving(false);
-    setTimeout(() => { onClose(); window.getSelection()?.removeAllRanges(); }, 800);
+    setTimeout(onClose, 800);
   }, [phrase, sentence, videoId, saveWord, saving, saved, onClose]);
 
-  const handleSpeak = useCallback(() => {
-    speak(phrase, { rate: 0.9 });
-  }, [phrase]);
+  const handleSpeak = useCallback(() => speak(phrase, { rate: 0.9 }), [phrase]);
 
   const handleClose = useCallback(() => {
     setVisible(false);
-    window.getSelection()?.removeAllRanges();
     setTimeout(onClose, 250);
   }, [onClose]);
 
-  const wordCount = phrase.trim().split(/\s+/).filter(Boolean).length;
-
   return (
-    /* Full-screen backdrop — transparent, closes on tap outside toolbar */
     <div
-      className={`fixed inset-0 z-[80] transition-all duration-250 ${
-        visible ? 'opacity-100' : 'opacity-0'
-      }`}
+      className={`fixed inset-0 z-[80] transition-all duration-250 ${visible ? 'opacity-100' : 'opacity-0'}`}
       onPointerDown={handleClose}
     >
-      {/* Bottom toolbar — stops propagation so tapping it doesn't close */}
       <div
         data-selection-toolbar="true"
         onPointerDown={e => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 right-0 bg-surface border-t border-default
-                    shadow-2xl transition-all duration-250 ease-out
-                    ${visible ? 'translate-y-0' : 'translate-y-full'}`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}
+        className={`absolute bottom-0 left-0 right-0 bg-surface border-t border-default shadow-2xl transition-all duration-250 ease-out ${visible ? 'translate-y-0' : 'translate-y-full'}`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)', maxHeight: '70vh', overflowY: 'auto' }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-2 pb-1">
+        {/* Handle */}
+        <div className="flex justify-center pt-2 pb-1 sticky top-0 bg-surface">
           <div className="w-8 h-1 bg-elevated rounded-full" />
         </div>
 
@@ -92,56 +141,94 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-heading truncate">
-                "{phrase.length > 40 ? phrase.slice(0, 40) + '…' : phrase}"
+                "{phrase.length > 45 ? phrase.slice(0, 45) + '…' : phrase}"
               </p>
               <p className="text-[11px] text-muted mt-0.5">
                 {wordCount} word{wordCount !== 1 ? 's' : ''} selected
               </p>
             </div>
-            <button
-              onClick={handleClose}
-              className="w-8 h-8 rounded-full bg-elevated text-muted hover:text-heading
-                         flex items-center justify-center text-sm ml-2 shrink-0"
-            >✕</button>
+            <button onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-elevated text-muted flex items-center justify-center text-sm ml-2 shrink-0">
+              ✕
+            </button>
           </div>
         </div>
 
-        {/* Action buttons */}
+        {/* ── Phrase info (multi-word) ─────────────────────────────────────── */}
+        {isMultiWord && (
+          <div className="px-4 py-3 border-b border-subtle space-y-2.5">
+            {phraseInfo?.loading ? (
+              <div className="flex items-center gap-2 text-xs text-muted">
+                <div className="w-3.5 h-3.5 border-2 border-muted border-t-blue-500 rounded-full animate-spin" />
+                Fetching translation…
+              </div>
+            ) : (
+              <>
+                {/* Arabic translation */}
+                {phraseInfo?.translation && (
+                  <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl px-3 py-2.5">
+                    <p className="text-[10px] text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
+                    <p className="text-base font-semibold text-heading leading-relaxed"
+                       style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Segoe UI', 'Noto Sans Arabic', sans-serif" }}>
+                      {phraseInfo.translation}
+                    </p>
+                  </div>
+                )}
+
+                {/* Definition (phrasal verbs etc.) */}
+                {phraseInfo?.definition && (
+                  <div className="bg-card border border-default rounded-xl px-3 py-2.5">
+                    <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Definition</p>
+                    <p className="text-sm text-heading leading-relaxed">{phraseInfo.definition}</p>
+                  </div>
+                )}
+
+                {/* Sentence context */}
+                {sentence && sentence !== phrase && (
+                  <div className="bg-elevated/50 rounded-xl px-3 py-2">
+                    <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Context</p>
+                    <p className="text-xs text-body leading-relaxed italic">"{sentence}"</p>
+                  </div>
+                )}
+
+                {!phraseInfo?.translation && !phraseInfo?.definition && (
+                  <p className="text-xs text-faint">No translation found — check internet connection</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── Action buttons ───────────────────────────────────────────────── */}
         <div className="flex items-center px-3 py-3 gap-2">
 
-          {/* Look up */}
-          <button
-            onClick={handleLookup}
-            className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
-                       bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20
-                       text-blue-500 transition-all active:scale-95"
-          >
-            <span className="text-xl">🔍</span>
-            <span className="text-[11px] font-semibold">Look up</span>
-          </button>
+          {/* Look up (single word only — multi-word shows info above) */}
+          {!isMultiWord && (
+            <button onClick={handleLookup}
+              className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
+                         bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20
+                         text-blue-500 transition-all active:scale-95">
+              <span className="text-xl">🔍</span>
+              <span className="text-[11px] font-semibold">Look up</span>
+            </button>
+          )}
 
           {/* Save */}
-          <button
-            onClick={handleSave}
-            disabled={saving || saved}
+          <button onClick={handleSave} disabled={saving || saved}
             className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                         border transition-all active:scale-95 disabled:opacity-60 ${
-              saved
-                ? 'bg-green-500/10 border-green-500/20 text-green-500'
-                : 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20 text-green-500'
-            }`}
-          >
+              saved ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                    : 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20 text-green-500'
+            }`}>
             <span className="text-xl">{saved ? '✅' : saving ? '⏳' : '➕'}</span>
             <span className="text-[11px] font-semibold">{saved ? 'Saved!' : 'Save'}</span>
           </button>
 
           {/* Pronounce */}
-          <button
-            onClick={handleSpeak}
+          <button onClick={handleSpeak}
             className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                        bg-card border border-default text-muted hover:text-body
-                       hover:bg-elevated transition-all active:scale-95"
-          >
+                       hover:bg-elevated transition-all active:scale-95">
             <span className="text-xl">🔊</span>
             <span className="text-[11px] font-semibold">Hear</span>
           </button>
