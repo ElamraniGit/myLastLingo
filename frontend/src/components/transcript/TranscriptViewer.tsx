@@ -155,8 +155,17 @@ export default function TranscriptViewer() {
         return;
       }
 
-      // Extend selection
+      // With setPointerCapture, elementFromPoint still works using e.clientX/Y
+      // Release capture temporarily to hit-test, then re-capture
+      const captureEl = e.target as HTMLElement | null;
+      if (captureEl?.releasePointerCapture) {
+        try { captureEl.releasePointerCapture(e.pointerId); } catch {}
+      }
       const el = getWordElAt(e.clientX, e.clientY);
+      if (captureEl?.setPointerCapture) {
+        try { captureEl.setPointerCapture(e.pointerId); } catch {}
+      }
+
       if (!el) return;
       const si = parseInt(el.dataset.segIndex || '-1', 10);
       const wi = parseInt(el.dataset.wordIndex || '-1', 10);
@@ -235,8 +244,14 @@ export default function TranscriptViewer() {
     word: string,
     segText: string
   ) => {
-    e.stopPropagation();
-    e.preventDefault();
+    // Do NOT stopPropagation — document listeners need the events
+    e.preventDefault(); // prevent text selection only
+
+    // Capture pointer on the element so pointermove/up reach document
+    // even when finger moves to gaps between words
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
 
     // Cancel previous
     if (longPressTimer.current) clearTimeout(longPressTimer.current);

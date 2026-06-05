@@ -135,7 +135,11 @@ export default function TextReaderView() {
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (e.pointerId !== trActivePtr.current || !trIsSelecting.current) return;
+      // Release capture temporarily for elementFromPoint hit-testing
+      const captureEl = e.target as HTMLElement | null;
+      try { captureEl?.releasePointerCapture?.(e.pointerId); } catch {}
       const idx = getWordIdxAt(e.clientX, e.clientY);
+      try { captureEl?.setPointerCapture?.(e.pointerId); } catch {}
       if (idx < 0) return;
       trLoRef.current = Math.min(trStartIdx.current, idx);
       trHiRef.current = Math.max(trStartIdx.current, idx);
@@ -166,8 +170,9 @@ export default function TextReaderView() {
   }, [getWordIdxAt]);
 
   const onWordPointerDown = useCallback((e: React.PointerEvent, idx: number, word: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); // prevent text selection, NOT stopPropagation
+    // Capture pointer so pointermove events reach document listener
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
     if (trLPTimer.current) clearTimeout(trLPTimer.current);
     trIsSelecting.current = false;
     trStartIdx.current = idx;
