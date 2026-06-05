@@ -59,14 +59,17 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
-  // Multi-word selection state
+  // Multi-word selection state (Long-Press to activate)
   const [toolbar, setToolbar] = useState<{
     phrase: string;
     position: { x: number; y: number };
   } | null>(null);
-  const selectionRef = useRef<{ start: number; end: number } | null>(null);
-  const isDraggingRef = useRef(false);
-  const pointerDownWordRef = useRef<number>(-1);
+  const selectionRef        = useRef<{ start: number; end: number } | null>(null);
+  const isDraggingRef       = useRef(false);
+  const pointerDownWordRef  = useRef<number>(-1);
+  const longPressTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressActiveRef  = useRef(false);
+  const LONG_PRESS_MS       = 400;
 
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
@@ -101,9 +104,17 @@ export default function TextReaderView() {
   // Cleanup TTS on unmount
   useEffect(() => () => { readingRef.current = false; stopSpeaking(); }, []);
 
+  const cancelLongPressText = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    longPressActiveRef.current = false;
+  }, []);
+
+  // Normal click — single word lookup (unchanged)
   const handleWordClick = useCallback((word: string, wordIndex: number) => {
-    // Only fire single-word lookup if no drag happened
-    if (isDraggingRef.current) return;
+    if (longPressActiveRef.current || isDraggingRef.current) return;
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
       lookupWord(clean, '');
@@ -112,38 +123,59 @@ export default function TextReaderView() {
   }, [lookupWord]);
 
   const handleWordPointerDown = useCallback((e: React.PointerEvent, wordIndex: number) => {
+    cancelLongPressText();
     pointerDownWordRef.current = wordIndex;
-    isDraggingRef.current = false;
-    selectionRef.current = { start: wordIndex, end: wordIndex };
+    isDraggingRef.current      = false;
+    longPressActiveRef.current = false;
     setToolbar(null);
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-  }, []);
+
+    // Only start long-press timer — do NOT capture pointer yet
+    longPressTimerRef.current = setTimeout(() => {
+      longPressActiveRef.current = true;
+      selectionRef.current = { start: wordIndex, end: wordIndex };
+      if ('vibrate' in navigator) navigator.vibrate(30);
+      // Capture pointer so drag extends selection smoothly
+      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    }, LONG_PRESS_MS);
+  }, [cancelLongPressText]);
 
   const handleWordPointerMove = useCallback((e: React.PointerEvent, wordIndex: number) => {
-    if (pointerDownWordRef.current < 0) return;
-    const dist = Math.abs(wordIndex - pointerDownWordRef.current);
+    if (!longPressActiveRef.current) {
+      // Moved before long-press → cancel, allow normal scroll
+      cancelLongPressText();
+      return;
+    }
+    const start = pointerDownWordRef.current;
+    if (start < 0) return;
+    const dist = Math.abs(wordIndex - start);
     if (dist >= 1) {
       isDraggingRef.current = true;
       selectionRef.current = {
-        start: Math.min(pointerDownWordRef.current, wordIndex),
-        end:   Math.max(pointerDownWordRef.current, wordIndex),
+        start: Math.min(start, wordIndex),
+        end:   Math.max(start, wordIndex),
       };
     }
-  }, []);
+  }, [cancelLongPressText]);
 
   const handleWordPointerUp = useCallback((
     e: React.PointerEvent,
     wordIndex: number,
     word: string
   ) => {
-    const wasDragging = isDraggingRef.current;
-    const sel = selectionRef.current;
-    isDraggingRef.current = false;
+    const wasLongPress = longPressActiveRef.current;
+    const wasDragging  = isDraggingRef.current;
+    const sel          = selectionRef.current;
+    cancelLongPressText();
+    isDraggingRef.current      = false;
     pointerDownWordRef.current = -1;
 
+    // Normal tap (no long press) → handled by onClick, nothing to do here
+    if (!wasLongPress) return;
+
+    // Long-pressed single word (no drag) → treat as tap lookup
     if (!wasDragging || !sel || sel.start === sel.end) {
-      // Single tap — normal lookup
       setToolbar(null);
+      selectionRef.current = null;
       const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
       if (clean.length >= 2) {
         lookupWord(clean, '');
@@ -322,7 +354,8 @@ export default function TextReaderView() {
                     onPointerMove={isWord ? e => handleWordPointerMove(e, i) : undefined}
                     onPointerUp={isWord ? e => handleWordPointerUp(e, i, word) : undefined}
                     onClick={isWord ? () => handleWordClick(word, i) : undefined}
-                    style={{ touchAction: isWord ? 'none' : undefined }}
+                    onPointerCancel={isWord ? cancelLongPressText : undefined}
+                    style={{ touchAction: 'auto' }}
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
                       isActive
                         ? 'bg-blue-500/20 text-blue-400'

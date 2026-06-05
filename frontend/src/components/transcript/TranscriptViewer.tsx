@@ -122,9 +122,6 @@ export default function TranscriptViewer() {
     sentence: string;
     position: { x: number; y: number };
   } | null>(null);
-  const dragStartRef = useRef<{ segIndex: number; wordIndex: number } | null>(null);
-  const isDraggingRef = useRef(false);
-
   // Auto-scroll active segment into view within the transcript container
   useEffect(() => {
     const segIdx = playerState.current_segment;
@@ -141,26 +138,56 @@ export default function TranscriptViewer() {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
 
-  // ── Multi-word selection handlers ──────────────────────────────────────────
+  // ── Multi-word selection via Long-Press ────────────────────────────────────
+  // Normal tap   → single word lookup (unchanged behaviour)
+  // Long press (≥400ms) + drag → multi-word selection → SelectionToolbar
+  const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressActive = useRef(false);
+  const dragStartRef    = useRef<{ segIndex: number; wordIndex: number } | null>(null);
+  const isDraggingRef   = useRef(false);
+  const LONG_PRESS_MS   = 400;
+
+  const cancelLongPress = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    longPressActive.current = false;
+  }, []);
+
   const handleWordPointerDown = useCallback((
     e: React.PointerEvent,
     segIndex: number,
     wordIndex: number
   ) => {
     e.stopPropagation();
-    dragStartRef.current = { segIndex, wordIndex };
+    cancelLongPress();
     isDraggingRef.current = false;
-    setSelection({ segIndex, startWord: wordIndex, endWord: wordIndex });
+    longPressActive.current = false;
     setToolbar(null);
-    // Capture pointer for smooth drag
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
+
+    // Start long-press timer — only activate selection mode after 400ms
+    longPressTimer.current = setTimeout(() => {
+      longPressActive.current = true;
+      dragStartRef.current = { segIndex, wordIndex };
+      setSelection({ segIndex, startWord: wordIndex, endWord: wordIndex });
+      // Haptic feedback if supported
+      if ('vibrate' in navigator) navigator.vibrate(30);
+      // Capture pointer now for smooth drag
+      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    }, LONG_PRESS_MS);
+  }, [cancelLongPress]);
 
   const handleWordPointerMove = useCallback((
     e: React.PointerEvent,
     segIndex: number,
     wordIndex: number
   ) => {
+    // If moved significantly before long-press fires → cancel long-press
+    if (!longPressActive.current) {
+      cancelLongPress();
+      return;
+    }
     if (!dragStartRef.current || dragStartRef.current.segIndex !== segIndex) return;
     isDraggingRef.current = true;
     const start = dragStartRef.current.wordIndex;
@@ -169,7 +196,7 @@ export default function TranscriptViewer() {
       startWord: Math.min(start, wordIndex),
       endWord:   Math.max(start, wordIndex),
     });
-  }, []);
+  }, [cancelLongPress]);
 
   const handleWordPointerUp = useCallback((
     e: React.PointerEvent,
@@ -180,21 +207,31 @@ export default function TranscriptViewer() {
     allWords: string[]
   ) => {
     e.stopPropagation();
+    const wasLongPress = longPressActive.current;
+    const wasDragging  = isDraggingRef.current;
+    cancelLongPress();
+    isDraggingRef.current = false;
+
+    if (!wasLongPress) {
+      // Normal tap — single word lookup
+      setSelection(null);
+      lookupWord(word, segText);
+      dragStartRef.current = null;
+      return;
+    }
+
     if (!dragStartRef.current) return;
     const start = dragStartRef.current.wordIndex;
     dragStartRef.current = null;
 
-    const isDrag = isDraggingRef.current;
-    isDraggingRef.current = false;
-
-    if (!isDrag || (Math.min(start, wordIndex) === Math.max(start, wordIndex))) {
-      // Single word tap — normal lookup
+    // Single word long-pressed (no drag) → treat as tap
+    if (!wasDragging && start === wordIndex) {
       setSelection(null);
       lookupWord(word, segText);
       return;
     }
 
-    // Multi-word — show SelectionToolbar
+    // Multi-word selection → show toolbar
     const lo = Math.min(start, wordIndex);
     const hi = Math.max(start, wordIndex);
     const phrase = allWords.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
@@ -206,7 +243,7 @@ export default function TranscriptViewer() {
       sentence: segText,
       position: { x: rect.left + rect.width / 2, y: rect.top },
     });
-  }, [lookupWord]);
+  }, [cancelLongPress, lookupWord]);
 
   const closeToolbar = useCallback(() => {
     setToolbar(null);
@@ -226,7 +263,7 @@ export default function TranscriptViewer() {
           <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
-          <span className="text-[10px] text-faint hidden sm:block">· hold & drag to select phrase</span>
+          <span className="text-[10px] text-faint hidden sm:block">· tap = lookup · hold & drag = select phrase</span>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
           transcript.source === 'youtube'
@@ -343,10 +380,11 @@ const SegmentRow = memo(React.forwardRef<HTMLDivElement, {
               return (
                 <span
                   key={i}
-                  style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'none' }}
+                  style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'auto' }}
                   onPointerDown={e => { e.stopPropagation(); onWordPointerDown(e, i, w); }}
                   onPointerMove={e => { e.stopPropagation(); onWordPointerMove(e, i, w); }}
                   onPointerUp={e => { e.stopPropagation(); onWordPointerUp(e, i, c, wordTokens.map(clean)); }}
+                  onPointerCancel={e => { e.stopPropagation(); cancelLongPress(); }}
                   onClick={e => e.stopPropagation()}
                   className={`${font.row} cursor-pointer select-none px-0.5 py-px rounded transition-colors ${
                     selected
@@ -400,7 +438,7 @@ function WordToken({ word, fontSize, isCurrentWord, isActiveSentence, isSelected
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'none' }}
+      style={{ direction: 'ltr', unicodeBidi: 'isolate', touchAction: 'auto' }}
       className={`${font.row} relative inline-block cursor-pointer select-none px-0.5 py-px rounded transition-colors ${
         isSelected
           ? 'bg-amber-400/30 text-amber-300 font-semibold'
