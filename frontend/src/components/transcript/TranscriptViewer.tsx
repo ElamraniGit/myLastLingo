@@ -82,26 +82,21 @@ export default function TranscriptViewer() {
   const { seekTo }     = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const containerRef   = useRef<HTMLDivElement>(null);
-  const activeRef      = useRef<HTMLDivElement>(null);
-  const lastScrolled   = useRef<number>(-1);
 
-  // ── Custom selection state ─────────────────────────────────────────────────
-  const [toolbar, setToolbar] = useState<{ phrase: string; sentence: string } | null>(null);
+  // ── Custom selection state ────────────────────────────────────────────────
+  const [toolbar,  setToolbar]  = useState<{ phrase: string; sentence: string } | null>(null);
+  const [selRange, setSelRange] = useState<{ segIndex: number; lo: number; hi: number } | null>(null);
 
-  // Selected word range
-  const [selRange, setSelRange] = useState<{
-    segIndex: number; lo: number; hi: number;
-  } | null>(null);
-
-  // Drag tracking (all in refs — no re-render during drag)
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isSelecting    = useRef(false);   // long-press fired
-  const isTap          = useRef(true);    // no movement yet
-  const startKey       = useRef<WordKey | null>(null);
-  const currentSegIdx  = useRef(-1);
-  const dragLo         = useRef(-1);
-  const dragHi         = useRef(-1);
-  const activePointerId = useRef(-1);
+  // All drag state in refs (no re-render during drag)
+  const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSelecting     = useRef(false);
+  const isTap           = useRef(true);
+  const startSeg        = useRef(-1);
+  const startWi         = useRef(-1);
+  const startWord       = useRef('');
+  const startSegText    = useRef('');
+  const dragLo          = useRef(-1);
+  const dragHi          = useRef(-1);
 
   // ── Auto-scroll ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -113,171 +108,137 @@ export default function TranscriptViewer() {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [playerState.current_segment]);
 
-  // ── Prevent any native selection globally on the transcript ───────────────
+  // ── Block native selection ─────────────────────────────────────────────────
   useEffect(() => {
     const prevent = (e: Event) => e.preventDefault();
     document.addEventListener('selectstart', prevent);
     return () => document.removeEventListener('selectstart', prevent);
   }, []);
 
-  // ── Get word element under pointer ────────────────────────────────────────
-  const getWordElAt = useCallback((x: number, y: number): HTMLElement | null => {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el) return null;
-    let cur: HTMLElement | null = el;
-    while (cur && cur !== containerRef.current) {
-      if (cur.dataset?.wordIndex !== undefined && cur.dataset?.segIndex !== undefined) return cur;
-      cur = cur.parentElement;
-    }
-    return null;
+  // ── Find word element at screen coordinates ────────────────────────────────
+  const getWordAt = useCallback((x: number, y: number): HTMLElement | null => {
+    const container = containerRef.current;
+    if (!container) return null;
+
+    const hit = (px: number, py: number) => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      if (!el) return null;
+      let cur: HTMLElement | null = el;
+      while (cur && cur !== container) {
+        if (cur.dataset?.wordIndex !== undefined && cur.dataset?.segIndex !== undefined) return cur;
+        cur = cur.parentElement;
+      }
+      return null;
+    };
+
+    return hit(x, y)
+      || hit(x - 15, y) || hit(x + 15, y)
+      || hit(x - 30, y) || hit(x + 30, y)
+      || hit(x, y - 6)  || hit(x, y + 6);
   }, []);
 
-  // ── Document-level pointer events (bypass stopPropagation) ─────────────────
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId.current) return;
-      if (!isSelecting.current) {
-        // Check if moved before long press fired → cancel it
-        const start = startKey.current;
-        if (start && longPressTimer.current) {
-          const el = getWordElAt(e.clientX, e.clientY);
-          if (el) {
-            const si = parseInt(el.dataset.segIndex || '-1', 10);
-            const wi = parseInt(el.dataset.wordIndex || '-1', 10);
-            // If moved to different word, cancel long press
-            if (si !== start.segIndex || wi !== start.wordIndex) {
-              clearTimeout(longPressTimer.current);
-              longPressTimer.current = null;
-              startKey.current = null;
-            }
-          }
-        }
-        return;
-      }
-
-      // With setPointerCapture, elementFromPoint still works using e.clientX/Y
-      // Release capture temporarily to hit-test, then re-capture
-      const captureEl = e.target as HTMLElement | null;
-      if (captureEl?.releasePointerCapture) {
-        try { captureEl.releasePointerCapture(e.pointerId); } catch {}
-      }
-      const el = getWordElAt(e.clientX, e.clientY);
-      if (captureEl?.setPointerCapture) {
-        try { captureEl.setPointerCapture(e.pointerId); } catch {}
-      }
-
-      if (!el) return;
-      const si = parseInt(el.dataset.segIndex || '-1', 10);
-      const wi = parseInt(el.dataset.wordIndex || '-1', 10);
-      if (si < 0 || wi < 0) return;
-      if (si !== currentSegIdx.current) return; // stay in same segment
-
-      dragLo.current = Math.min(startKey.current?.wordIndex ?? wi, wi);
-      dragHi.current = Math.max(startKey.current?.wordIndex ?? wi, wi);
-      setSelRange({ segIndex: si, lo: dragLo.current, hi: dragHi.current });
-    };
-
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId.current) return;
-      activePointerId.current = -1;
-
-      // Cancel pending long press
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
-      }
-
-      if (!isSelecting.current) {
-        // Was a tap — single word lookup
-        const start = startKey.current;
-        startKey.current = null;
-        if (start && isTap.current) {
-          const clean = start.word.replace(/[^\w'-]/g, '').trim();
-          if (clean.length >= 2) lookupWord(clean, start.segText);
-        }
-        return;
-      }
-
-      // End of selection drag
-      isSelecting.current = false;
-      const si  = currentSegIdx.current;
-      const lo  = dragLo.current;
-      const hi  = dragHi.current;
-      const txt = startKey.current?.segText || '';
-      startKey.current = null;
-
-      if (si < 0 || lo < 0 || hi < 0) { setSelRange(null); return; }
-
-      // Collect words from DOM
-      const container = containerRef.current;
-      if (!container) { setSelRange(null); return; }
-      const spans = container.querySelectorAll<HTMLElement>(
-        `[data-seg-index="${si}"][data-word-index]`
-      );
-      const words: string[] = [];
-      spans.forEach(sp => {
-        const wi = parseInt(sp.dataset.wordIndex || '-1', 10);
-        if (wi >= lo && wi <= hi) words.push(sp.dataset.word || '');
-      });
-      const phrase = words.filter(Boolean).join(' ').replace(/[.,!?;:]+$/, '').trim();
-
-      if (!phrase) { setSelRange(null); return; }
-
-      setToolbar({ phrase, sentence: txt || phrase });
-    };
-
-    document.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerup',   onUp);
-    document.addEventListener('pointercancel', onUp);
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup',   onUp);
-      document.removeEventListener('pointercancel', onUp);
-    };
-  }, [getWordElAt, lookupWord]);
-
-  // ── Word pointer down (start of tap or long-press) ─────────────────────────
-  const onWordDown = useCallback((
-    e: React.PointerEvent,
-    segIndex: number,
-    wordIndex: number,
-    word: string,
-    segText: string
+  // ── Touch handlers (more reliable than pointer on Android) ─────────────────
+  const onWordTouchStart = useCallback((
+    e: React.TouchEvent,
+    segIndex: number, wordIndex: number, word: string, segText: string
   ) => {
-    // Do NOT stopPropagation — document listeners need the events
-    e.preventDefault(); // prevent text selection only
+    e.stopPropagation(); // prevent row onClick (seek)
+    // Do NOT preventDefault here — allows scroll if no long-press
 
-    // Capture pointer on the element so pointermove/up reach document
-    // even when finger moves to gaps between words
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
-
-    // Cancel previous
     if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    isSelecting.current  = false;
-    isTap.current        = true;
-    activePointerId.current = e.pointerId;
-    startKey.current     = { segIndex, wordIndex, word, segText };
-    dragLo.current       = wordIndex;
-    dragHi.current       = wordIndex;
-    currentSegIdx.current = segIndex;
-
-    // Close existing toolbar
+    isSelecting.current = false;
+    isTap.current       = true;
+    startSeg.current    = segIndex;
+    startWi.current     = wordIndex;
+    startWord.current   = word;
+    startSegText.current = segText;
+    dragLo.current      = wordIndex;
+    dragHi.current      = wordIndex;
     setToolbar(null);
     setSelRange(null);
 
-    // Start long-press timer
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+
     longPressTimer.current = setTimeout(() => {
       longPressTimer.current = null;
       isSelecting.current   = true;
       isTap.current         = false;
-      // Haptic feedback
-      if ('vibrate' in navigator) navigator.vibrate(30);
-      // Show initial single-word selection
+      if ('vibrate' in navigator) navigator.vibrate(40);
       setSelRange({ segIndex, lo: wordIndex, hi: wordIndex });
-    }, LONG_PRESS_MS);
+    }, 500);
   }, []);
+
+  const onContainerTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isSelecting.current) {
+      // Cancel long press if user scrolls
+      if (longPressTimer.current) {
+        const touch = e.touches[0];
+        // Let natural scroll happen — cancel our timer
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+      return;
+    }
+
+    // We are selecting — prevent scroll
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const el = getWordAt(touch.clientX, touch.clientY);
+    if (!el) return;
+
+    const si = parseInt(el.dataset.segIndex  || '-1', 10);
+    const wi = parseInt(el.dataset.wordIndex || '-1', 10);
+    if (si < 0 || wi < 0 || si !== startSeg.current) return;
+
+    dragLo.current = Math.min(startWi.current, wi);
+    dragHi.current = Math.max(startWi.current, wi);
+    setSelRange({ segIndex: si, lo: dragLo.current, hi: dragHi.current });
+  }, [getWordAt]);
+
+  const onContainerTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
+    if (!isSelecting.current) {
+      // Tap → single word lookup
+      if (isTap.current && startWord.current) {
+        const clean = startWord.current.replace(/[^\w'-]/g, '').trim();
+        if (clean.length >= 2) lookupWord(clean, startSegText.current);
+      }
+      startWord.current = '';
+      return;
+    }
+
+    isSelecting.current = false;
+    const si  = startSeg.current;
+    const lo  = dragLo.current;
+    const hi  = dragHi.current;
+    const txt = startSegText.current;
+    startWord.current = '';
+
+    if (si < 0 || lo < 0 || hi < lo) { setSelRange(null); return; }
+
+    // Build phrase from DOM
+    const container = containerRef.current;
+    if (!container) { setSelRange(null); return; }
+    const spans = container.querySelectorAll<HTMLElement>(
+      `[data-seg-index="${si}"][data-word-index]`
+    );
+    const words: string[] = [];
+    spans.forEach(sp => {
+      const wi = parseInt(sp.dataset.wordIndex || '-1', 10);
+      if (wi >= lo && wi <= hi) words.push(sp.dataset.word || '');
+    });
+    const phrase = words.filter(Boolean).join(' ').replace(/[.,!?;:]+$/, '').trim();
+    if (!phrase) { setSelRange(null); return; }
+
+    setToolbar({ phrase, sentence: txt || phrase });
+  }, [lookupWord]);
 
   const closeToolbar = useCallback(() => {
     setToolbar(null);
@@ -318,6 +279,8 @@ export default function TranscriptViewer() {
         className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin transcript-words"
         dir="ltr"
         onContextMenu={e => e.preventDefault()}
+        onTouchMove={onContainerTouchMove}
+        onTouchEnd={onContainerTouchEnd}
       >
         {transcript.segments.map((seg) => {
           const isActive = playerState.current_segment === seg.index;
@@ -359,7 +322,7 @@ export default function TranscriptViewer() {
                           data-seg-index={seg.index}
                           data-word-index={wi}
                           data-seg-text={seg.text}
-                          onPointerDown={e => onWordDown(e, seg.index, wi, clean, seg.text)}
+                          onTouchStart={e => onWordTouchStart(e, seg.index, wi, clean, seg.text)}
                         >
                           {word.word}{wi < seg.words!.length - 1 ? ' ' : ''}
                         </span>
@@ -372,7 +335,7 @@ export default function TranscriptViewer() {
                       data-seg-index={seg.index}
                       data-word-index={0}
                       data-seg-text={seg.text}
-                      onPointerDown={e => onWordDown(e, seg.index, 0, seg.text, seg.text)}
+                      onTouchStart={e => onWordTouchStart(e, seg.index, 0, seg.text, seg.text)}
                     >
                       {seg.text}
                     </span>
