@@ -159,6 +159,9 @@ export const dictionaryApi = {
   search: (query: string, limit = 10) => req<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
 
   suggest: (prefix: string) => req<any>(`/dictionary/suggest?prefix=${encodeURIComponent(prefix)}&limit=8`),
+
+  /** Re-enrich a cached word with AI (uses user's saved Groq key). */
+  enrich: (word: string) => req<any>(`/dictionary/enrich/${encodeURIComponent(word)}`, { method: 'POST', timeout: 25000 }),
 };
 
 export const vocabularyApi = {

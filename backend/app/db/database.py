@@ -260,8 +260,9 @@ class DatabaseManager:
             word_columns = {dict(r)["name"] for r in wrows}
 
         word_migrations = {
-            "definitions": "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
-            "how_to_use": "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
+            "definitions":  "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
+            "how_to_use":   "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
+            "ai_enriched":  "ALTER TABLE words ADD COLUMN ai_enriched INTEGER DEFAULT 0",
         }
         for col, sql in word_migrations.items():
             if col not in word_columns:
@@ -590,8 +591,8 @@ class DatabaseManager:
                 INSERT OR REPLACE INTO words
                     (id, word, pronunciation, part_of_speech, level, meaning_ar, meaning_en,
                      examples, synonyms, antonyms, root_form, conjugations, related_words,
-                     definitions, how_to_use, frequency)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     definitions, how_to_use, frequency, ai_enriched)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     word_data.get("id"),
@@ -610,6 +611,7 @@ class DatabaseManager:
                     json.dumps(word_data.get("definitions", []), ensure_ascii=False),
                     json.dumps(word_data.get("how_to_use", []), ensure_ascii=False),
                     word_data.get("frequency", 0),
+                    1 if word_data.get("ai_enriched") else 0,
                 ),
             )
         return word_data.get("id", "")
@@ -626,8 +628,9 @@ class DatabaseManager:
                 data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
                 data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
                 data["related_words"] = self._decode_json_field(data.get("related_words"), [])
-                data["definitions"] = self._decode_json_field(data.get("definitions"), [])
-                data["how_to_use"] = self._decode_json_field(data.get("how_to_use"), [])
+                data["definitions"]  = self._decode_json_field(data.get("definitions"), [])
+                data["how_to_use"]   = self._decode_json_field(data.get("how_to_use"), [])
+                data["ai_enriched"]  = bool(data.get("ai_enriched", 0))
                 return data
 
     # =========================================================================

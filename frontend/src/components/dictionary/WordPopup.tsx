@@ -58,10 +58,11 @@ function Section({ title, icon, children, className = '' }: {
    MAIN COMPONENT
    ════════════════════════════════════════════════════════════════ */
 export default function WordPopup() {
-  const { wordPopupOpen, selectedWord, wordPopupSentence, currentVideo } = useStore();
+  const { wordPopupOpen, selectedWord, wordPopupSentence, currentVideo, setSelectedWord } = useStore();
   const { closeWordPopup, saveWord } = useDictionary();
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saved,    setSaved]    = useState(false);
+  const [saving,   setSaving]   = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [showPronunciation, setShowPronunciation] = useState(false);
   const [visible, setVisible] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -95,6 +96,19 @@ export default function WordPopup() {
     if (ok) { sfx.save(); setSaved(true); }
     setSaving(false);
   }, [selectedWord, saving, saved, saveWord, currentVideo, wordPopupSentence]);
+
+  const handleEnrich = useCallback(async () => {
+    if (!selectedWord || enriching) return;
+    setEnriching(true);
+    try {
+      const { dictionaryApi } = await import('@/lib/api');
+      const enriched = await (dictionaryApi as any).enrich(selectedWord.word);
+      if (enriched?.word) {
+        setSelectedWord({ ...selectedWord, ...enriched.word });
+      }
+    } catch {}
+    setEnriching(false);
+  }, [selectedWord, enriching, setSelectedWord]);
 
   if (!wordPopupOpen || !selectedWord) return null;
 
@@ -142,6 +156,11 @@ export default function WordPopup() {
               <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
                 <h2 className="text-3xl font-extrabold text-heading tracking-tight">{w.word}</h2>
                 <LevelBadge level={(w.level || 'B1') as CEFRLevel} />
+                {w.ai_enriched && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">
+                    ✨ AI
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {w.part_of_speech && w.part_of_speech !== 'unknown' && (
@@ -314,8 +333,31 @@ export default function WordPopup() {
             </Section>
           )}
 
+          {/* ── AI Enrich button (for non-enriched words) ────── */}
+          {!w.ai_enriched && (
+            <div className="mt-4">
+              <button
+                onClick={handleEnrich}
+                disabled={enriching}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl
+                           border border-purple-500/30 bg-purple-500/8 text-purple-400
+                           hover:bg-purple-500/15 active:scale-[0.98] transition-all
+                           text-sm font-medium disabled:opacity-50"
+              >
+                {enriching ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"/>
+                    Enriching with AI…
+                  </>
+                ) : (
+                  <>✨ Enhance with AI</>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* ── Save Button ──────────────────────────────────── */}
-          <div className="mt-7">
+          <div className="mt-3">
             <Button
               onClick={handleSave}
               loading={saving}
