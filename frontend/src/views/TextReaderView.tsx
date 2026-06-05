@@ -60,11 +60,10 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
-  // ── Multi-word selection via native selectionchange ───────────────────────
-  const [toolbar, setToolbar] = useState<{
-    phrase: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  // ── Custom selection (same architecture as TranscriptViewer v5) ──────────
+  // onTouchMove on the CONTAINER → always fires → elementFromPoint works
+  const [toolbar,    setToolbar]    = useState<{ phrase: string } | null>(null);
+  const [trSelRange, setTrSelRange] = useState<{ lo: number; hi: number } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const wordsRef   = useRef<string[]>([]);
@@ -100,121 +99,131 @@ export default function TextReaderView() {
   // Cleanup TTS on unmount
   useEffect(() => () => { readingRef.current = false; stopSpeaking(); }, []);
 
-  // Single word click
-  const handleWordClick = useCallback((word: string) => {
-    const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
-    if (clean.length >= 2) {
-      setToolbar(null);
-      lookupWord(clean, '');
-      setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
-    }
-  }, [lookupWord]);
+  // Drag refs (no re-render during drag)
+  const lpTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selecting   = useRef(false);
+  const wasTap      = useRef(true);
+  const startIdx    = useRef(-1);
+  const dragLo      = useRef(-1);
+  const dragHi      = useRef(-1);
+  const startWordRef = useRef('');
 
-  // Long-press selection for TextReader
-  const trLPTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const trIsSelecting = useRef(false);
-  const trStartIdx = useRef(-1);
-  const trLoRef    = useRef(-1);
-  const trHiRef    = useRef(-1);
-  const trActivePtr = useRef(-1);
-  const [trSelRange, setTrSelRange] = useState<{ lo: number; hi: number } | null>(null);
-
+  // Find word index at touch point — scans ±30px for gaps between spans
   const getWordIdxAt = useCallback((x: number, y: number): number => {
     const container = contentRef.current;
     if (!container) return -1;
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el) return -1;
-    let cur: HTMLElement | null = el;
-    while (cur && cur !== container) {
-      if (cur.dataset?.trWordIdx !== undefined) return parseInt(cur.dataset.trWordIdx, 10);
-      cur = cur.parentElement;
-    }
-    return -1;
+    const hit = (px: number, py: number): number => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      if (!el) return -1;
+      let cur: HTMLElement | null = el;
+      while (cur && cur !== container) {
+        if (cur.dataset?.wi !== undefined) return parseInt(cur.dataset.wi, 10);
+        cur = cur.parentElement;
+      }
+      return -1;
+    };
+    return (
+      hit(x, y) !== -1 ? hit(x, y) :
+      hit(x - 15, y) !== -1 ? hit(x - 15, y) :
+      hit(x + 15, y) !== -1 ? hit(x + 15, y) :
+      hit(x - 30, y) !== -1 ? hit(x - 30, y) :
+      hit(x + 30, y) !== -1 ? hit(x + 30, y) :
+      -1
+    );
   }, []);
 
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerId !== trActivePtr.current || !trIsSelecting.current) return;
-      // Release capture temporarily for elementFromPoint hit-testing
-      const captureEl = e.target as HTMLElement | null;
-      try { captureEl?.releasePointerCapture?.(e.pointerId); } catch {}
-      const idx = getWordIdxAt(e.clientX, e.clientY);
-      try { captureEl?.setPointerCapture?.(e.pointerId); } catch {}
-      if (idx < 0) return;
-      trLoRef.current = Math.min(trStartIdx.current, idx);
-      trHiRef.current = Math.max(trStartIdx.current, idx);
-      setTrSelRange({ lo: trLoRef.current, hi: trHiRef.current });
-    };
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerId !== trActivePtr.current) return;
-      trActivePtr.current = -1;
-      if (trLPTimer.current) { clearTimeout(trLPTimer.current); trLPTimer.current = null; }
-      if (!trIsSelecting.current) return;
-      trIsSelecting.current = false;
-      const lo = trLoRef.current; const hi = trHiRef.current;
-      setTrSelRange(null);
-      if (lo < 0 || hi < lo) return;
-      const words = wordsRef.current;
-      const phrase = words.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
-      if (!phrase) return;
-      setToolbar({ phrase, position: { x: 0, y: 0 } });
-    };
-    document.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerup',   onUp);
-    document.addEventListener('pointercancel', onUp);
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup',   onUp);
-      document.removeEventListener('pointercancel', onUp);
-    };
-  }, [getWordIdxAt]);
+  const cancelLP = useCallback(() => {
+    if (lpTimer.current) { clearTimeout(lpTimer.current); lpTimer.current = null; }
+  }, []);
 
-  const onWordPointerDown = useCallback((e: React.PointerEvent, idx: number, word: string) => {
-    e.preventDefault(); // prevent text selection, NOT stopPropagation
-    // Capture pointer so pointermove events reach document listener
-    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    if (trLPTimer.current) clearTimeout(trLPTimer.current);
-    trIsSelecting.current = false;
-    trStartIdx.current = idx;
-    trLoRef.current = idx; trHiRef.current = idx;
-    trActivePtr.current = e.pointerId;
+  // touchstart on a word span
+  const onWordTouchStart = useCallback((e: React.TouchEvent, idx: number, word: string) => {
+    e.stopPropagation(); // prevent scroll interfering with tap detection
+    cancelLP();
+    selecting.current   = false;
+    wasTap.current      = true;
+    startIdx.current    = idx;
+    dragLo.current      = idx;
+    dragHi.current      = idx;
+    startWordRef.current = word;
     setTrSelRange(null);
-    trLPTimer.current = setTimeout(() => {
-      trIsSelecting.current = true;
-      if ('vibrate' in navigator) navigator.vibrate(30);
+    setToolbar(null);
+
+    lpTimer.current = setTimeout(() => {
+      lpTimer.current   = null;
+      selecting.current = true;
+      wasTap.current    = false;
+      if ('vibrate' in navigator) navigator.vibrate(40);
       setTrSelRange({ lo: idx, hi: idx });
     }, 500);
-  }, []);
+  }, [cancelLP]);
 
-  const onWordPointerUp = useCallback((e: React.PointerEvent, word: string) => {
-    if (trLPTimer.current) {
-      clearTimeout(trLPTimer.current);
-      trLPTimer.current = null;
-      if (!trIsSelecting.current) {
-        // Was a tap
-        handleWordClick(word);
-      }
+  // touchmove on CONTAINER — extends selection range
+  const onContentTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!selecting.current) {
+      cancelLP(); // user is scrolling — cancel long press
+      return;
     }
-  }, [handleWordClick]);
+    e.preventDefault(); // prevent scroll while selecting
+    const touch = e.touches[0];
+    const idx = getWordIdxAt(touch.clientX, touch.clientY);
+    if (idx < 0) return;
+    const lo = Math.min(startIdx.current, idx);
+    const hi = Math.max(startIdx.current, idx);
+    if (lo !== dragLo.current || hi !== dragHi.current) {
+      dragLo.current = lo;
+      dragHi.current = hi;
+      setTrSelRange({ lo, hi });
+    }
+  }, [cancelLP, getWordIdxAt]);
 
-  // Prevent native selection + close toolbar on outside tap
+  // touchend on CONTAINER — tap or show toolbar
+  const onContentTouchEnd = useCallback(() => {
+    const pending = !!lpTimer.current;
+    cancelLP();
+
+    if (!selecting.current) {
+      // Tap → single word lookup
+      if (pending && wasTap.current && startWordRef.current) {
+        const clean = startWordRef.current.replace(/[^a-zA-Z'-]/g, '').trim();
+        if (clean.length >= 2) {
+          lookupWord(clean, '');
+          setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
+        }
+      }
+      startWordRef.current = '';
+      return;
+    }
+
+    selecting.current = false;
+    const lo = dragLo.current;
+    const hi = dragHi.current;
+    startWordRef.current = '';
+    setTrSelRange(null);
+
+    if (lo < 0 || hi < lo) return;
+    const allWords = wordsRef.current;
+    const phrase   = allWords.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
+    if (phrase.split(/\s+/).filter(Boolean).length < 1) return;
+    setToolbar({ phrase });
+  }, [cancelLP, lookupWord]);
+
+  // Block native selection + close toolbar on outside tap
   useEffect(() => {
-    const prevent = (e: Event) => e.preventDefault();
-    document.addEventListener('selectstart', prevent);
-    const container = contentRef.current;
-    if (container) container.addEventListener('contextmenu', prevent);
-    return () => document.removeEventListener('selectstart', prevent);
+    const block = (e: Event) => e.preventDefault();
+    document.addEventListener('selectstart', block);
+    return () => document.removeEventListener('selectstart', block);
   }, []);
 
   useEffect(() => {
-    const onDown = (e: PointerEvent) => {
-      if (!toolbar) return;
+    if (!toolbar) return;
+    const onDown = (e: TouchEvent) => {
       const tb = document.querySelector('[data-selection-toolbar]');
       if (tb?.contains(e.target as Node)) return;
       setToolbar(null);
     };
-    document.addEventListener('pointerdown', onDown);
-    return () => document.removeEventListener('pointerdown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    return () => document.removeEventListener('touchstart', onDown);
   }, [toolbar]);
   const stopReading = useCallback(() => {
     readingRef.current = false;
@@ -355,8 +364,13 @@ export default function TextReaderView() {
       {/* ── Text content ─────────────────────────────────────────── */}
       {/* select-text: allow native text selection for multi-word phrases */}
       <div
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 transcript-words"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6"
         ref={contentRef}
+        style={{ WebkitUserSelect: 'none', userSelect: 'none' } as React.CSSProperties}
+        onContextMenu={e => e.preventDefault()}
+        onTouchMove={onContentTouchMove}
+        onTouchEnd={onContentTouchEnd}
+        onTouchCancel={onContentTouchEnd}
       >
         <div className="max-w-2xl mx-auto">
           <p className="leading-8 text-[17px] text-heading">
@@ -371,17 +385,16 @@ export default function TextReaderView() {
                 <React.Fragment key={i}>
                   <span
                     ref={isStart ? activeRef : null}
+                    data-wi={isWord ? i : undefined}
                     data-word={isWord ? clean : undefined}
-                    data-tr-word-idx={isWord ? i : undefined}
-                    onPointerDown={isWord ? (e) => onWordPointerDown(e, i, word) : undefined}
-                    onPointerUp={isWord ? (e) => onWordPointerUp(e, word) : undefined}
-                    className={`word-token inline rounded px-0.5 transition-colors duration-100 ${
+                    onTouchStart={isWord ? (e) => onWordTouchStart(e, i, word) : undefined}
+                    className={`inline rounded px-0.5 transition-colors duration-100 select-none ${
                       trSelRange && isWord && i >= trSelRange.lo && i <= trSelRange.hi
-                        ? 'word-selected'
+                        ? 'bg-blue-500/35 text-blue-100 font-semibold'
                         : isActive
                         ? 'bg-blue-500/20 text-blue-400'
                         : lookedUp.has(clean.toLowerCase()) && isWord
-                        ? 'text-green-400 cursor-pointer hover:bg-green-500/10'
+                        ? 'text-green-400 cursor-pointer'
                         : isWord
                         ? 'cursor-pointer hover:bg-blue-500/10 hover:text-blue-500'
                         : ''
@@ -399,13 +412,11 @@ export default function TextReaderView() {
 
       <WordPopup />
 
-      {/* Multi-word selection toolbar */}
       {toolbar && (
         <SelectionToolbar
           phrase={toolbar.phrase}
           sentence={toolbar.phrase}
-          position={toolbar.position}
-          onClose={() => setToolbar(null)}
+          onClose={() => { setToolbar(null); setTrSelRange(null); }}
         />
       )}
     </div>
