@@ -59,12 +59,16 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
-  // Multi-word selection via native browser selection
+  // Multi-word selection via pointer events on container
   const [toolbar, setToolbar] = useState<{
     phrase: string;
     position: { x: number; y: number };
   } | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef        = useRef<HTMLDivElement>(null);
+  const ptrDownRef        = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingTR      = useRef(false);
+  const selIndicesRef     = useRef<{ start: number; end: number } | null>(null);
+  const [selRange, setSelRange] = useState<{ start: number; end: number } | null>(null);
 
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
@@ -101,6 +105,7 @@ export default function TextReaderView() {
 
   // Single word click
   const handleWordClick = useCallback((word: string) => {
+    if (isDraggingTR.current) return;
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
       lookupWord(clean, '');
@@ -108,29 +113,70 @@ export default function TextReaderView() {
     }
   }, [lookupWord]);
 
-  // Native selection → toolbar
-  const handleSelectionEnd = useCallback(() => {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
+  // Get word index from element under pointer
+  const getWordIndexAt = useCallback((x: number, y: number): number => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el) return -1;
+    let cur: HTMLElement | null = el;
+    while (cur && cur !== contentRef.current) {
+      if (cur.dataset?.wordIndex !== undefined) return parseInt(cur.dataset.wordIndex, 10);
+      cur = cur.parentElement;
+    }
+    return -1;
+  }, []);
 
-    const text = sel.toString().trim().replace(/\s+/g, ' ');
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
-    if (wordCount < 2 || !text) return;
-    if (!contentRef.current) return;
+  const onContentPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    ptrDownRef.current    = { x: e.clientX, y: e.clientY };
+    isDraggingTR.current  = false;
+    selIndicesRef.current = null;
+    setSelRange(null);
+    setToolbar(null);
+  }, []);
 
-    const range = sel.getRangeAt(0);
-    const rect  = range.getBoundingClientRect();
-    if (!rect.width) return;
+  const onContentPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!ptrDownRef.current) return;
+    const dx = e.clientX - ptrDownRef.current.x;
+    const dy = e.clientY - ptrDownRef.current.y;
+    if (!isDraggingTR.current && Math.sqrt(dx*dx+dy*dy) < 12) return;
+    isDraggingTR.current = true;
 
-    const phrase = text.replace(/[.,!?;:]+$/, '').trim();
-    if (!phrase) return;
+    const startIdx = getWordIndexAt(ptrDownRef.current.x, ptrDownRef.current.y);
+    const curIdx   = getWordIndexAt(e.clientX, e.clientY);
+    if (startIdx < 0 || curIdx < 0) return;
 
+    const lo = Math.min(startIdx, curIdx);
+    const hi = Math.max(startIdx, curIdx);
+    selIndicesRef.current = { start: lo, end: hi };
+    setSelRange({ start: lo, end: hi });
+  }, [getWordIndexAt]);
+
+  const onContentPointerUp = useCallback((e: React.PointerEvent) => {
+    const wasDragging = isDraggingTR.current;
+    ptrDownRef.current   = null;
+    isDraggingTR.current = false;
+
+    if (!wasDragging) { setSelRange(null); return; }
+
+    const sel = selIndicesRef.current;
+    selIndicesRef.current = null;
+    setSelRange(null);
+
+    if (!sel || sel.end - sel.start < 1) return;
+
+    const words = wordsRef.current;
+    const phrase = words.slice(sel.start, sel.end + 1)
+      .join(' ').replace(/[.,!?;:]+$/, '').trim();
+    if (!phrase || phrase.split(/\s+/).length < 2) return;
+
+    const containerRect = contentRef.current?.getBoundingClientRect();
     setToolbar({
       phrase,
-      position: { x: rect.left + rect.width / 2, y: rect.top },
+      position: {
+        x: (containerRect?.left ?? 0) + (containerRect?.width ?? 300) / 2,
+        y: e.clientY,
+      },
     });
-
-    sel.removeAllRanges();
   }, []);
 
   const stopReading = useCallback(() => {
@@ -268,13 +314,16 @@ export default function TextReaderView() {
 
       {/* ── Text content ─────────────────────────────────────────── */}
       <div
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 select-none"
         ref={contentRef}
-        onMouseUp={handleSelectionEnd}
-        onTouchEnd={handleSelectionEnd}
+        onPointerDown={onContentPointerDown}
+        onPointerMove={onContentPointerMove}
+        onPointerUp={onContentPointerUp}
+        onPointerCancel={() => { ptrDownRef.current = null; isDraggingTR.current = false; setSelRange(null); }}
+        onContextMenu={e => e.preventDefault()}
       >
         <div className="max-w-2xl mx-auto">
-          <p className="leading-8 text-[17px] text-heading select-text">
+          <p className="leading-8 text-[17px] text-heading select-none">
             {words.map((word, i) => {
               const active  = chunksRef.current[currentChunk];
               const isActive = !!active && i >= active.start && i < active.end;
@@ -282,13 +331,17 @@ export default function TextReaderView() {
               const clean    = word.replace(/[^a-zA-Z'-]/g, '');
               const isWord   = clean.length >= 2;
 
+              const isSelected = selRange && i >= selRange.start && i <= selRange.end;
               return (
                 <React.Fragment key={i}>
                   <span
                     ref={isStart ? activeRef : null}
+                    data-word-index={isWord ? i : undefined}
                     onClick={isWord ? () => handleWordClick(word) : undefined}
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
-                      isActive
+                      isSelected
+                        ? 'bg-amber-400/30 text-amber-300'
+                        : isActive
                         ? 'bg-blue-500/20 text-blue-400'
                         : lookedUp.has(clean.toLowerCase()) && isWord
                         ? 'text-green-400 cursor-pointer hover:bg-green-500/10'
