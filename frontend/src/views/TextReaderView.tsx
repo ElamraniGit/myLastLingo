@@ -116,14 +116,46 @@ export default function TextReaderView() {
   }, [lookupWord]);
 
   // Helper: get word index from DOM element under pointer
+  // Find word index under or near (x, y) — handles gaps between word spans.
   const getWordIdxAt = useCallback((x: number, y: number): number => {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el || !contentRef.current) return -1;
-    let cur: HTMLElement | null = el;
-    while (cur && cur !== contentRef.current) {
-      if (cur.dataset?.wordIndex !== undefined) return parseInt(cur.dataset.wordIndex, 10);
-      cur = cur.parentElement;
+    const container = contentRef.current;
+    if (!container) return -1;
+
+    const tryPoint = (px: number, py: number): number => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      if (!el) return -1;
+      let cur: HTMLElement | null = el;
+      while (cur && cur !== container) {
+        if (cur.dataset?.wordIndex !== undefined) return parseInt(cur.dataset.wordIndex, 10);
+        cur = cur.parentElement;
+      }
+      return -1;
+    };
+
+    // 1. Exact hit
+    const exact = tryPoint(x, y);
+    if (exact >= 0) return exact;
+
+    // 2. Scan horizontally ±40px (catches gaps between words)
+    for (let d = 8; d <= 40; d += 8) {
+      const r = tryPoint(x + d, y);
+      if (r >= 0) return r;
+      const l = tryPoint(x - d, y);
+      if (l >= 0) return l;
     }
+
+    // 3. Scan vertically ±8px (catches line-wrap gaps)
+    for (const dy of [-6, 6]) {
+      const u = tryPoint(x, y + dy);
+      if (u >= 0) return u;
+      for (let d = 8; d <= 24; d += 8) {
+        const r = tryPoint(x + d, y + dy);
+        if (r >= 0) return r;
+        const l = tryPoint(x - d, y + dy);
+        if (l >= 0) return l;
+      }
+    }
+
     return -1;
   }, []);
 

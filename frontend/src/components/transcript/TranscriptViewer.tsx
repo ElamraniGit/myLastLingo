@@ -120,14 +120,49 @@ export default function TranscriptViewer() {
   }, [playerState.current_segment]);
 
   // ── Helper: find word span under a point ───────────────────────────────────
+  // Find word element under or near (x, y).
+  // Tries exact point first, then scans left/right/up/down
+  // to handle gaps between word spans.
   const getWordEl = useCallback((x: number, y: number): HTMLElement | null => {
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (!el || !containerRef.current) return null;
-    let cur: HTMLElement | null = el;
-    while (cur && cur !== containerRef.current) {
-      if (cur.dataset?.wordIndex !== undefined) return cur;
-      cur = cur.parentElement;
+    const container = containerRef.current;
+    if (!container) return null;
+
+    const tryPoint = (px: number, py: number): HTMLElement | null => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      if (!el) return null;
+      let cur: HTMLElement | null = el;
+      while (cur && cur !== container) {
+        if (cur.dataset?.wordIndex !== undefined) return cur;
+        cur = cur.parentElement;
+      }
+      return null;
+    };
+
+    // 1. Exact hit
+    const exact = tryPoint(x, y);
+    if (exact) return exact;
+
+    // 2. Scan horizontally ±40px in 8px steps (catches inter-word gaps)
+    for (let d = 8; d <= 40; d += 8) {
+      const r = tryPoint(x + d, y);
+      if (r) return r;
+      const l = tryPoint(x - d, y);
+      if (l) return l;
     }
+
+    // 3. Scan vertically ±8px (catches line-wrap gaps)
+    for (const dy of [-6, 6]) {
+      const u = tryPoint(x, y + dy);
+      if (u) return u;
+      // combine with horizontal scan
+      for (let d = 8; d <= 24; d += 8) {
+        const r = tryPoint(x + d, y + dy);
+        if (r) return r;
+        const l = tryPoint(x - d, y + dy);
+        if (l) return l;
+      }
+    }
+
     return null;
   }, []);
 
