@@ -59,18 +59,12 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
-  // Multi-word selection via pointer events on container
+  // ── Multi-word selection via native selectionchange ───────────────────────
   const [toolbar, setToolbar] = useState<{
     phrase: string;
     position: { x: number; y: number };
   } | null>(null);
-  const contentRef        = useRef<HTMLDivElement>(null);
-  const ptrDownRef        = useRef<{ x: number; y: number; id: number } | null>(null);
-  const isDraggingTR      = useRef(false);
-  const dragStartIdxRef   = useRef(-1);   // word index at pointer-down (fixed)
-  const selLoRef          = useRef(-1);
-  const selHiRef          = useRef(-1);
-  const [selRange, setSelRange] = useState<{ start: number; end: number } | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
@@ -107,134 +101,52 @@ export default function TextReaderView() {
 
   // Single word click
   const handleWordClick = useCallback((word: string) => {
-    if (isDraggingTR.current) return;
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed && sel.toString().trim().split(/\s+/).length >= 2) return;
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
+      setToolbar(null);
       lookupWord(clean, '');
       setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
     }
   }, [lookupWord]);
 
-  // Helper: get word index from DOM element under pointer
-  // Find word index under or near (x, y) — handles gaps between word spans.
-  const getWordIdxAt = useCallback((x: number, y: number): number => {
+  // Native selectionchange → SelectionToolbar
+  useEffect(() => {
     const container = contentRef.current;
-    if (!container) return -1;
-
-    const tryPoint = (px: number, py: number): number => {
-      const el = document.elementFromPoint(px, py) as HTMLElement | null;
-      if (!el) return -1;
-      let cur: HTMLElement | null = el;
-      while (cur && cur !== container) {
-        if (cur.dataset?.wordIndex !== undefined) return parseInt(cur.dataset.wordIndex, 10);
-        cur = cur.parentElement;
-      }
-      return -1;
+    if (!container) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onSel = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+        const text = sel.toString().trim().replace(/\s+/g, ' ');
+        if (text.split(/\s+/).filter(Boolean).length < 2) return;
+        const range = sel.getRangeAt(0);
+        if (!container.contains(range.commonAncestorContainer)) return;
+        const rect = range.getBoundingClientRect();
+        if (!rect.width && !rect.height) return;
+        const phrase = text.replace(/[.,!?;:""''«»]+$/, '').trim();
+        if (!phrase) return;
+        setToolbar({ phrase, position: { x: rect.left + rect.width / 2, y: Math.max(80, rect.top - 8) } });
+      }, 100);
     };
-
-    // 1. Exact hit
-    const exact = tryPoint(x, y);
-    if (exact >= 0) return exact;
-
-    // 2. Scan horizontally ±40px (catches gaps between words)
-    for (let d = 8; d <= 40; d += 8) {
-      const r = tryPoint(x + d, y);
-      if (r >= 0) return r;
-      const l = tryPoint(x - d, y);
-      if (l >= 0) return l;
-    }
-
-    // 3. Scan vertically ±8px (catches line-wrap gaps)
-    for (const dy of [-6, 6]) {
-      const u = tryPoint(x, y + dy);
-      if (u >= 0) return u;
-      for (let d = 8; d <= 24; d += 8) {
-        const r = tryPoint(x + d, y + dy);
-        if (r >= 0) return r;
-        const l = tryPoint(x - d, y + dy);
-        if (l >= 0) return l;
-      }
-    }
-
-    return -1;
+    document.addEventListener('selectionchange', onSel);
+    return () => { document.removeEventListener('selectionchange', onSel); if (timer) clearTimeout(timer); };
   }, []);
 
-  // Document-level listeners — fire even when child spans call stopPropagation
   useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
-      const dx = e.clientX - ptrDownRef.current.x;
-      const dy = e.clientY - ptrDownRef.current.y;
-
-      // Activate drag after ≥8px movement
-      if (!isDraggingTR.current) {
-        if (Math.sqrt(dx*dx + dy*dy) < 8) return;
-        isDraggingTR.current = true;
-        // Capture start word index ONCE when drag begins
-        dragStartIdxRef.current = getWordIdxAt(ptrDownRef.current.x, ptrDownRef.current.y);
-      }
-
-      const startIdx = dragStartIdxRef.current;
-      const curIdx   = getWordIdxAt(e.clientX, e.clientY);
-      if (startIdx < 0 || curIdx < 0) return;
-
-      const lo = Math.min(startIdx, curIdx);
-      const hi = Math.max(startIdx, curIdx);
-      selLoRef.current = lo;
-      selHiRef.current = hi;
-      // Use requestAnimationFrame to batch React state updates during fast drag
-      setSelRange({ start: lo, end: hi });
+    const onDown = (e: PointerEvent) => {
+      if (!toolbar) return;
+      const tb = document.querySelector('[data-selection-toolbar]');
+      if (tb?.contains(e.target as Node)) return;
+      setToolbar(null);
+      window.getSelection()?.removeAllRanges();
     };
-
-    const onUp = (e: PointerEvent) => {
-      if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
-      const wasDrag  = isDraggingTR.current;
-      const lo       = selLoRef.current;
-      const hi       = selHiRef.current;
-
-      // Reset all drag state BEFORE any async work
-      ptrDownRef.current    = null;
-      isDraggingTR.current  = false;
-      dragStartIdxRef.current = -1;
-      selLoRef.current      = -1;
-      selHiRef.current      = -1;
-      setSelRange(null);
-
-      if (!wasDrag || lo < 0 || hi < 0 || hi - lo < 1) return;
-
-      const words  = wordsRef.current;
-      const phrase = words.slice(lo, hi + 1)
-        .join(' ')
-        .replace(/[.,!?;:""''«»\s]+$/, '')
-        .trim();
-      if (!phrase || phrase.split(/\s+/).filter(Boolean).length < 2) return;
-
-      const cr = contentRef.current?.getBoundingClientRect();
-      setToolbar({
-        phrase,
-        position: {
-          x: (cr?.left ?? 0) + (cr?.width ?? 300) / 2,
-          y: Math.max(80, e.clientY - 60),   // slightly above finger
-        },
-      });
-    };
-
-    document.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerup',   onUp);
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup',   onUp);
-    };
-  }, [getWordIdxAt]);
-
-  // Block browser context menu inside content area
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-    const block = (e: Event) => e.preventDefault();
-    el.addEventListener('contextmenu', block);
-    return () => el.removeEventListener('contextmenu', block);
-  }, []);
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [toolbar]);
 
   const stopReading = useCallback(() => {
     readingRef.current = false;
@@ -370,40 +282,28 @@ export default function TextReaderView() {
       </div>
 
       {/* ── Text content ─────────────────────────────────────────── */}
+      {/* select-text: allow native text selection for multi-word phrases */}
       <div
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 select-none"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 select-text"
         ref={contentRef}
-        onPointerDown={e => {
-          if (e.pointerType === 'mouse' && e.button !== 0) return;
-          if (!contentRef.current?.contains(e.target as Node)) return;
-          ptrDownRef.current   = { x: e.clientX, y: e.clientY, id: e.pointerId };
-          isDraggingTR.current = false;
-          selLoRef.current     = -1;
-          selHiRef.current     = -1;
-          setSelRange(null);
-          setToolbar(null);
-        }}
       >
         <div className="max-w-2xl mx-auto">
-          <p className="leading-8 text-[17px] text-heading select-none">
+          <p className="leading-8 text-[17px] text-heading">
             {words.map((word, i) => {
-              const active  = chunksRef.current[currentChunk];
+              const active   = chunksRef.current[currentChunk];
               const isActive = !!active && i >= active.start && i < active.end;
               const isStart  = !!active && i === active.start;
               const clean    = word.replace(/[^a-zA-Z'-]/g, '');
               const isWord   = clean.length >= 2;
 
-              const isSelected = selRange && i >= selRange.start && i <= selRange.end;
               return (
                 <React.Fragment key={i}>
                   <span
                     ref={isStart ? activeRef : null}
-                    data-word-index={isWord ? i : undefined}
+                    data-word={isWord ? clean : undefined}
                     onClick={isWord ? () => handleWordClick(word) : undefined}
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
-                      isSelected
-                        ? 'bg-amber-400/30 text-amber-300'
-                        : isActive
+                      isActive
                         ? 'bg-blue-500/20 text-blue-400'
                         : lookedUp.has(clean.toLowerCase()) && isWord
                         ? 'text-green-400 cursor-pointer hover:bg-green-500/10'

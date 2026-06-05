@@ -97,6 +97,7 @@ export default function SelectionToolbar({ phrase, sentence, position, onClose, 
   return (
     <div
       ref={ref}
+      data-selection-toolbar="true"
       className={`fixed z-[70] transition-all duration-200 ${
         visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
       }`}
