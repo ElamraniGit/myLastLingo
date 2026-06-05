@@ -206,6 +206,7 @@ export type AppPage =
   | 'player'
   | 'vocabulary'
   | 'flashcards'
+  | 'games'
   | 'stats'
   | 'settings'
   | 'library'

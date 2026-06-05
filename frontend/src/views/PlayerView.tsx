@@ -212,7 +212,7 @@ function HomeDashboard() {
           { icon: '📚', label: 'Library',  page: 'library'    },
           { icon: '✏️', label: 'Words',    page: 'vocabulary' },
           { icon: '🃏', label: 'Review',   page: 'flashcards' },
-          { icon: '📈', label: 'Stats',    page: 'stats'      },
+          { icon: '🎮', label: 'Games',    page: 'games'      },
         ].map(a => (
           <button
             key={a.page}

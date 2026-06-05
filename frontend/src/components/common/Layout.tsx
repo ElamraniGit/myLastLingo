@@ -48,6 +48,16 @@ const NAV: { id: AppPage; label: string; icon: (active: boolean) => React.ReactN
     ),
   },
   {
+    id: 'games', label: 'Games',
+    icon: (a) => (
+      <svg viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/>
+        <circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/>
+        <rect x="2" y="6" width="20" height="12" rx="4"/>
+      </svg>
+    ),
+  },
+  {
     id: 'chat', label: 'AI',
     icon: (a) => (
       <svg viewBox="0 0 24 24" fill={a ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
