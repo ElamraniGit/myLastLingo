@@ -59,17 +59,12 @@ export default function TextReaderView() {
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
-  // Multi-word selection state (Long-Press to activate)
+  // Multi-word selection via native browser selection
   const [toolbar, setToolbar] = useState<{
     phrase: string;
     position: { x: number; y: number };
   } | null>(null);
-  const selectionRef        = useRef<{ start: number; end: number } | null>(null);
-  const isDraggingRef       = useRef(false);
-  const pointerDownWordRef  = useRef<number>(-1);
-  const longPressTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressActiveRef  = useRef(false);
-  const LONG_PRESS_MS       = 400;
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const wordsRef   = useRef<string[]>([]);
   const chunksRef  = useRef<{ text: string; start: number; end: number }[]>([]);
@@ -104,17 +99,8 @@ export default function TextReaderView() {
   // Cleanup TTS on unmount
   useEffect(() => () => { readingRef.current = false; stopSpeaking(); }, []);
 
-  const cancelLongPressText = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    longPressActiveRef.current = false;
-  }, []);
-
-  // Normal click — single word lookup (unchanged)
-  const handleWordClick = useCallback((word: string, wordIndex: number) => {
-    if (longPressActiveRef.current || isDraggingRef.current) return;
+  // Single word click
+  const handleWordClick = useCallback((word: string) => {
     const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
     if (clean.length >= 2) {
       lookupWord(clean, '');
@@ -122,85 +108,30 @@ export default function TextReaderView() {
     }
   }, [lookupWord]);
 
-  const handleWordPointerDown = useCallback((e: React.PointerEvent, wordIndex: number) => {
-    cancelLongPressText();
-    pointerDownWordRef.current = wordIndex;
-    isDraggingRef.current      = false;
-    longPressActiveRef.current = false;
-    setToolbar(null);
+  // Native selection → toolbar
+  const handleSelectionEnd = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
 
-    // Only start long-press timer — do NOT capture pointer yet
-    longPressTimerRef.current = setTimeout(() => {
-      longPressActiveRef.current = true;
-      selectionRef.current = { start: wordIndex, end: wordIndex };
-      if ('vibrate' in navigator) navigator.vibrate(30);
-      // Capture pointer so drag extends selection smoothly
-      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    }, LONG_PRESS_MS);
-  }, [cancelLongPressText]);
+    const text = sel.toString().trim().replace(/\s+/g, ' ');
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    if (wordCount < 2 || !text) return;
+    if (!contentRef.current) return;
 
-  const handleWordPointerMove = useCallback((e: React.PointerEvent, wordIndex: number) => {
-    if (!longPressActiveRef.current) {
-      // Moved before long-press → cancel, allow normal scroll
-      cancelLongPressText();
-      return;
-    }
-    const start = pointerDownWordRef.current;
-    if (start < 0) return;
-    const dist = Math.abs(wordIndex - start);
-    if (dist >= 1) {
-      isDraggingRef.current = true;
-      selectionRef.current = {
-        start: Math.min(start, wordIndex),
-        end:   Math.max(start, wordIndex),
-      };
-    }
-  }, [cancelLongPressText]);
+    const range = sel.getRangeAt(0);
+    const rect  = range.getBoundingClientRect();
+    if (!rect.width) return;
 
-  const handleWordPointerUp = useCallback((
-    e: React.PointerEvent,
-    wordIndex: number,
-    word: string
-  ) => {
-    const wasLongPress = longPressActiveRef.current;
-    const wasDragging  = isDraggingRef.current;
-    const sel          = selectionRef.current;
-    cancelLongPressText();
-    isDraggingRef.current      = false;
-    pointerDownWordRef.current = -1;
+    const phrase = text.replace(/[.,!?;:]+$/, '').trim();
+    if (!phrase) return;
 
-    // Normal tap (no long press) → handled by onClick, nothing to do here
-    if (!wasLongPress) return;
-
-    // Long-pressed single word (no drag) → treat as tap lookup
-    if (!wasDragging || !sel || sel.start === sel.end) {
-      setToolbar(null);
-      selectionRef.current = null;
-      const clean = word.replace(/[^a-zA-Z'-]/g, '').trim();
-      if (clean.length >= 2) {
-        lookupWord(clean, '');
-        setLookedUp(prev => new Set(prev).add(clean.toLowerCase()));
-      }
-      return;
-    }
-
-    // Multi-word selection
-    const words = wordsRef.current;
-    const phrase = words
-      .slice(sel.start, sel.end + 1)
-      .join(' ')
-      .replace(/[.,!?;:]+$/, '')
-      .trim();
-
-    if (!phrase) { setToolbar(null); selectionRef.current = null; return; }
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setToolbar({
       phrase,
       position: { x: rect.left + rect.width / 2, y: rect.top },
     });
-    selectionRef.current = null;
-  }, [lookupWord]);
+
+    sel.removeAllRanges();
+  }, []);
 
   const stopReading = useCallback(() => {
     readingRef.current = false;
@@ -336,9 +267,14 @@ export default function TextReaderView() {
       </div>
 
       {/* ── Text content ─────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6">
+      <div
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6"
+        ref={contentRef}
+        onMouseUp={handleSelectionEnd}
+        onTouchEnd={handleSelectionEnd}
+      >
         <div className="max-w-2xl mx-auto">
-          <p className="leading-8 text-[17px] text-heading select-none">
+          <p className="leading-8 text-[17px] text-heading select-text">
             {words.map((word, i) => {
               const active  = chunksRef.current[currentChunk];
               const isActive = !!active && i >= active.start && i < active.end;
@@ -350,12 +286,7 @@ export default function TextReaderView() {
                 <React.Fragment key={i}>
                   <span
                     ref={isStart ? activeRef : null}
-                    onPointerDown={isWord ? e => handleWordPointerDown(e, i) : undefined}
-                    onPointerMove={isWord ? e => handleWordPointerMove(e, i) : undefined}
-                    onPointerUp={isWord ? e => handleWordPointerUp(e, i, word) : undefined}
-                    onClick={isWord ? () => handleWordClick(word, i) : undefined}
-                    onPointerCancel={isWord ? cancelLongPressText : undefined}
-                    style={{ touchAction: 'auto' }}
+                    onClick={isWord ? () => handleWordClick(word) : undefined}
                     className={`inline rounded px-0.5 transition-colors duration-100 ${
                       isActive
                         ? 'bg-blue-500/20 text-blue-400'
