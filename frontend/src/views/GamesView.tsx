@@ -37,12 +37,11 @@ function speak(text: string, rate = 0.85) {
 function filterPlayable(words: SavedWord[]): SavedWord[] {
   return words.filter(w =>
     w.word &&
-    w.word.length >= 3 &&
-    // Only words with English meaning (needed for quiz/spelling)
+    w.word.length >= 4 &&           // min 4 chars so scramble is meaningful
+    w.word.length <= 20 &&          // max 20 chars so it fits on screen
     w.meaning_en &&
-    w.meaning_en.trim().length > 3 &&
-    // Skip words with spaces (phrases are harder for spelling/scramble)
-    !w.word.includes(' ')
+    w.meaning_en.trim().length > 5 &&
+    !w.word.includes(' ')           // no spaces — single word only
   );
 }
 
@@ -365,12 +364,16 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
     const next = [...selected, i];
     setSelected(next);
     sfx.tap();
-    if (next.length === current.word.length) {
-      const word = next.map(j => letters[j]).join('');
-      const ok   = word.toLowerCase() === current.word.toLowerCase();
-      setResult(ok ? 'correct' : 'wrong');
-      if (ok) { sfx.correct(); setScore(s => s + 1); awardXP('review_word'); }
-      else    { sfx.wrong(); }
+    // Only check answer when ALL letters are placed
+    if (next.length === current.word.length && current.word.length >= 2) {
+      const formed = next.map(j => letters[j]).join('');
+      const ok = formed.toLowerCase() === current.word.toLowerCase();
+      // Small delay so user sees the last letter placed before result shows
+      setTimeout(() => {
+        setResult(ok ? 'correct' : 'wrong');
+        if (ok) { sfx.correct(); setScore(s => s + 1); awardXP('review_word'); }
+        else    { sfx.wrong(); }
+      }, 150);
     }
   };
 
@@ -570,14 +573,20 @@ function MatchingPairs({ words, onBack }: { words: SavedWord[]; onBack: () => vo
               className={`rounded-2xl p-3 text-left min-h-[72px] flex items-center border-2 transition-all active:scale-95 ${
                 isMatched ? 'border-green-500/40 bg-green-500/10 text-green-400 cursor-default' :
                 isWrong   ? 'border-red-500/40 bg-red-500/10 text-red-400' :
-                isFlipped ? 'border-blue-500/60 bg-blue-500/10 text-blue-400' :
+                isFlipped ? 'border-blue-500/60 bg-blue-600/15 text-blue-300' :
                 card.type === 'word'
-                  ? 'border-default bg-card hover:border-blue-500/30 text-heading font-bold'
-                  : 'border-default bg-elevated/50 hover:border-purple-500/30 text-body text-xs'
+                  ? 'border-blue-500/30 bg-blue-500/8 text-heading font-bold'
+                  : 'border-purple-500/30 bg-purple-500/8 text-body text-xs'
               }`}
             >
-              <span className={card.type === 'word' ? 'text-sm font-bold' : 'text-xs leading-relaxed line-clamp-3'}>
-                {isMatched || isFlipped || isWrong ? card.text : (card.type === 'word' ? '?' : '···')}
+              <span className={
+                isMatched || isFlipped || isWrong
+                  ? (card.type === 'word' ? 'text-sm font-bold' : 'text-xs leading-relaxed line-clamp-3')
+                  : 'text-2xl text-muted/60 mx-auto'
+              }>
+                {isMatched || isFlipped || isWrong
+                  ? card.text
+                  : (card.type === 'word' ? '?' : '···')}
               </span>
             </button>
           );
