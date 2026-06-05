@@ -117,11 +117,18 @@ export default function TextReaderView() {
     const container = contentRef.current;
     if (!container) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    const blockCtx = (e: Event) => e.preventDefault();
+    container.addEventListener('contextmenu', blockCtx);
+
     const onSel = () => {
       if (timer) clearTimeout(timer);
+      // 20ms: beat browser context menu popup
       timer = setTimeout(() => {
         const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+        if (!sel || sel.isCollapsed || !sel.rangeCount) {
+          setToolbar(null);
+          return;
+        }
         const text = sel.toString().trim().replace(/\s+/g, ' ');
         if (text.split(/\s+/).filter(Boolean).length < 2) return;
         const range = sel.getRangeAt(0);
@@ -134,7 +141,11 @@ export default function TextReaderView() {
       }, 100);
     };
     document.addEventListener('selectionchange', onSel);
-    return () => { document.removeEventListener('selectionchange', onSel); if (timer) clearTimeout(timer); };
+    return () => {
+      container.removeEventListener('contextmenu', blockCtx);
+      document.removeEventListener('selectionchange', onSel);
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {

@@ -106,7 +106,7 @@ export default function TranscriptViewer() {
     let selTimer: ReturnType<typeof setTimeout> | null = null;
 
     const onSelChange = () => {
-      // Debounce — fire after selection settles (100ms)
+      // Block contextmenu + fire quickly to beat browser popup
       if (selTimer) clearTimeout(selTimer);
       selTimer = setTimeout(() => {
         const sel = window.getSelection();
@@ -148,8 +148,13 @@ export default function TranscriptViewer() {
       }, 100);
     };
 
+    // Block browser Copy/Share/Web-search popup
+    const blockCtx = (e: Event) => e.preventDefault();
+    container.addEventListener('contextmenu', blockCtx);
+
     document.addEventListener('selectionchange', onSelChange);
     return () => {
+      container.removeEventListener('contextmenu', blockCtx);
       document.removeEventListener('selectionchange', onSelChange);
       if (selTimer) clearTimeout(selTimer);
     };
