@@ -4,14 +4,16 @@
  * Arabic translation shown only as a small hint on the back of the card.
  *
  * Improvements:
- *  - Quiz: richer feedback panel after answering (full definition + example)
- *  - Quiz: correct answer highlighted clearly on wrong pick
- *  - Flashcard header shows session stats (done / streak)
+ *  - Session modes: Quick (5), Standard (20), Deep (40), CEFR filter
+ *  - Smarter queue: hardest words first (lapses DESC, ease ASC)
+ *  - Quiz: richer feedback panel after answering
  *  - Sound effects: flip, correct, wrong, complete
+ *  - Streak milestone celebration
  */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useStore } from '@/store/appStore';
+import { xpApi } from '@/lib/api';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
@@ -102,6 +104,29 @@ const RATINGS = [
 
 type Mode      = 'flashcards' | 'quiz';
 type QuizType  = 'definition' | 'fillblank' | 'word';
+type SessionMode = 'quick' | 'standard' | 'deep' | 'cefr';
+type CEFRFilter  = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
+
+// Session configs
+const SESSION_CONFIGS: Record<SessionMode, { label: string; icon: string; count: number; desc: string }> = {
+  quick:    { label: 'Quick',    icon: '⚡', count: 5,   desc: '5 words · ~2 min' },
+  standard: { label: 'Standard', icon: '📚', count: 20,  desc: '20 words · ~8 min' },
+  deep:     { label: 'Deep',     icon: '🧠', count: 40,  desc: '40 words · ~15 min' },
+  cefr:     { label: 'By Level', icon: '🎯', count: 20,  desc: 'Filter by CEFR level' },
+};
+
+// Sort queue: hardest first (most lapses, lowest ease), then by due date
+function sortBySM2(words: SavedWord[]): SavedWord[] {
+  return [...words].sort((a, b) => {
+    const lapsesDiff = (b.lapses ?? 0) - (a.lapses ?? 0);
+    if (lapsesDiff !== 0) return lapsesDiff;
+    const easeDiff = (a.ease_factor ?? 2.5) - (b.ease_factor ?? 2.5);
+    if (Math.abs(easeDiff) > 0.1) return easeDiff;
+    const aDate = a.next_review ? new Date(a.next_review.replace(' ', 'T')).getTime() : 0;
+    const bDate = b.next_review ? new Date(b.next_review.replace(' ', 'T')).getTime() : 0;
+    return aDate - bDate;
+  });
+}
 
 /* ════════════════════════════════════════════════════════════════ */
 
@@ -112,15 +137,20 @@ export default function FlashcardsView() {
     loadStats, reviewWord, lookupWord,
   } = useDictionary();
 
-  const [queue,     setQueue]     = useState<SavedWord[]>([]);
-  const [pool,      setPool]      = useState<SavedWord[]>([]);
-  const [summary,   setSummary]   = useState<ReviewSummary | null>(null);
-  const [loading,   setLoading]   = useState(true);
-  const [busy,      setBusy]      = useState(false);
-  const [flipped,   setFlipped]   = useState(false);
-  const [mode,      setMode]      = useState<Mode>('flashcards');
-  const [done,      setDone]      = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const [queue,        setQueue]        = useState<SavedWord[]>([]);
+  const [pool,         setPool]         = useState<SavedWord[]>([]);
+  const [summary,      setSummary]      = useState<ReviewSummary | null>(null);
+  const [loading,      setLoading]      = useState(true);
+  const [busy,         setBusy]         = useState(false);
+  const [flipped,      setFlipped]      = useState(false);
+  const [mode,         setMode]         = useState<Mode>('flashcards');
+  const [done,         setDone]         = useState(0);
+  const [completed,    setCompleted]    = useState(false);
+  const [sessionMode,  setSessionMode]  = useState<SessionMode>('standard');
+  const [cefrFilter,   setCefrFilter]   = useState<CEFRFilter>(null);
+  const [showConfig,   setShowConfig]   = useState(false);
+  const [streakData,   setStreakData]   = useState<any>(null);
+  const [streakAlert,  setStreakAlert]  = useState<string | null>(null);
 
   // Quiz
   const [quizType,  setQuizType]  = useState<QuizType>('definition');
@@ -132,21 +162,34 @@ export default function FlashcardsView() {
   const total   = done + queue.length;
   const pct     = total > 0 ? Math.round((done / total) * 100) : 0;
 
+  /* ── Load streak data ────────────────────────────────────────── */
+  const loadStreak = useCallback(async () => {
+    try { const d = await xpApi.getStatus(); setStreakData(d); } catch {}
+  }, []);
+
   /* ── Load ────────────────────────────────────────────────────── */
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (sm: SessionMode = sessionMode, cf: CEFRFilter = cefrFilter) => {
     setLoading(true);
     setCompleted(false);
     setDone(0);
     setFlipped(false);
     setPicked(null);
     setAnswered(false);
+    setShowConfig(false);
+    const count = SESSION_CONFIGS[sm].count;
     try {
       const [dueData, vocabData, sumData] = await Promise.all([
-        loadDueWords(40),
-        loadVocabulary({ page: 1, limit: 200 }),
+        loadDueWords(sm === 'deep' ? 80 : 50),  // fetch more, then slice
+        loadVocabulary({ page: 1, limit: 300, level: cf ?? undefined }),
         loadReviewSummary().catch(() => null),
       ]);
-      setQueue(dueData?.words  ?? []);
+      let words: SavedWord[] = dueData?.words ?? [];
+      // Filter by CEFR if set
+      if (cf) words = words.filter(w => w.level === cf);
+      // Smart sort: hardest first
+      words = sortBySM2(words);
+      // Limit to session count
+      setQueue(words.slice(0, count));
       setPool(vocabData?.words ?? []);
       setSummary(sumData ?? (dueData as any)?.summary ?? null);
     } catch (e) {
@@ -155,10 +198,14 @@ export default function FlashcardsView() {
     } finally {
       setLoading(false);
     }
-  }, [loadDueWords, loadVocabulary, loadReviewSummary]);
+  }, [sessionMode, cefrFilter, loadDueWords, loadVocabulary, loadReviewSummary]);
 
   useEffect(() => {
-    if (activePage === 'flashcards') { reload(); loadStats(); }
+    if (activePage === 'flashcards') {
+      reload();
+      loadStats();
+      loadStreak();
+    }
   }, [activePage]); // eslint-disable-line
 
   /* ── Quiz setup on card change ───────────────────────────────── */
@@ -208,18 +255,26 @@ export default function FlashcardsView() {
     try {
       const res = await reviewWord(current.id, quality);
       setSummary((res as any)?.summary ?? null);
-      setDone(v => v + 1);
+      const newDone = done + 1;
+      setDone(newDone);
       setQueue(prev => {
         const next = prev.slice(1);
         if (!next.length) {
           setCompleted(true);
           setTimeout(() => sfx.complete(), 300);
+          // Refresh streak after session
+          loadStreak();
         }
         return next;
       });
       setFlipped(false);
       setPicked(null);
       setAnswered(false);
+
+      // Streak milestone alerts
+      if (newDone === 5)  { sfx.streak(); setStreakAlert('🔥 5 cards done! Keep going!'); setTimeout(() => setStreakAlert(null), 2500); }
+      if (newDone === 10) { sfx.streak(); setStreakAlert('💪 10 cards! You\'re on fire!'); setTimeout(() => setStreakAlert(null), 2500); }
+      if (newDone === 20) { sfx.streak(); setStreakAlert('🏆 20 cards! Amazing session!'); setTimeout(() => setStreakAlert(null), 2500); }
     } finally {
       setBusy(false);
     }
@@ -237,25 +292,33 @@ export default function FlashcardsView() {
 
   /* ── Empty / Done ────────────────────────────────────────────── */
   if (!current) return (
-    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center py-16 animate-fade-in">
-      <div className="text-6xl mb-5">{completed ? '🎉' : '✅'}</div>
+    <div className="flex flex-col items-center justify-center min-h-full px-6 text-center py-12 animate-fade-in">
+      <div className="text-6xl mb-4">{completed ? '🎉' : '✅'}</div>
       <h2 className="text-2xl font-bold text-heading mb-2">
         {completed ? 'Session Complete!' : 'All Caught Up!'}
       </h2>
-      <p className="text-sm text-muted mb-8 max-w-xs">
+      <p className="text-sm text-muted mb-2 max-w-xs">
         {completed
           ? `Great work! You reviewed ${done} card${done !== 1 ? 's' : ''} this session.`
-          : 'No words are due for review right now. Come back later!'}
+          : 'No words are due for review right now.'}
       </p>
+
+      {/* Streak display */}
+      {streakData && streakData.streak_days > 0 && (
+        <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-6">
+          <span>🔥</span>
+          <span className="text-sm font-bold text-orange-500">{streakData.streak_days}-day streak!</span>
+        </div>
+      )}
 
       {/* Stats */}
       {summary && (
-        <div className="grid grid-cols-4 gap-2 w-full max-w-sm mb-8">
+        <div className="grid grid-cols-4 gap-2 w-full max-w-sm mb-6">
           {[
-            { label: 'Total',     val: (summary as any).total_saved ?? 0, color: 'text-heading'     },
-            { label: 'Learning',  val: summary.learning   ?? 0,           color: 'text-amber-500'   },
-            { label: 'Reviewing', val: summary.reviewing  ?? 0,           color: 'text-blue-500'    },
-            { label: 'Learned',   val: summary.learned    ?? 0,           color: 'text-green-500'   },
+            { label: 'Total',     val: (summary as any).total_saved ?? 0, color: 'text-heading'   },
+            { label: 'Learning',  val: summary.learning   ?? 0,           color: 'text-amber-500' },
+            { label: 'Reviewing', val: summary.reviewing  ?? 0,           color: 'text-blue-500'  },
+            { label: 'Learned',   val: summary.learned    ?? 0,           color: 'text-green-500' },
           ].map(s => (
             <div key={s.label} className="bg-card border border-default rounded-2xl py-3 text-center">
               <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
@@ -265,9 +328,24 @@ export default function FlashcardsView() {
         </div>
       )}
 
-      <button onClick={reload} className="btn-primary px-10 py-3 rounded-2xl text-sm">
-        Refresh Queue
-      </button>
+      {/* Action buttons */}
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        <button onClick={() => reload()} className="btn-primary py-3 rounded-2xl text-sm">
+          🔄 {completed ? 'New Session' : 'Check Again'}
+        </button>
+        {/* Quick practice even when nothing is due */}
+        {!completed && (
+          <button
+            onClick={() => {
+              setSessionMode('quick');
+              reload('quick', null);
+            }}
+            className="py-3 rounded-2xl border border-default text-sm text-body hover:bg-card transition-colors"
+          >
+            ⚡ Quick Practice (5 words)
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -275,28 +353,110 @@ export default function FlashcardsView() {
   return (
     <div className="max-w-lg mx-auto px-4 pt-5 pb-28 lg:pb-8 animate-fade-in">
 
+      {/* Streak milestone alert */}
+      {streakAlert && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[80] bg-orange-500 text-white text-sm font-bold
+                        px-5 py-2.5 rounded-2xl shadow-xl animate-pop-in whitespace-nowrap">
+          {streakAlert}
+        </div>
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-xl font-bold text-heading">Review</h2>
           <p className="text-xs text-muted mt-0.5">
-            {queue.length} card{queue.length !== 1 ? 's' : ''} remaining
+            {queue.length} card{queue.length !== 1 ? 's' : ''} · {SESSION_CONFIGS[sessionMode].icon} {SESSION_CONFIGS[sessionMode].label}
+            {cefrFilter && <span className="ml-1 text-blue-500 font-semibold">{cefrFilter}</span>}
           </p>
         </div>
-        <div className="flex bg-card border border-default rounded-xl p-1 gap-1">
-          {(['flashcards', 'quiz'] as Mode[]).map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                mode === m ? 'bg-blue-600 text-white shadow-sm' : 'text-muted hover:text-heading'
-              }`}
-            >
-              {m === 'flashcards' ? '🃏 Cards' : '❓ Quiz'}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          {/* Session config button */}
+          <button
+            onClick={() => setShowConfig(v => !v)}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+              showConfig ? 'border-blue-500/40 bg-blue-500/10 text-blue-500' : 'border-default text-muted hover:text-body bg-card'
+            }`}
+            title="Session settings"
+          >
+            ⚙️
+          </button>
+          {/* Mode toggle */}
+          <div className="flex bg-card border border-default rounded-xl p-1 gap-1">
+            {(['flashcards', 'quiz'] as Mode[]).map(m => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  mode === m ? 'bg-blue-600 text-white shadow-sm' : 'text-muted hover:text-heading'
+                }`}
+              >
+                {m === 'flashcards' ? '🃏 Cards' : '❓ Quiz'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Session config panel */}
+      {showConfig && (
+        <div className="bg-card border border-default rounded-2xl p-4 mb-4 animate-fade-in space-y-3">
+          <p className="text-xs font-semibold text-muted uppercase tracking-wider">Session Mode</p>
+          <div className="grid grid-cols-2 gap-2">
+            {(Object.entries(SESSION_CONFIGS) as [SessionMode, typeof SESSION_CONFIGS[SessionMode]][]).map(([key, cfg]) => (
+              <button
+                key={key}
+                onClick={() => { setSessionMode(key); if (key !== 'cefr') { setCefrFilter(null); reload(key, null); } }}
+                className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
+                  sessionMode === key ? 'border-blue-500/40 bg-blue-500/8 text-blue-500' : 'border-default hover:border-blue-500/20 text-body'
+                }`}
+              >
+                <span className="text-lg shrink-0">{cfg.icon}</span>
+                <div>
+                  <div className="text-sm font-semibold">{cfg.label}</div>
+                  <div className="text-[10px] text-muted">{cfg.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+          {sessionMode === 'cefr' && (
+            <div>
+              <p className="text-xs text-muted mb-2">Filter by level:</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {(['A1','A2','B1','B2','C1','C2'] as const).map(lvl => (
+                  <button
+                    key={lvl}
+                    onClick={() => { setCefrFilter(lvl); reload('cefr', lvl); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                      cefrFilter === lvl ? 'border-blue-500 bg-blue-500/15 text-blue-500' : 'border-default text-muted hover:border-blue-500/30'
+                    }`}
+                  >{lvl}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          {sessionMode !== 'cefr' && (
+            <button onClick={() => reload()} className="w-full py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold active:scale-[0.98] transition-all">
+              Start {SESSION_CONFIGS[sessionMode].label} Session
+            </button>
+          )}
+
+          {/* Streak info */}
+          {streakData && (
+            <div className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm ${
+              streakData.streak_days > 0 ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-elevated'
+            }`}>
+              <span className="text-muted text-xs">Current streak</span>
+              <div className="flex items-center gap-1">
+                <span>🔥</span>
+                <span className={`font-bold text-sm ${streakData.streak_days > 0 ? 'text-orange-500' : 'text-faint'}`}>
+                  {streakData.streak_days} day{streakData.streak_days !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Progress */}
       <div className="flex items-center gap-3 mb-5">

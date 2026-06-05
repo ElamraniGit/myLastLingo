@@ -1,7 +1,9 @@
 /**
  * XP Bar — Apple-style compact header widget.
+ * Shows: streak 🔥 · daily goal 🎯 · level · XP bar
+ * Streak number pulses/bounces when newly achieved.
  */
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { xpApi } from '@/lib/api';
 
 interface XPData {
@@ -12,7 +14,21 @@ interface XPData {
 
 export default function XPBar() {
   const [data, setData] = useState<XPData | null>(null);
-  const refresh = useCallback(() => { xpApi.getStatus().then(setData).catch(() => {}); }, []);
+  const prevStreak = useRef<number>(0);
+  const [streakBounce, setStreakBounce] = useState(false);
+
+  const refresh = useCallback(() => {
+    xpApi.getStatus().then(d => {
+      setData(prev => {
+        // Animate if streak increased
+        if (prev && d.streak_days > prev.streak_days) {
+          setStreakBounce(true);
+          setTimeout(() => setStreakBounce(false), 800);
+        }
+        return d;
+      });
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => { refresh(); const iv = setInterval(refresh, 30000); return () => clearInterval(iv); }, [refresh]);
   useEffect(() => { const h = () => refresh(); window.addEventListener('xp-updated', h); return () => window.removeEventListener('xp-updated', h); }, [refresh]);
@@ -24,10 +40,10 @@ export default function XPBar() {
 
   return (
     <div className="flex items-center gap-2.5">
-      {/* Streak */}
+      {/* Streak — pulses if newly incremented */}
       {data.streak_days > 0 && (
-        <div className="flex items-center gap-1 bg-orange-500/10 rounded-lg px-2 py-1">
-          <span className="text-xs">🔥</span>
+        <div className={`flex items-center gap-1 bg-orange-500/10 rounded-lg px-2 py-1 transition-all ${streakBounce ? 'scale-125' : 'scale-100'}`}>
+          <span className={`text-xs ${streakBounce ? 'animate-bounce' : ''}`}>🔥</span>
           <span className="text-xs font-semibold text-orange-500">{data.streak_days}</span>
         </div>
       )}
