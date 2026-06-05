@@ -100,12 +100,14 @@ export default function TranscriptViewer() {
   } | null>(null);
 
   // ── Drag refs (not state — no re-render during drag) ───────────────────────
-  const ptrStart   = useRef<{ x: number; y: number; id: number } | null>(null);
-  const dragging   = useRef(false);
-  const dragSeg    = useRef(-1);
-  const dragLo     = useRef(-1);
-  const dragHi     = useRef(-1);
-  const dragTxt    = useRef('');
+  const ptrStart      = useRef<{ x: number; y: number; id: number } | null>(null);
+  const dragging      = useRef(false);
+  const dragStartSeg  = useRef(-1);   // segment at pointer-down (fixed)
+  const dragStartWi   = useRef(-1);   // word index at pointer-down (fixed)
+  const dragSeg       = useRef(-1);
+  const dragLo        = useRef(-1);
+  const dragHi        = useRef(-1);
+  const dragTxt       = useRef('');
 
   // ── Auto-scroll ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -135,38 +137,56 @@ export default function TranscriptViewer() {
       if (!ptrStart.current || e.pointerId !== ptrStart.current.id) return;
       const dx = e.clientX - ptrStart.current.x;
       const dy = e.clientY - ptrStart.current.y;
-      if (!dragging.current && Math.sqrt(dx*dx + dy*dy) < 10) return;
-      dragging.current = true;
+
+      if (!dragging.current) {
+        if (Math.sqrt(dx*dx + dy*dy) < 8) return;
+        dragging.current = true;
+        // Capture start word index ONCE when drag begins
+        const startEl = getWordEl(ptrStart.current.x, ptrStart.current.y);
+        if (startEl) {
+          dragStartSeg.current = parseInt(startEl.dataset.segIndex  || '-1', 10);
+          dragStartWi.current  = parseInt(startEl.dataset.wordIndex || '-1', 10);
+          dragSeg.current      = dragStartSeg.current;
+          dragTxt.current      = startEl.dataset.segText || '';
+        }
+      }
+
+      if (dragStartWi.current < 0 || dragStartSeg.current < 0) return;
 
       const el = getWordEl(e.clientX, e.clientY);
       if (!el) return;
-      const si  = parseInt(el.dataset.segIndex  || '-1', 10);
-      const wi  = parseInt(el.dataset.wordIndex || '-1', 10);
-      const txt = el.dataset.segText || '';
-      if (si < 0 || wi < 0) return;
+      const si = parseInt(el.dataset.segIndex  || '-1', 10);
+      const wi = parseInt(el.dataset.wordIndex || '-1', 10);
+      if (wi < 0 || si !== dragStartSeg.current) return;
 
-      if (dragSeg.current < 0) { dragSeg.current = si; dragLo.current = wi; dragHi.current = wi; }
-      else if (dragSeg.current !== si) { dragSeg.current = si; dragLo.current = wi; dragHi.current = wi; }
-      else { dragLo.current = Math.min(dragLo.current, wi); dragHi.current = Math.max(dragHi.current, wi); }
-      dragTxt.current = txt;
+      // lo = min(start, current), hi = max(start, current)
+      dragLo.current = Math.min(dragStartWi.current, wi);
+      dragHi.current = Math.max(dragStartWi.current, wi);
+      if (el.dataset.segText) dragTxt.current = el.dataset.segText;
+
       setSelHighlight({ segIndex: si, lo: dragLo.current, hi: dragHi.current });
     };
 
     const onUp = (e: PointerEvent) => {
       if (!ptrStart.current || e.pointerId !== ptrStart.current.id) return;
       const wasDrag = dragging.current;
-      ptrStart.current = null;
-      dragging.current = false;
+      const si      = dragSeg.current;
+      const lo      = dragLo.current;
+      const hi      = dragHi.current;
+      const txt     = dragTxt.current;
 
-      if (!wasDrag) { setSelHighlight(null); return; }
-
-      const si = dragSeg.current;
-      const lo = dragLo.current;
-      const hi = dragHi.current;
-      dragSeg.current = -1; dragLo.current = -1; dragHi.current = -1;
+      // Reset all drag state FIRST
+      ptrStart.current     = null;
+      dragging.current     = false;
+      dragStartSeg.current = -1;
+      dragStartWi.current  = -1;
+      dragSeg.current      = -1;
+      dragLo.current       = -1;
+      dragHi.current       = -1;
+      dragTxt.current      = '';
       setSelHighlight(null);
 
-      if (si < 0 || hi - lo < 1) return;
+      if (!wasDrag || si < 0 || lo < 0 || hi - lo < 1) return;
 
       const container = containerRef.current;
       if (!container) return;
@@ -175,17 +195,18 @@ export default function TranscriptViewer() {
       );
       const words: string[] = [];
       spans.forEach(sp => {
-        const wi = parseInt(sp.dataset.wordIndex || '-1', 10);
-        if (wi >= lo && wi <= hi) words.push(sp.dataset.word || '');
+        const wi2 = parseInt(sp.dataset.wordIndex || '-1', 10);
+        if (wi2 >= lo && wi2 <= hi) words.push(sp.dataset.word || '');
       });
-      const phrase = words.filter(Boolean).join(' ').replace(/[.,!?;:]+$/, '').trim();
+      const phrase = words.filter(Boolean).join(' ')
+        .replace(/[.,!?;:“”‘’\s]+$/, '').trim();
       if (!phrase || words.length < 2) return;
 
       const cr = container.getBoundingClientRect();
       setToolbar({
         phrase,
-        sentence: dragTxt.current || phrase,
-        position: { x: cr.left + cr.width / 2, y: e.clientY },
+        sentence: txt || phrase,
+        position: { x: cr.left + cr.width / 2, y: Math.max(80, e.clientY - 60) },
       });
     };
 

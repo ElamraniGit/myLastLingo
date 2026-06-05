@@ -67,6 +67,7 @@ export default function TextReaderView() {
   const contentRef        = useRef<HTMLDivElement>(null);
   const ptrDownRef        = useRef<{ x: number; y: number; id: number } | null>(null);
   const isDraggingTR      = useRef(false);
+  const dragStartIdxRef   = useRef(-1);   // word index at pointer-down (fixed)
   const selLoRef          = useRef(-1);
   const selHiRef          = useRef(-1);
   const [selRange, setSelRange] = useState<{ start: number; end: number } | null>(null);
@@ -126,47 +127,63 @@ export default function TextReaderView() {
     return -1;
   }, []);
 
-  // Document-level listeners — fire even when child spans stop propagation
+  // Document-level listeners — fire even when child spans call stopPropagation
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
       const dx = e.clientX - ptrDownRef.current.x;
       const dy = e.clientY - ptrDownRef.current.y;
-      if (!isDraggingTR.current && Math.sqrt(dx*dx+dy*dy) < 10) return;
-      isDraggingTR.current = true;
 
-      const startIdx = getWordIdxAt(ptrDownRef.current.x, ptrDownRef.current.y);
+      // Activate drag after ≥8px movement
+      if (!isDraggingTR.current) {
+        if (Math.sqrt(dx*dx + dy*dy) < 8) return;
+        isDraggingTR.current = true;
+        // Capture start word index ONCE when drag begins
+        dragStartIdxRef.current = getWordIdxAt(ptrDownRef.current.x, ptrDownRef.current.y);
+      }
+
+      const startIdx = dragStartIdxRef.current;
       const curIdx   = getWordIdxAt(e.clientX, e.clientY);
       if (startIdx < 0 || curIdx < 0) return;
 
-      selLoRef.current = Math.min(startIdx, curIdx);
-      selHiRef.current = Math.max(startIdx, curIdx);
-      setSelRange({ start: selLoRef.current, end: selHiRef.current });
+      const lo = Math.min(startIdx, curIdx);
+      const hi = Math.max(startIdx, curIdx);
+      selLoRef.current = lo;
+      selHiRef.current = hi;
+      // Use requestAnimationFrame to batch React state updates during fast drag
+      setSelRange({ start: lo, end: hi });
     };
 
     const onUp = (e: PointerEvent) => {
       if (!ptrDownRef.current || e.pointerId !== ptrDownRef.current.id) return;
-      const wasDrag = isDraggingTR.current;
-      ptrDownRef.current   = null;
-      isDraggingTR.current = false;
+      const wasDrag  = isDraggingTR.current;
+      const lo       = selLoRef.current;
+      const hi       = selHiRef.current;
 
-      if (!wasDrag) { setSelRange(null); return; }
-
-      const lo = selLoRef.current;
-      const hi = selHiRef.current;
-      selLoRef.current = -1; selHiRef.current = -1;
+      // Reset all drag state BEFORE any async work
+      ptrDownRef.current    = null;
+      isDraggingTR.current  = false;
+      dragStartIdxRef.current = -1;
+      selLoRef.current      = -1;
+      selHiRef.current      = -1;
       setSelRange(null);
 
-      if (lo < 0 || hi - lo < 1) return;
+      if (!wasDrag || lo < 0 || hi < 0 || hi - lo < 1) return;
 
       const words  = wordsRef.current;
-      const phrase = words.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
-      if (!phrase || phrase.split(/\s+/).length < 2) return;
+      const phrase = words.slice(lo, hi + 1)
+        .join(' ')
+        .replace(/[.,!?;:""''«»\s]+$/, '')
+        .trim();
+      if (!phrase || phrase.split(/\s+/).filter(Boolean).length < 2) return;
 
       const cr = contentRef.current?.getBoundingClientRect();
       setToolbar({
         phrase,
-        position: { x: (cr?.left ?? 0) + (cr?.width ?? 300) / 2, y: e.clientY },
+        position: {
+          x: (cr?.left ?? 0) + (cr?.width ?? 300) / 2,
+          y: Math.max(80, e.clientY - 60),   // slightly above finger
+        },
       });
     };
 
