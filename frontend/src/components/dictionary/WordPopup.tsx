@@ -126,7 +126,7 @@ export default function WordPopup() {
     <>
       {/* ── Backdrop ──────────────────────────────────────────── */}
       <div
-        className={`fixed inset-0 z-40 transition-all duration-300 ${
+        className={`fixed inset-0 z-[60] transition-all duration-300 ${
           visible ? 'bg-black/60 backdrop-blur-sm' : 'bg-black/0'
         }`}
         onClick={handleClose}
@@ -135,7 +135,7 @@ export default function WordPopup() {
       {/* ── Sheet ─────────────────────────────────────────────── */}
       <div
         ref={sheetRef}
-        className={`fixed z-50 bg-surface shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out
+        className={`fixed z-[70] bg-surface shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out
           bottom-0 left-0 right-0 max-h-[88vh] rounded-t-3xl border-t border-line/50
           lg:left-auto lg:right-0 lg:top-0 lg:bottom-0 lg:max-h-full lg:w-[420px] lg:rounded-t-none lg:rounded-l-3xl lg:border-t-0 lg:border-l
           ${visible

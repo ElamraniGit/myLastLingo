@@ -444,7 +444,7 @@ function AddModal({
                   onKeyDown={e => e.key === 'Enter' && submitYoutube()}
                   placeholder="https://youtube.com/watch?v=..."
                   className="input-field text-sm"
-                  autoFocus dir="ltr"
+                  dir="ltr"
                 />
               </div>
               <div className="flex gap-2 pt-1">
@@ -471,7 +471,6 @@ function AddModal({
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. The Little Prince — Ch. 1"
                   className="input-field text-sm"
-                  autoFocus
                 />
               </div>
               <div>
@@ -542,7 +541,6 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
           onKeyDown={e => e.key === 'Enter' && search()}
           placeholder="e.g. ambiguous"
           className="input-field text-sm"
-          autoFocus
         />
       </div>
       {error  && <p className="text-xs text-red-400 flex items-center gap-1.5">⚠️ {error}</p>}
