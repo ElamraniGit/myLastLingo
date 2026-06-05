@@ -20,7 +20,6 @@ import { useDictionary } from '@/hooks/useDictionary';
 import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
 import { Button } from '@/components/ui/Button';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
-import PhraseInput from '@/components/common/PhraseInput';
 
 const FS: Record<TranscriptFontSize, string> = {
   sm: 'text-sm', md: 'text-base', lg: 'text-lg', xl: 'text-xl',
@@ -275,7 +274,6 @@ export default function TranscriptViewer() {
           <span className="text-[10px] text-faint truncate hidden sm:block">tap · hold &amp; drag</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <PhraseInput videoId={currentVideo?.id} label="+ Phrase" />
           <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${transcript.source === 'youtube' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}`}>
             {transcript.source === 'youtube' ? '▶ YT' : '🤖 AI'}
           </span>

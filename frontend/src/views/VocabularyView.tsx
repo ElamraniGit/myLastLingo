@@ -15,7 +15,6 @@ type SortOption = 'next_review' | 'newest' | 'oldest' | 'alphabetical' | 'level'
 import { speak as ttsSpeak } from '@/lib/tts';
 import { vocabularyApi, downloadVocabularyExport } from '@/lib/api';
 import * as sfx from '@/lib/sfx';
-import PhraseInput from '@/components/common/PhraseInput';
 
 const STATUS_COLOR: Record<string, string> = {
   learning:  'bg-amber-500/10 text-amber-500',
@@ -184,8 +183,6 @@ export default function VocabularyView() {
             <p className="text-xs text-muted mt-0.5">{displayTotal} saved · tap for details</p>
           </div>
           <div className="flex items-center gap-1.5">
-            {/* Save a phrase manually */}
-            <PhraseInput label="+ Phrase" />
             {/* Phase 5: export / import */}
             <button
               onClick={() => handleExport('csv')}

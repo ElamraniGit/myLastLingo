@@ -23,7 +23,7 @@ function fmtTime(s: number) {
 }
 
 export default function VideoPlayer() {
-  const { currentVideo } = useStore();
+  const { currentVideo, setDefaultVideoQuality } = useStore();
   const {
     playerRef,
     playing,
@@ -110,6 +110,7 @@ export default function VideoPlayer() {
                     key={quality}
                     onClick={() => {
                       setQuality(quality);
+                      setDefaultVideoQuality(quality);
                       setQualityOpen(false);
                     }}
                     className={`block w-full text-center px-4 py-2 text-sm transition-colors ${currentQuality === quality ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-body hover:bg-elevated'}`}

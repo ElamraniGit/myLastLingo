@@ -13,7 +13,6 @@ import { useStore } from '@/store/appStore';
 import { libraryApi } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 import WordPopup from '@/components/dictionary/WordPopup';
-import PhraseInput from '@/components/common/PhraseInput';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
@@ -46,7 +45,6 @@ function buildChunks(words: string[]): { text: string; start: number; end: numbe
   return chunks;
 }
 
-const SPEEDS = [0.7, 0.85, 1.0, 1.2];
 
 export default function TextReaderView() {
   const { currentTextId, setPage, setCurrentTextId } = useStore();
@@ -328,25 +326,6 @@ export default function TextReaderView() {
               )}
             </div>
           </div>
-
-          {/* Speed selector */}
-          <div className="flex items-center gap-0.5 bg-card border border-default rounded-xl p-1 shrink-0">
-            {SPEEDS.map(s => (
-              <button
-                key={s}
-                onClick={() => setSpeed(s)}
-                className={`px-2 py-1 rounded-lg text-[11px] font-mono transition-colors ${
-                  speed === s
-                    ? 'bg-blue-600/20 text-blue-500'
-                    : 'text-muted hover:text-body'
-                }`}
-              >{s}×</button>
-            ))}
-          </div>
-
-          {/* Phrase save */}
-          <PhraseInput label="+ Phrase" />
-
           {/* Read aloud button */}
           <button
             onClick={toggleReading}

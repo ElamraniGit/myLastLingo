@@ -193,7 +193,6 @@ export default function FlashcardsView() {
       setPool(vocabData?.words ?? []);
       setSummary(sumData ?? (dueData as any)?.summary ?? null);
     } catch (e) {
-      console.error('Flashcards load error:', e);
       setQueue([]);
     } finally {
       setLoading(false);

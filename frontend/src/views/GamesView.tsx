@@ -35,7 +35,15 @@ function speak(text: string, rate = 0.85) {
 
 // Filter words that have enough data for games
 function filterPlayable(words: SavedWord[]): SavedWord[] {
-  return words.filter(w => w.word && w.word.length >= 3 && (w.meaning_en || w.meaning_ar));
+  return words.filter(w =>
+    w.word &&
+    w.word.length >= 3 &&
+    // Only words with English meaning (needed for quiz/spelling)
+    w.meaning_en &&
+    w.meaning_en.trim().length > 3 &&
+    // Skip words with spaces (phrases are harder for spelling/scramble)
+    !w.word.includes(' ')
+  );
 }
 
 // ── Game type ─────────────────────────────────────────────────────────────────
@@ -53,10 +61,9 @@ export default function GamesView() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (savedWords.length < 4) {
-      setLoading(true);
-      loadVocabulary({ page: 1, limit: 100 }).finally(() => setLoading(false));
-    }
+    // Always load fresh vocabulary when entering games
+    setLoading(true);
+    loadVocabulary({ page: 1, limit: 200 }).finally(() => setLoading(false));
   }, []); // eslint-disable-line
 
   const playable = filterPlayable(savedWords);
@@ -188,7 +195,7 @@ export default function GamesView() {
 // ═════════════════════════════════════════════════════════════════════════════
 
 function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void }) {
-  const pool    = shuffle(words).slice(0, 15);
+  const pool = React.useMemo(() => shuffle(words).slice(0, 15), []); // eslint-disable-line
   const [idx,        setIdx]        = useState(0);
   const [input,      setInput]      = useState('');
   const [result,     setResult]     = useState<'correct' | 'wrong' | null>(null);
@@ -324,7 +331,7 @@ function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void
 // ═════════════════════════════════════════════════════════════════════════════
 
 function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => void }) {
-  const pool  = shuffle(words).slice(0, 12);
+  const pool = React.useMemo(() => shuffle(words).slice(0, 12), []); // eslint-disable-line
   const [idx,      setIdx]      = useState(0);
   const [selected, setSelected] = useState<number[]>([]);
   const [result,   setResult]   = useState<'correct' | 'wrong' | null>(null);
@@ -376,7 +383,7 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
     setIdx(i => i + 1);
   }, [idx, total]);
 
-  if (done) return <GameComplete score={score} total={total} game="Word Scramble 🔀" onBack={onBack} onReplay={() => { setIdx(0); setScore(0); setDone(false); initLetters(pool[0]?.word || ''); }} />;
+  if (done) return <GameComplete score={score} total={total} game="Word Scramble 🔀" onBack={onBack} onReplay={() => { setIdx(0); setScore(0); setDone(false); }} />;
 
   return (
     <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
