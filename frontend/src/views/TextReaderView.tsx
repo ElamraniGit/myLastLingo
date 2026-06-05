@@ -13,6 +13,7 @@ import { useStore } from '@/store/appStore';
 import { libraryApi } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 import WordPopup from '@/components/dictionary/WordPopup';
+import PhraseInput from '@/components/common/PhraseInput';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
@@ -266,6 +267,9 @@ export default function TextReaderView() {
               >{s}×</button>
             ))}
           </div>
+
+          {/* Phrase save */}
+          <PhraseInput label="+ Phrase" />
 
           {/* Read aloud button */}
           <button

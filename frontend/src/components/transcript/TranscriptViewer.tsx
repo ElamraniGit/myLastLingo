@@ -17,6 +17,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
 import { Button } from '@/components/ui/Button';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
+import PhraseInput from '@/components/common/PhraseInput';
 
 const FONT_SIZE_CLASSES: Record<TranscriptFontSize, { row: string; current: string; meta: string }> = {
   sm: { row: 'text-sm',   current: 'text-sm',  meta: 'text-[11px]' },
@@ -199,7 +200,7 @@ export default function TranscriptViewer() {
           <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full ml-1">
             {transcript.segments.length} lines
           </span>
-          <span className="text-[10px] text-faint hidden sm:block">· tap = lookup · select = save phrase</span>
+          <PhraseInput videoId={currentVideo?.id} label="+ Phrase" />
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
           transcript.source === 'youtube'
