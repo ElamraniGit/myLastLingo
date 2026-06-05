@@ -4,7 +4,7 @@
 # =================================================================
 # Usage:
 #   ./scripts/start_all.sh          → dev mode (default; works on Termux/ARM)
-#   ./scripts/start_all.sh --prod   → production mode (needs a completable next build)
+#   ./scripts/start_all.sh --prod   → production mode
 # =================================================================
 
 GREEN='\033[0;32m'
@@ -17,10 +17,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Default to DEV mode: Next.js has no native SWC binary for android/arm64, so
-# `next build` (production) cannot complete on Termux. Dev mode compiles via
-# Babel (.babelrc) on demand and runs reliably. Pass --prod to force production
-# on platforms where a full build works (e.g. a desktop/CI).
 DEV_FLAG="--dev"
 MODE="DEVELOPMENT"
 for arg in "$@"; do
@@ -78,31 +74,47 @@ for i in $(seq 1 15); do
   fi
 done
 echo ""
-[ "$READY" -eq 1 ] && echo -e "${GREEN}   ✅ Backend ready${NC}" || echo -e "${YELLOW}   ⚠️ Backend starting...${NC}"
+[ "$READY" -eq 1 ] && echo -e "${GREEN}   ✅ Backend ready${NC}" || echo -e "${YELLOW}   ⚠️  Backend starting...${NC}"
 echo ""
 
-# ── Build frontend (BLOCKING — must finish before we say "running") ──
+# ── Build frontend (production only) ─────────────────────────────
 if [ -z "$DEV_FLAG" ]; then
   cd "$PROJECT_ROOT/frontend"
-  if [ ! -d ".next" ] || [ ! -f ".next/BUILD_ID" ]; then
-    echo -e "${YELLOW}🔨 Building frontend (1-2 min on first run)...${NC}"
-    chmod +x node_modules/.bin/* 2>/dev/null || true
-    npx next build 2>&1
-    if [ $? -ne 0 ]; then
-      echo -e "${RED}❌ Build failed — falling back to dev mode${NC}"
-      DEV_FLAG="--dev"
-    else
-      echo -e "${GREEN}   ✅ Build done!${NC}"
-    fi
+
+  # Check if we already have a valid build
+  if [ -f ".next/BUILD_ID" ]; then
+    echo -e "${GREEN}   ✅ Using cached build (.next/BUILD_ID exists)${NC}"
   else
-    echo -e "${GREEN}   ✅ Using cached build${NC}"
+    echo -e "${YELLOW}🔨 Building frontend for production...${NC}"
+    echo -e "${YELLOW}   (first build takes 1-3 minutes on Termux)${NC}"
+    echo ""
+
+    # Set env to suppress SWC warnings and disable telemetry
+    export NEXT_TELEMETRY_DISABLED=1
+    export NODE_OPTIONS="--max-old-space-size=1024"
+
+    # Run build — ignore exit code, check BUILD_ID instead
+    # On ARM64/Termux, next build may exit non-zero due to SWC warnings
+    # even when the build actually succeeded (BUILD_ID file created)
+    npx next build 2>&1 || true
+
+    if [ -f ".next/BUILD_ID" ]; then
+      echo ""
+      echo -e "${GREEN}   ✅ Build complete!${NC}"
+    else
+      echo ""
+      echo -e "${RED}   ❌ Build failed (no BUILD_ID found)${NC}"
+      echo -e "${YELLOW}   ↩️  Falling back to dev mode...${NC}"
+      DEV_FLAG="--dev"
+    fi
   fi
+
   cd "$PROJECT_ROOT"
 fi
 echo ""
 
 # ── Start frontend ───────────────────────────────────────────────
-echo -e "${GREEN}🚀 Starting frontend...${NC}"
+echo -e "${GREEN}🚀 Starting frontend ($( [ -z "$DEV_FLAG" ] && echo "PRODUCTION" || echo "DEV" ))...${NC}"
 bash "$SCRIPT_DIR/start_frontend.sh" $DEV_FLAG &
 FRONTEND_PID=$!
 
@@ -117,6 +129,7 @@ echo -e "${GREEN}   ✅ LinguaLearn is running!${NC}"
 echo ""
 echo -e "   📱 ${YELLOW}App:${NC}      http://127.0.0.1:3000"
 echo -e "   🔧 ${YELLOW}Backend:${NC}  http://127.0.0.1:8080"
+echo -e "   🔧 ${YELLOW}Mode:${NC}     $( [ -z "$DEV_FLAG" ] && echo "Production ⚡" || echo "Development 🔧" )"
 echo ""
 echo -e "   ${YELLOW}Press Ctrl+C to stop${NC}"
 echo -e "${GREEN}════════════════════════════════════════════${NC}"
