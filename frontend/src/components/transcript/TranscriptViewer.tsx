@@ -214,7 +214,7 @@ export default function TranscriptViewer() {
       {/* select-text: allow native selection */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin select-text"
+        className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin transcript-selectable"
         dir="ltr"
       >
         {transcript.segments.map((seg) => {

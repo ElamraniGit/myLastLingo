@@ -288,7 +288,7 @@ export default function TextReaderView() {
       {/* ── Text content ─────────────────────────────────────────── */}
       {/* select-text: allow native text selection for multi-word phrases */}
       <div
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 select-text"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 transcript-selectable"
         ref={contentRef}
       >
         <div className="max-w-2xl mx-auto">

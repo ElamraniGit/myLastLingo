@@ -261,7 +261,26 @@
   }
 }
 
-/* ── Animations ──────────────────────────────────────────────────── */
+/* ── Text selection inside transcript + text reader ──────────────── */
+/* Forces user-select:text even inside overflow:hidden parents.      */
+.transcript-selectable,
+.transcript-selectable * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Style the selection highlight — blue like Duocards */
+.transcript-selectable ::selection {
+  background-color: rgb(59 130 246 / 0.35);
+  color: inherit;
+}
+
+/* Hide browser's own context toolbar (Copy/Paste/Share)             */
+/* Our SelectionToolbar replaces it via selectionchange event        */
+.transcript-selectable {
+  -webkit-touch-callout: none;
+}
+
 @keyframes slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
