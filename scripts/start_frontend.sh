@@ -40,8 +40,11 @@ fi
 if [ ! -d ".next" ] || [ ! -f ".next/BUILD_ID" ]; then
   echo "🔨 Building frontend for production..."
   echo "   (this takes 1-2 minutes on first run)"
-  npx next build 2>&1
-  if [ $? -ne 0 ]; then
+  # Fix for Node.js v22+: IPC serialization change breaks next build worker
+  export NEXT_TELEMETRY_DISABLED=1
+  export NODE_CHANNEL_SERIALIZATION=json
+  npx next build 2>&1 || true
+  if [ ! -f ".next/BUILD_ID" ]; then
     echo "❌ Build failed! Starting in dev mode instead..."
     exec npx next dev -p "$PORT"
   fi

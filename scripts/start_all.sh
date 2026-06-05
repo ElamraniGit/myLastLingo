@@ -104,9 +104,11 @@ if [ -z "$DEV_FLAG" ]; then
 
     export NEXT_TELEMETRY_DISABLED=1
     export NODE_OPTIONS="--max-old-space-size=1024"
+    # Fix for Node.js v22+: changed IPC serialization breaks next build
+    # NODE_CHANNEL_SERIALIZATION=json restores the old protocol
+    export NODE_CHANNEL_SERIALIZATION=json
 
-    # Run build — on ARM64 next build may exit non-zero due to SWC
-    # but the actual output files are still created correctly
+    # Run build — on ARM64/Node v22+ may exit non-zero but still produce output
     npx next build 2>&1 || true
 
     # Fix: if prerender-manifest.json is missing, create a valid empty one
