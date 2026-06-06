@@ -271,11 +271,80 @@ export const xpApi = {
 };
 
 export const chatApi = {
-  sendMessage: (message: string, conversation_id?: string) =>
-    req<any>('/chat/message', {
+  /**
+   * Streaming message via SSE.
+   * Calls onToken for each chunk, onDone({conversation_id}) at end,
+   * onError(msg) on failure. Returns an AbortController for cancellation.
+   */
+  sendMessageStream: (
+    message: string,
+    conversation_id: string | undefined,
+    onToken:  (token: string) => void,
+    onDone:   (meta: { conversation_id: string }) => void,
+    onError:  (msg: string) => void,
+  ): AbortController => {
+    const ctrl = new AbortController();
+    const token = tokenStore.get();
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/chat/message`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+          body:   JSON.stringify({ message, conversation_id }),
+          signal: ctrl.signal,
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          onError(text || `HTTP ${res.status}`);
+          return;
+        }
+
+        const reader = res.body?.getReader();
+        if (!reader) { onError('No response body'); return; }
+
+        const dec = new TextDecoder();
+        let buf = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const lines = buf.split('\n');
+          buf = lines.pop() ?? '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const payload = line.slice(6);
+            if (payload === '[DONE]') { return; }
+            if (payload.startsWith('[ERROR]')) { onError(payload.slice(7)); return; }
+            if (payload.startsWith('[META]')) {
+              try { onDone(JSON.parse(payload.slice(6))); } catch { /* noop */ }
+              continue;
+            }
+            // Unescape newlines sent as \n
+            onToken(payload.replace(/\\n/g, '\n'));
+          }
+        }
+      } catch (e: any) {
+        if (e?.name === 'AbortError') return;
+        onError('Connection error — check internet');
+      }
+    })();
+
+    return ctrl;
+  },
+
+  /** Non-streaming fallback */
+  sendMessageSync: (message: string, conversation_id?: string) =>
+    req<any>('/chat/message/sync', {
       method: 'POST',
-      body: { message, conversation_id },
-      timeout: 35000,
+      body:   { message, conversation_id },
+      timeout: 40000,
     }),
 
   setKey: (api_key: string) =>

@@ -1,142 +1,228 @@
 /**
- * AI Chat — conversational English learning assistant.
+ * ChatView — AI Learning Assistant
  *
- * UI improvements:
- *  - Markdown-like rendering (bold, code, bullet lists)
- *  - Categorised suggestions with icons
- *  - Typing indicator with staggered dots
- *  - Message timestamps
- *  - Copy message button
- *  - Character counter in input
- *  - Smooth scroll on new message
- *  - Better empty state with feature cards
+ * Features:
+ *  · Streaming responses (SSE) — tokens appear as they're generated
+ *  · Smart suggestions grouped by intent
+ *  · Full markdown rendering (headings, bold, italic, code, lists, tables)
+ *  · Copy message, regenerate last response
+ *  · Conversation history loaded from server
+ *  · Clean setup flow when no API key configured
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState, useEffect, useRef, useCallback, useMemo,
+} from 'react';
 import { chatApi, ApiError } from '@/lib/api';
-import { Button } from '@/components/ui/Button';
 import { awardXP } from '@/components/common/XPBar';
-import { Input } from '@/components/ui/Input';
+import { useStore } from '@/store/appStore';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Message {
-  role: 'user' | 'assistant';
+  id:      string;
+  role:    'user' | 'assistant';
   content: string;
-  ts?: number;
+  ts:      number;
+  error?:  boolean;
 }
 
-// Categorised suggestions
-const SUGGESTION_GROUPS = [
+// ── Suggestion groups ─────────────────────────────────────────────────────────
+
+const SUGGESTIONS = [
   {
-    label: 'My Vocabulary',
-    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='3' width='5' height='18' rx='1'/><rect x='10' y='3' width='5' height='18' rx='1'/><path d='M17 3l4 2v14l-4 2V3z'/></svg>),
+    label: 'My Words',
+    color: 'text-blue-500',
+    bg:    'bg-blue-500/8 border-blue-500/20 hover:bg-blue-500/14',
+    icon:  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg>,
     items: [
-      "What are my weakest words?",
-      "Quiz me on 5 random words",
-      "Create a story using my saved words",
+      "Quiz me on my 5 weakest words",
+      "What words should I focus on today?",
+      "Show me my hardest words with example sentences",
+      "Make a fill-in-the-blank exercise with my words",
     ],
   },
   {
-    label: 'Today',
-    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>),
+    label: 'Practice',
+    color: 'text-green-500',
+    bg:    'bg-green-500/8 border-green-500/20 hover:bg-green-500/14',
+    icon:  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635l-4 1 1-4z"/></svg>,
     items: [
-      "Which words should I review today?",
-      "How many words have I learned this week?",
+      "Write a short story using 5 of my saved words",
+      "Correct my sentence and explain the grammar",
+      "Give me a dialogue using my vocabulary",
+      "Create 3 sentences I should memorise today",
     ],
   },
   {
-    label: 'Grammar & Usage',
-    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z'/></svg>),
+    label: 'Explain',
+    color: 'text-purple-500',
+    bg:    'bg-purple-500/8 border-purple-500/20 hover:bg-purple-500/14',
+    icon:  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg>,
     items: [
-      "Explain the difference between my similar words",
-      "Give me example sentences for my newest words",
-      "What collocations go with my verb words?",
+      "What's the difference between my similar words?",
+      "Explain the most common collocations for my verbs",
+      "Which of my words are formal vs informal?",
+      "Analyse my progress and give me honest feedback",
     ],
   },
 ];
 
-/* ── Simple Markdown renderer (no deps) ──────────────────────── */
-function renderMarkdown(text: string): React.ReactNode {
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
-  let key = 0;
+// ── Markdown renderer ─────────────────────────────────────────────────────────
 
-  for (let i = 0; i < lines.length; i++) {
+function Markdown({ text }: { text: string }) {
+  const nodes = useMemo(() => parseMarkdown(text), [text]);
+  return <div className="space-y-1.5">{nodes}</div>;
+}
+
+function parseMarkdown(text: string): React.ReactNode[] {
+  const lines  = text.split('\n');
+  const result: React.ReactNode[] = [];
+  let   key    = 0;
+  let   i      = 0;
+
+  while (i < lines.length) {
     const line = lines[i];
+
+    // Heading
+    const hm = line.match(/^(#{1,3})\s+(.+)/);
+    if (hm) {
+      const level = hm[1].length;
+      const cls   = level === 1 ? 'text-base font-bold text-heading mt-2' :
+                    level === 2 ? 'text-sm font-bold text-heading mt-1.5' :
+                                  'text-sm font-semibold text-body mt-1';
+      result.push(<p key={key++} className={cls}>{inline(hm[2])}</p>);
+      i++; continue;
+    }
+
+    // Horizontal rule
+    if (/^[-*_]{3,}$/.test(line.trim())) {
+      result.push(<hr key={key++} className="border-subtle my-2" />);
+      i++; continue;
+    }
+
+    // Fenced code block
+    if (line.startsWith('```')) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i]); i++;
+      }
+      i++;
+      result.push(
+        <pre key={key++} className="bg-elevated rounded-lg px-3 py-2.5 text-xs font-mono text-heading overflow-x-auto">
+          {codeLines.join('\n')}
+        </pre>
+      );
+      continue;
+    }
 
     // Bullet list
     if (/^[\-\*•]\s+/.test(line)) {
-      elements.push(
-        <div key={key++} className="flex items-start gap-2 my-0.5">
-          <span className="text-blue-400 shrink-0 mt-0.5">•</span>
-          <span>{inlineMarkdown(line.replace(/^[\-\*•]\s+/, ''))}</span>
-        </div>
-      );
+      const listItems: React.ReactNode[] = [];
+      while (i < lines.length && /^[\-\*•]\s+/.test(lines[i])) {
+        listItems.push(
+          <li key={i} className="flex items-start gap-2">
+            <span className="text-accent shrink-0 mt-[3px] leading-none">•</span>
+            <span className="flex-1">{inline(lines[i].replace(/^[\-\*•]\s+/, ''))}</span>
+          </li>
+        );
+        i++;
+      }
+      result.push(<ul key={key++} className="space-y-1">{listItems}</ul>);
       continue;
     }
+
     // Numbered list
     if (/^\d+\.\s+/.test(line)) {
-      const num = line.match(/^(\d+)\./)?.[1];
-      elements.push(
-        <div key={key++} className="flex items-start gap-2 my-0.5">
-          <span className="text-blue-400 shrink-0 font-mono text-xs mt-0.5">{num}.</span>
-          <span>{inlineMarkdown(line.replace(/^\d+\.\s+/, ''))}</span>
-        </div>
-      );
+      const listItems: React.ReactNode[] = [];
+      let n = 1;
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        listItems.push(
+          <li key={i} className="flex items-start gap-2">
+            <span className="text-accent font-mono text-xs shrink-0 mt-[3px] w-4">{n}.</span>
+            <span className="flex-1">{inline(lines[i].replace(/^\d+\.\s+/, ''))}</span>
+          </li>
+        );
+        i++; n++;
+      }
+      result.push(<ol key={key++} className="space-y-1">{listItems}</ol>);
       continue;
     }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      result.push(
+        <blockquote key={key++} className="border-l-2 border-accent/40 pl-3 text-body italic">
+          {inline(line.slice(2))}
+        </blockquote>
+      );
+      i++; continue;
+    }
+
     // Empty line
     if (!line.trim()) {
-      elements.push(<div key={key++} className="h-2" />);
-      continue;
+      result.push(<div key={key++} className="h-1.5" />);
+      i++; continue;
     }
-    // Normal line
-    elements.push(<div key={key++}>{inlineMarkdown(line)}</div>);
+
+    // Paragraph
+    result.push(<p key={key++} className="leading-relaxed">{inline(line)}</p>);
+    i++;
   }
 
-  return <>{elements}</>;
+  return result;
 }
 
-function inlineMarkdown(text: string): React.ReactNode {
-  // Split on **bold** and `code`
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+function inline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[.+?\]\(.+?\))/g);
   return (
     <>
-      {parts.map((part, i) => {
-        if (/^\*\*(.+)\*\*$/.test(part)) {
-          return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
-        }
-        if (/^`(.+)`$/.test(part)) {
-          return (
-            <code key={i} className="bg-white/10 px-1 py-0.5 rounded text-xs font-mono text-blue-200">
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-        return <span key={i}>{part}</span>;
+      {parts.map((p, i) => {
+        if (/^\*\*(.+)\*\*$/.test(p))
+          return <strong key={i} className="font-semibold text-heading">{p.slice(2, -2)}</strong>;
+        if (/^\*(.+)\*$/.test(p))
+          return <em key={i} className="italic text-body">{p.slice(1, -1)}</em>;
+        if (/^`(.+)`$/.test(p))
+          return <code key={i} className="bg-elevated px-1.5 py-0.5 rounded text-xs font-mono text-heading">{p.slice(1, -1)}</code>;
+        const lm = p.match(/^\[(.+?)\]\((.+?)\)$/);
+        if (lm)
+          return <a key={i} href={lm[2]} target="_blank" rel="noopener noreferrer" className="text-accent underline underline-offset-2">{lm[1]}</a>;
+        return <span key={i}>{p}</span>;
       })}
     </>
   );
 }
 
-function fmtTime(ts?: number): string {
-  if (!ts) return '';
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function uid() { return Math.random().toString(36).slice(2); }
+function fmtTime(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-/* ════════════════════════════════════════════════════════════════ */
+// ══════════════════════════════════════════════════════════════════════════════
+// ChatView
+// ══════════════════════════════════════════════════════════════════════════════
 
 export default function ChatView() {
+  const { setPage } = useStore();
+
   const [messages,   setMessages]   = useState<Message[]>([]);
   const [input,      setInput]      = useState('');
-  const [sending,    setSending]    = useState(false);
-  const [convId,     setConvId]     = useState<string | null>(null);
+  const [streaming,  setStreaming]  = useState(false);
+  const [convId,     setConvId]     = useState<string | undefined>();
   const [hasKey,     setHasKey]     = useState<boolean | null>(null);
   const [keyInput,   setKeyInput]   = useState('');
-  const [settingKey, setSettingKey] = useState(false);
-  const [copied,     setCopied]     = useState<number | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef  = useRef<HTMLInputElement>(null);
+  const [savingKey,  setSavingKey]  = useState(false);
+  const [keyError,   setKeyError]   = useState('');
+  const [copied,     setCopied]     = useState<string | null>(null);
 
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const inputRef   = useRef<HTMLTextAreaElement>(null);
+  const abortRef   = useRef<AbortController | null>(null);
+
+  // ── Init ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     chatApi.hasKey().then(d => setHasKey(d.has_key)).catch(() => setHasKey(false));
   }, []);
@@ -145,190 +231,256 @@ export default function ChatView() {
     if (!hasKey) return;
     chatApi.getHistory()
       .then(d => {
-        if (d.messages?.length) {
-          const sorted = [...d.messages].reverse();
-          setMessages(sorted.map((m: any) => ({ role: m.role, content: m.content })));
-          if (sorted[0]?.conversation_id) setConvId(sorted[0].conversation_id);
-        }
+        if (!d.messages?.length) return;
+        const msgs: Message[] = d.messages.map((m: any) => ({
+          id: uid(), role: m.role, content: m.content,
+          ts: m.created_at ? new Date(m.created_at).getTime() : Date.now(),
+        }));
+        setMessages(msgs);
+        if (d.messages[0]?.conversation_id) setConvId(d.messages[0].conversation_id);
       })
       .catch(() => {});
   }, [hasKey]);
 
-  // Scroll to bottom on new message
+  // Auto-scroll
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [messages, sending]);
+    const el = scrollRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }));
+  }, [messages, streaming]);
 
-  const send = useCallback(async (text?: string) => {
-    const msg = (text || input).trim();
-    if (!msg || sending) return;
+  // ── Send ────────────────────────────────────────────────────────────────────
+  const send = useCallback((text?: string) => {
+    const msg = (text ?? input).trim();
+    if (!msg || streaming) return;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: msg, ts: Date.now() }]);
-    setSending(true);
-    try {
-      const res = await chatApi.sendMessage(msg, convId || undefined);
-      setMessages(prev => [...prev, { role: 'assistant', content: res.reply, ts: Date.now() }]);
-      awardXP('chat_message');
-      if (res.conversation_id) setConvId(res.conversation_id);
-    } catch (e) {
-      const errMsg = e instanceof ApiError ? e.message : 'Failed to send message';
-      setMessages(prev => [...prev, { role: 'assistant', content: `${errMsg}`, ts: Date.now() }]);
-    }
-    setSending(false);
-    inputRef.current?.focus();
-  }, [input, sending, convId]);
 
+    const userMsg: Message = { id: uid(), role: 'user', content: msg, ts: Date.now() };
+    const assistantId      = uid();
+    const placeholder: Message = { id: assistantId, role: 'assistant', content: '', ts: Date.now() };
+
+    setMessages(prev => [...prev, userMsg, placeholder]);
+    setStreaming(true);
+
+    let fullContent = '';
+
+    abortRef.current = chatApi.sendMessageStream(
+      msg,
+      convId,
+      // onToken
+      (token) => {
+        fullContent += token;
+        setMessages(prev => prev.map(m =>
+          m.id === assistantId ? { ...m, content: fullContent } : m
+        ));
+      },
+      // onDone
+      (meta) => {
+        if (meta.conversation_id) setConvId(meta.conversation_id);
+        setStreaming(false);
+        awardXP('chat_message');
+        inputRef.current?.focus();
+      },
+      // onError
+      (errMsg) => {
+        setMessages(prev => prev.map(m =>
+          m.id === assistantId
+            ? { ...m, content: errMsg || 'Something went wrong. Try again.', error: true }
+            : m
+        ));
+        setStreaming(false);
+        inputRef.current?.focus();
+      },
+    );
+  }, [input, streaming, convId]);
+
+  const stopStreaming = () => {
+    abortRef.current?.abort();
+    setStreaming(false);
+  };
+
+  // ── Key actions ─────────────────────────────────────────────────────────────
   const saveKey = async () => {
-    if (!keyInput.trim()) return;
-    setSettingKey(true);
+    const k = keyInput.trim();
+    if (!k) return;
+    if (!k.startsWith('gsk_')) { setKeyError('Key must start with gsk_'); return; }
+    setSavingKey(true); setKeyError('');
     try {
-      await chatApi.setKey(keyInput.trim());
-      setHasKey(true);
-      setKeyInput('');
-    } catch {}
-    setSettingKey(false);
+      await chatApi.setKey(k);
+      setHasKey(true); setKeyInput('');
+    } catch (e: any) {
+      setKeyError(e?.message || 'Failed to save key');
+    }
+    setSavingKey(false);
   };
 
   const clearChat = async () => {
-    if (!confirm('Clear all chat history?')) return;
-    try {
-      await chatApi.clearHistory();
-      setMessages([]);
-      setConvId(null);
-    } catch {}
+    if (!window.confirm('Clear all conversation history?')) return;
+    try { await chatApi.clearHistory(); } catch { /* noop */ }
+    setMessages([]); setConvId(undefined);
   };
 
-  const copyMessage = (content: string, idx: number) => {
+  const copyMsg = (content: string, id: string) => {
     navigator.clipboard.writeText(content).then(() => {
-      setCopied(idx);
-      setTimeout(() => setCopied(null), 2000);
+      setCopied(id); setTimeout(() => setCopied(null), 2000);
     }).catch(() => {});
   };
 
-  /* ── API key setup ──────────────────────────────────────────── */
-  if (hasKey === false) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-8 space-y-5 animate-fade-in">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4
-                          flex items-center justify-center shadow-xl shadow-blue-500/20">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
+  // ── Key textarea height ──────────────────────────────────────────────────────
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px';
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── Setup screen ────────────────────────────────────────────────────────────
+  if (hasKey === false) return (
+    <div className="max-w-sm mx-auto px-4 py-10 animate-fade-in">
+
+      {/* Hero */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600
+                        flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
+          <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h1 className="text-xl font-bold text-heading tracking-tight">AI Tutor</h1>
+        <p className="text-sm text-muted mt-1.5 leading-relaxed">
+          Your personal English tutor — knows your vocabulary, quizzes you, and explains grammar.
+        </p>
+      </div>
+
+      {/* Features */}
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {[
+          { icon: '🎯', label: 'Personalised', sub: 'Uses your words' },
+          { icon: '⚡', label: 'Instant',      sub: 'Groq-powered'   },
+          { icon: '🆓', label: 'Free',         sub: '30 req/min'     },
+        ].map(f => (
+          <div key={f.label} className="bg-card border border-default rounded-xl p-3 text-center">
+            <p className="text-lg mb-1">{f.icon}</p>
+            <p className="text-xs font-semibold text-heading">{f.label}</p>
+            <p className="text-xs text-muted">{f.sub}</p>
           </div>
-          <h1 className="text-2xl font-bold text-heading tracking-tight">AI Learning Assistant</h1>
-          <p className="text-muted text-sm mt-2 leading-relaxed">
-            Your personal English tutor — knows your vocabulary, answers questions, creates quizzes.
+        ))}
+      </div>
+
+      {/* Key form */}
+      <div className="bg-card border border-default rounded-2xl p-5 space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-heading mb-1">Connect your free Groq key</p>
+          <p className="text-xs text-muted leading-relaxed">
+            1. Go to{' '}
+            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer"
+               className="text-accent underline">console.groq.com/keys</a>
+            {' '}→ Create API key (free)
+            <br />2. Paste it below
           </p>
         </div>
 
-        {/* Feature cards */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='currentColor' stroke='none'/></svg>), label: 'Personalised', sub: 'Uses your words' },
-            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z'/><path d='M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z'/></svg>), label: 'Smart Quizzes', sub: 'Test your memory' },
-            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='currentColor'><polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/></svg>), label: 'Instant', sub: 'Powered by Groq' },
-          ].map(f => (
-            <div key={f.label} className="bg-card border border-default rounded-2xl p-3 text-center">
-              <div className="text-xl mb-1">{f.icon}</div>
-              <div className="text-xs font-semibold text-heading">{f.label}</div>
-              <div className="text-sm text-muted">{f.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-card border border-default rounded-2xl p-5 space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold text-heading mb-1">Setup (one time)</h3>
-            <p className="text-xs text-muted leading-relaxed">
-              Get a free API key from{' '}
-              <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer"
-                 className="text-blue-400 underline">console.groq.com/keys</a>
-              {' '}and paste it below.
-            </p>
-          </div>
-          <Input
-            label="Groq API Key"
+        <div>
+          <input
             type="password"
             value={keyInput}
-            onChange={e => setKeyInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') saveKey(); }}
+            onChange={e => { setKeyInput(e.target.value); setKeyError(''); }}
+            onKeyDown={e => e.key === 'Enter' && saveKey()}
             placeholder="gsk_..."
+            className="input-field text-sm"
           />
-          <Button onClick={saveKey} loading={settingKey} variant="primary" className="w-full">
-            Save & Start Chatting
-          </Button>
+          {keyError && <p className="text-xs text-red-400 mt-1.5">{keyError}</p>}
         </div>
-        <p className="text-center text-xs text-faint">Free tier: 30 req/min · Key stored on your device only</p>
-      </div>
-    );
-  }
 
-  /* ── Loading ────────────────────────────────────────────────── */
-  if (hasKey === null) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-default border-t-blue-500 rounded-full animate-spin" />
+        <button
+          onClick={saveKey}
+          disabled={savingKey || !keyInput.trim()}
+          className="btn-primary w-full py-2.5 text-sm"
+        >
+          {savingKey ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Saving…
+            </span>
+          ) : 'Start Chatting'}
+        </button>
       </div>
-    );
-  }
 
-  /* ── Chat UI ────────────────────────────────────────────────── */
+      <p className="text-center text-xs text-faint mt-4">
+        Key stored on your device only · Never shared
+      </p>
+    </div>
+  );
+
+  // ── Loading ──────────────────────────────────────────────────────────────────
+  if (hasKey === null) return (
+    <div className="flex items-center justify-center h-full">
+      <div className="w-7 h-7 border-2 border-default border-t-accent rounded-full animate-spin" />
+    </div>
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ── Main chat UI ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-base">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 nav-bar border-b border-default shrink-0">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-base/90
+                      backdrop-blur border-b border-subtle shrink-0 z-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl
-                          flex items-center justify-center shadow-sm shadow-blue-500/20">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
+                          flex items-center justify-center shadow-sm">
+            <svg className="w-[15px] h-[15px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-heading">AI Assistant</h2>
-            <p className="text-xs text-muted flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft"/>
+            <p className="text-sm font-semibold text-heading leading-none">AI Tutor</p>
+            <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft inline-block" />
               Knows your vocabulary
             </p>
           </div>
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearChat}
-            className="text-xs text-muted hover:text-red-400 px-2.5 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
-          >
-            Clear
-          </button>
-        )}
+
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="text-xs text-muted hover:text-red-400 px-2 py-1.5 rounded-lg
+                         hover:bg-red-500/8 transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-thin">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 scrollbar-none">
 
         {/* Empty state */}
-        {messages.length === 0 && !sending && (
+        {messages.length === 0 && (
           <div className="space-y-5 animate-fade-in">
-            <p className="text-center text-muted text-sm pt-2">
-              Ask me anything about your English learning!
+            <p className="text-center text-sm text-muted pt-1">
+              Ask me anything about your English learning
             </p>
-            {SUGGESTION_GROUPS.map(group => (
+
+            {SUGGESTIONS.map(group => (
               <div key={group.label}>
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-base">{group.icon}</span>
-                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">{group.label}</span>
+                  <span className={group.color}>{group.icon}</span>
+                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+                    {group.label}
+                  </span>
                 </div>
-                <div className="space-y-1.5">
+                <div className="grid gap-1.5">
                   {group.items.map((s, i) => (
                     <button
                       key={i}
                       onClick={() => send(s)}
-                      className="w-full text-left text-xs text-body bg-card border border-default
-                                 rounded-xl px-3.5 py-2.5 hover:border-blue-500/30 hover:bg-blue-500/5
-                                 transition-colors leading-relaxed"
+                      className={`w-full text-left text-sm text-heading border rounded-xl
+                                  px-3.5 py-2.5 transition-all ${group.bg}`}
                     >
                       {s}
                     </button>
@@ -339,101 +491,147 @@ export default function ChatView() {
           </div>
         )}
 
-        {/* Messages */}
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
-            <div className={`max-w-[88%] ${msg.role === 'user' ? '' : 'flex flex-col'}`}>
-              <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-md'
-                  : 'bg-card border border-default text-body rounded-bl-md'
-              }`}>
-                {msg.role === 'assistant' ? (
-                  <div className="text-base leading-relaxed">
-                    {renderMarkdown(msg.content)}
-                  </div>
-                ) : (
-                  <span>{msg.content}</span>
-                )}
-              </div>
-              {/* Timestamp + copy */}
-              <div className={`flex items-center gap-2 mt-1 px-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                {msg.ts && (
-                  <span className="text-sm text-faint">{fmtTime(msg.ts)}</span>
-                )}
-                <button
-                  onClick={() => copyMessage(msg.content, i)}
-                  className="text-xs text-faint hover:text-muted opacity-0 group-hover:opacity-100 transition-all"
-                  aria-label="Copy"
-                >
-                  {copied === i ? (<svg className='w-3.5 h-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>) : (<svg className='w-3.5 h-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><rect x='8' y='2' width='8' height='4' rx='1'/></svg>)}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+        {/* Message list */}
+        <div className="space-y-3">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              {/* Avatar for assistant */}
+              {msg.role === 'assistant' && (
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600
+                                flex items-center justify-center shrink-0 mr-2 mt-0.5 shadow-sm">
+                  <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
+              )}
 
-        {/* Typing indicator */}
-        {sending && (
-          <div className="flex justify-start">
-            <div className="bg-card border border-default rounded-2xl rounded-bl-md px-4 py-3.5">
-              <div className="flex gap-1.5 items-center">
-                {[0, 150, 300].map(d => (
-                  <span
-                    key={d}
-                    className="w-2 h-2 bg-muted rounded-full animate-bounce"
-                    style={{ animationDelay: `${d}ms`, animationDuration: '900ms' }}
-                  />
-                ))}
+              <div className={`max-w-[85%] flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                {/* Bubble */}
+                <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-accent text-white rounded-tr-sm'
+                    : msg.error
+                      ? 'bg-red-500/10 border border-red-500/25 text-red-400 rounded-tl-sm'
+                      : 'bg-card border border-default text-heading rounded-tl-sm'
+                }`}>
+                  {msg.role === 'user' ? (
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  ) : msg.content ? (
+                    <Markdown text={msg.content} />
+                  ) : (
+                    /* Streaming cursor */
+                    <span className="inline-block w-0.5 h-4 bg-muted animate-pulse-soft align-middle" />
+                  )}
+                </div>
+
+                {/* Meta row */}
+                <div className={`flex items-center gap-2 mt-1 px-1 ${
+                  msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                }`}>
+                  <span className="text-xs text-faint">{fmtTime(msg.ts)}</span>
+
+                  {/* Copy button */}
+                  {msg.content && (
+                    <button
+                      onClick={() => copyMsg(msg.content, msg.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-faint hover:text-muted"
+                      title="Copy"
+                    >
+                      {copied === msg.id ? (
+                        <svg className="w-3 h-3 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      ) : (
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          ))}
+
+          {/* Typing dots (while waiting for first token) */}
+          {streaming && messages.at(-1)?.content === '' && (
+            <div className="flex justify-start">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600
+                              flex items-center justify-center shrink-0 mr-2 mt-0.5">
+                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div className="bg-card border border-default rounded-2xl rounded-tl-sm px-4 py-3.5">
+                <div className="flex gap-1.5 items-center">
+                  {[0, 140, 280].map(d => (
+                    <span key={d} className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce"
+                          style={{ animationDelay: `${d}ms`, animationDuration: '900ms' }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Input bar */}
-      <div className="shrink-0 border-t border-default px-3 py-3 nav-bar">
+      <div className="shrink-0 border-t border-subtle bg-base/90 backdrop-blur px-3 py-3">
         <div className="flex gap-2 max-w-2xl mx-auto items-end">
-          <div className="flex-1 relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="Ask about your words…"
-              disabled={sending}
-              maxLength={500}
-              className="w-full bg-card border border-default rounded-2xl px-4 py-3 pr-12
-                         text-sm text-heading placeholder-muted focus:outline-none
-                         focus:border-blue-500/40 focus:ring-2 focus:ring-blue-500/15
-                         disabled:opacity-50 transition-all"
-            />
-            {/* Character count */}
-            {input.length > 400 && (
-              <span className="absolute right-3 bottom-3 text-xs text-faint">
-                {500 - input.length}
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => send()}
-            disabled={sending || !input.trim()}
-            className="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-500
-                       text-white rounded-2xl disabled:opacity-40 transition-all active:scale-95
-                       shadow-sm shadow-blue-500/20 shrink-0"
-            aria-label="Send"
-          >
-            {sending ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="22" y1="2" x2="11" y2="13"/>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+
+          <textarea
+            ref={inputRef}
+            rows={1}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+            }}
+            placeholder="Ask about your words… (Enter to send, Shift+Enter for newline)"
+            disabled={streaming}
+            maxLength={600}
+            className="flex-1 resize-none bg-card border border-default rounded-2xl
+                       px-4 py-2.5 text-sm text-heading placeholder-muted
+                       focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10
+                       disabled:opacity-50 transition-all min-h-[44px] max-h-[140px]
+                       leading-relaxed scrollbar-none"
+            style={{ height: '44px' }}
+          />
+
+          {streaming ? (
+            <button
+              onClick={stopStreaming}
+              className="w-10 h-10 flex items-center justify-center bg-red-500/10 border
+                         border-red-500/30 text-red-400 rounded-xl hover:bg-red-500/20
+                         transition-all shrink-0 active:scale-95"
+              title="Stop"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2"/>
               </svg>
-            )}
-          </button>
+            </button>
+          ) : (
+            <button
+              onClick={() => send()}
+              disabled={!input.trim()}
+              className="w-10 h-10 flex items-center justify-center bg-accent hover:bg-accent/90
+                         text-white rounded-xl disabled:opacity-35 transition-all
+                         active:scale-95 shadow-sm shrink-0"
+              title="Send (Enter)"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/>
+              </svg>
+            </button>
+          )}
         </div>
+
+        {/* Char count */}
+        {input.length > 480 && (
+          <p className="text-xs text-faint text-right mt-1 mr-12">
+            {600 - input.length} left
+          </p>
+        )}
       </div>
     </div>
   );
