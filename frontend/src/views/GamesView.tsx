@@ -17,6 +17,7 @@ import { speak as ttsSpeak } from '@/lib/tts';
 import { awardXP } from '@/components/common/XPBar';
 import * as sfx from '@/lib/sfx';
 import type { SavedWord } from '@/types';
+import { SpellingIcon, ScrambleIcon, MatchIcon, TrophyIcon } from '@/components/ui/Icons';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -115,7 +116,7 @@ export default function GamesView() {
 
           {/* Spelling Bee */}
           <GameCard
-            emoji="🔤"
+            EmojiComponent={SpellingIcon}
             title="Spelling Bee"
             desc="Listen to the word, type it correctly"
             xp="+5 XP"
@@ -127,7 +128,7 @@ export default function GamesView() {
 
           {/* Word Scramble */}
           <GameCard
-            emoji="🔀"
+            EmojiComponent={ScrambleIcon}
             title="Word Scramble"
             desc="Rearrange the shuffled letters"
             xp="+4 XP"
@@ -139,7 +140,7 @@ export default function GamesView() {
 
           {/* Matching Pairs */}
           <GameCard
-            emoji="🎴"
+            EmojiComponent={MatchIcon}
             title="Matching Pairs"
             desc="Match words to their definitions"
             xp="+3 XP"
@@ -158,8 +159,8 @@ export default function GamesView() {
   );
 }
 
-function GameCard({ emoji, title, desc, xp, skill, color, wordCount, onClick }: {
-  emoji: string; title: string; desc: string; xp: string; skill: string;
+function GameCard({ EmojiComponent, title, desc, xp, skill, color, wordCount, onClick }: {
+  EmojiComponent?: React.ComponentType<{className?: string}>; title: string; desc: string; xp: string; skill: string;
   color: 'blue' | 'green' | 'purple'; wordCount: number; onClick: () => void;
 }) {
   const colors = {
@@ -171,8 +172,8 @@ function GameCard({ emoji, title, desc, xp, skill, color, wordCount, onClick }: 
   return (
     <button onClick={onClick}
       className={`w-full flex items-center gap-4 bg-card border border-default rounded-2xl p-5 ${colors.hover} active:scale-[0.98] transition-all text-left group`}>
-      <div className={`w-14 h-14 rounded-2xl ${colors.bg} group-hover:scale-105 flex items-center justify-center text-3xl shrink-0 transition-transform`}>
-        {emoji}
+      <div className={`w-14 h-14 rounded-2xl ${colors.bg} group-hover:scale-105 flex items-center justify-center shrink-0 transition-transform`}>
+        {EmojiComponent ? <EmojiComponent className="w-7 h-7" /> : null}
       </div>
       <div className="flex-1">
         <div className="text-base font-bold text-heading">{title}</div>

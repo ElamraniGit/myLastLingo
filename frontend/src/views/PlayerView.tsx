@@ -21,6 +21,7 @@ import TranscriptViewer from '@/components/transcript/TranscriptViewer';
 import WordPopup from '@/components/dictionary/WordPopup';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
+import { LibraryIcon, WordsIcon, ReviewIcon, GamesIcon } from '@/components/ui/Icons';
 
 function fmtDuration(s: number) {
   if (!s) return '';
@@ -208,19 +209,19 @@ function HomeDashboard() {
 
       {/* ── Quick actions ─────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2">
-        {[
-          { icon: '📚', label: 'Library',  page: 'library'    },
-          { icon: '✏️', label: 'Words',    page: 'vocabulary' },
-          { icon: '🃏', label: 'Review',   page: 'flashcards' },
-          { icon: '🎮', label: 'Games',    page: 'games'      },
-        ].map(a => (
+        {([
+          { Icon: LibraryIcon, label: 'Library',  page: 'library'    },
+          { Icon: WordsIcon,   label: 'Words',    page: 'vocabulary' },
+          { Icon: ReviewIcon,  label: 'Review',   page: 'flashcards' },
+          { Icon: GamesIcon,   label: 'Games',    page: 'games'      },
+        ] as const).map(a => (
           <button
             key={a.page}
             onClick={() => setPage(a.page as any)}
             className="flex flex-col items-center gap-2 bg-card border border-default rounded-2xl py-3.5
                        hover:border-blue-500/20 hover:bg-blue-500/5 active:scale-95 transition-all"
           >
-            <span className="text-xl">{a.icon}</span>
+            <a.Icon className="w-5 h-5 text-muted" />
             <span className="text-[11px] font-medium text-body">{a.label}</span>
           </button>
         ))}

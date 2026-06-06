@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
 import PronunciationTrainer from './PronunciationTrainer';
 import { speak as ttsSpeak } from '@/lib/tts';
+import { SpeakIcon, MicIcon, CloseIcon, BookIcon, BulbIcon, PencilIcon, LinkIcon, SwapIcon, RepeatIcon, SaveIcon } from '@/components/ui/Icons';
 import * as sfx from '@/lib/sfx';
 
 /* ── Part-of-speech colors ───────────────────────────────────── */
@@ -180,20 +181,20 @@ export default function WordPopup() {
                 className="w-11 h-11 flex items-center justify-center rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 transition-all active:scale-90"
                 title="Pronounce"
               >
-                <span className="text-lg">🔊</span>
+<SpeakIcon size={18} />
               </button>
               <button
                 onClick={() => setShowPronunciation(true)}
                 className="w-11 h-11 flex items-center justify-center rounded-xl bg-green-500/15 hover:bg-green-500/25 text-green-400 transition-all active:scale-90"
                 title="Practice pronunciation"
               >
-                <span className="text-lg">🎤</span>
+<MicIcon size={18} />
               </button>
               <button
                 onClick={handleClose}
                 className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-card text-muted hover:text-body transition-all"
               >
-                ✕
+<CloseIcon size={16} />
               </button>
             </div>
           </div>
@@ -285,7 +286,7 @@ export default function WordPopup() {
                       onClick={() => speak(ex)}
                       className="flex-shrink-0 p-1.5 rounded-lg text-faint hover:text-blue-400 hover:bg-card transition-all opacity-0 group-hover:opacity-100"
                     >
-                      🔊
+<SpeakIcon size={14} />
                     </button>
                   </div>
                 ))}
