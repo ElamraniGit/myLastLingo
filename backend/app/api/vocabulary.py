@@ -549,6 +549,16 @@ def _make_basic_entry(word: str) -> Dict[str, Any]:
     }
 
 
+@router.get("/{saved_id}")
+async def get_saved_word_by_id(saved_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a single saved word by ID — must be LAST to avoid shadowing /export etc."""
+    await _assert_owns_saved_word(saved_id, current_user["sub"])
+    word = await db_manager.get_saved_word(saved_id)
+    if not word:
+        raise HTTPException(status_code=404, detail="Saved word not found")
+    return word
+
+
 def init_api(db):
     global db_manager
     db_manager = db

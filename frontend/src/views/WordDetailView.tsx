@@ -149,13 +149,11 @@ export default function WordDetailView() {
     if (!currentSavedWordId) return;
     setLoading(true);
     try {
-      // Load the saved word details
-      const [histData] = await Promise.all([
+      // Fetch word directly by ID (fast, no need to list all words)
+      const [found, histData] = await Promise.all([
+        vocabularyApi.getOne(currentSavedWordId),
         loadReviewHistory(currentSavedWordId, 20).catch(() => ({ history: [] })),
       ]);
-      // Get full word from store or fetch from API
-      const vocabData = await vocabularyApi.list({ page: 1, limit: 500 });
-      const found = vocabData?.words?.find((w: SavedWord) => w.id === currentSavedWordId);
       if (found) {
         setWord(found);
         setNotes(found.notes || '');
@@ -164,7 +162,8 @@ export default function WordDetailView() {
       }
       setHistory((histData as any)?.history || []);
     } catch (e) {
-      console.error('WordDetailView load error:', e);
+      // Word not found or network error
+      setWord(null);
     } finally {
       setLoading(false);
     }

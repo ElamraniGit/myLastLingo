@@ -203,6 +203,9 @@ export const vocabularyApi = {
 
   delete: (savedId: string) => req<any>(`/vocabulary/${savedId}`, { method: 'DELETE' }),
 
+  /** Get a single saved word by ID. */
+  getOne: (savedId: string) => req<any>(`/vocabulary/${savedId}`),
+
   // Phase 5: bulk import (looks up + adds words the user doesn't have yet).
   import: (words: { word: string; sentence?: string; context?: string }[]) =>
     req<{ added: number; skipped: number; failed: number }>('/vocabulary/import', {
