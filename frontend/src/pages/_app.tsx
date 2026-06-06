@@ -28,6 +28,7 @@ import TextReaderView from '@/views/TextReaderView';
 import StatsView from '@/views/StatsView';
 import OnboardingView from '@/views/OnboardingView';
 import WordDetailView from '@/views/WordDetailView';
+import CoreLibraryView from '@/views/CoreLibraryView';
 import WordPopup from '@/components/dictionary/WordPopup';
 
 function NotificationsBootstrap() {
@@ -194,6 +195,7 @@ export default function App({ Component, pageProps }: AppProps) {
       case 'stats':      return <StatsView />;
       case 'games':      return <ReviewView />;
       case 'worddetail': return <WordDetailView />;
+      case 'core':       return <CoreLibraryView />;
       case 'profile':
       case 'settings':   return <ProfileView tab="profile" />;
       case 'onboarding' as any: return <OnboardingView />;

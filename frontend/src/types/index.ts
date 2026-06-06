@@ -209,6 +209,7 @@ export type AppPage =
   | 'games'
   | 'worddetail'
   | 'stats'
+  | 'core'
   | 'settings'
   | 'library'
   | 'chat'

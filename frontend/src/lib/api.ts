@@ -403,6 +403,43 @@ export const chatApi = {
   clearHistory: () => req<any>('/chat/history', { method: 'DELETE' }),
 };
 
+// ─── Core English 3000 API ────────────────────────────────────────────────────
+
+export const coreApi = {
+  listWords: (params: {
+    search?: string; level?: string; pos?: string;
+    page?: number; limit?: number; sort?: string;
+  } = {}) => {
+    const q = buildQuery({
+      search: params.search, level: params.level, pos: params.pos,
+      page: params.page ?? 1, limit: params.limit ?? 50,
+      sort: params.sort ?? 'freq',
+    });
+    return req<any>(`/core/words${q}`);
+  },
+
+  getWord: (wordId: string) =>
+    req<any>(`/core/words/${wordId}`),
+
+  getDueWords: (limit = 50, level?: string) => {
+    const q = buildQuery({ limit, level });
+    return req<any>(`/core/due${q}`);
+  },
+
+  review: (wordId: string, quality: number) =>
+    req<any>(`/core/progress/${wordId}`, {
+      method: 'POST',
+      body: { quality },
+    }),
+
+  getProgress: () => req<any>('/core/progress'),
+
+  getStats: () => req<any>('/core/stats'),
+
+  getLevelWords: (level: string, page = 1, limit = 50) =>
+    req<any>(`/core/levels?level=${level}&page=${page}&limit=${limit}`),
+};
+
 export const healthApi = {
   check: async () => {
     const res = await fetch(`${BACKEND_ORIGIN}/health`);

@@ -1,0 +1,9037 @@
+[
+  {
+    "word": "the",
+    "pos": "article",
+    "level": "A1",
+    "freq": 1,
+    "meaning_en": "used before a noun to refer to something specific",
+    "meaning_ar": "المحدد",
+    "pronunciation": "ðə",
+    "synonyms": [
+      "this",
+      "that"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "the book",
+      "the door",
+      "the best"
+    ],
+    "example": "The book is on the table."
+  },
+  {
+    "word": "be",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 2,
+    "meaning_en": "to exist; used to connect a subject with information about it",
+    "meaning_ar": "يكون",
+    "pronunciation": "biː",
+    "synonyms": [
+      "exist",
+      "live",
+      "remain"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "be careful",
+      "be happy",
+      "be quiet"
+    ],
+    "example": "I am happy today."
+  },
+  {
+    "word": "have",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 3,
+    "meaning_en": "to possess, own, or hold something",
+    "meaning_ar": "يملك",
+    "pronunciation": "hæv",
+    "synonyms": [
+      "own",
+      "possess",
+      "hold"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "have fun",
+      "have breakfast",
+      "have a break"
+    ],
+    "example": "I have a dog and two cats."
+  },
+  {
+    "word": "do",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 4,
+    "meaning_en": "to perform or carry out an action",
+    "meaning_ar": "يفعل",
+    "pronunciation": "duː",
+    "synonyms": [
+      "perform",
+      "carry out",
+      "execute"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "do homework",
+      "do well",
+      "do your best"
+    ],
+    "example": "What do you do for a living?"
+  },
+  {
+    "word": "say",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 5,
+    "meaning_en": "to speak words or express something",
+    "meaning_ar": "يقول",
+    "pronunciation": "seɪ",
+    "synonyms": [
+      "tell",
+      "speak",
+      "state",
+      "express"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "say hello",
+      "what did you say",
+      "say it again"
+    ],
+    "example": "What did she say to you?"
+  },
+  {
+    "word": "get",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 6,
+    "meaning_en": "to receive, obtain, or become",
+    "meaning_ar": "يحصل على",
+    "pronunciation": "ɡet",
+    "synonyms": [
+      "obtain",
+      "receive",
+      "fetch",
+      "acquire"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "get up",
+      "get dressed",
+      "get better",
+      "get tired"
+    ],
+    "example": "Can I get a glass of water?"
+  },
+  {
+    "word": "make",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 7,
+    "meaning_en": "to create or produce something",
+    "meaning_ar": "يصنع",
+    "pronunciation": "meɪk",
+    "synonyms": [
+      "create",
+      "produce",
+      "build",
+      "prepare"
+    ],
+    "antonyms": [
+      "destroy"
+    ],
+    "collocations": [
+      "make a decision",
+      "make progress",
+      "make a mistake",
+      "make coffee"
+    ],
+    "example": "Can you make dinner tonight?"
+  },
+  {
+    "word": "go",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 8,
+    "meaning_en": "to move from one place to another",
+    "meaning_ar": "يذهب",
+    "pronunciation": "ɡəʊ",
+    "synonyms": [
+      "move",
+      "travel",
+      "proceed",
+      "head"
+    ],
+    "antonyms": [
+      "stay",
+      "remain"
+    ],
+    "collocations": [
+      "go home",
+      "go to sleep",
+      "go shopping",
+      "go abroad"
+    ],
+    "example": "I need to go now."
+  },
+  {
+    "word": "know",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 9,
+    "meaning_en": "to have information or understanding of something",
+    "meaning_ar": "يعرف",
+    "pronunciation": "nəʊ",
+    "synonyms": [
+      "understand",
+      "realize",
+      "be aware of"
+    ],
+    "antonyms": [
+      "ignore",
+      "forget"
+    ],
+    "collocations": [
+      "know the answer",
+      "let me know",
+      "you know what"
+    ],
+    "example": "Do you know the answer?"
+  },
+  {
+    "word": "take",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 10,
+    "meaning_en": "to move or carry something; to accept something",
+    "meaning_ar": "يأخذ",
+    "pronunciation": "teɪk",
+    "synonyms": [
+      "grab",
+      "carry",
+      "bring",
+      "accept"
+    ],
+    "antonyms": [
+      "give",
+      "leave"
+    ],
+    "collocations": [
+      "take a break",
+      "take a photo",
+      "take your time",
+      "take medicine"
+    ],
+    "example": "Can you take this to the post office?"
+  },
+  {
+    "word": "see",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 11,
+    "meaning_en": "to perceive with the eyes; to understand",
+    "meaning_ar": "يرى",
+    "pronunciation": "siː",
+    "synonyms": [
+      "look",
+      "observe",
+      "watch",
+      "notice"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "see you later",
+      "I see your point",
+      "see a doctor",
+      "let's see"
+    ],
+    "example": "Can you see the mountain from here?"
+  },
+  {
+    "word": "come",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 12,
+    "meaning_en": "to move toward the speaker or a place",
+    "meaning_ar": "يأتي",
+    "pronunciation": "kʌm",
+    "synonyms": [
+      "arrive",
+      "approach",
+      "reach"
+    ],
+    "antonyms": [
+      "go",
+      "leave"
+    ],
+    "collocations": [
+      "come here",
+      "come back",
+      "come in",
+      "come on"
+    ],
+    "example": "Please come inside."
+  },
+  {
+    "word": "think",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 13,
+    "meaning_en": "to use the mind to consider or form opinions",
+    "meaning_ar": "يفكر",
+    "pronunciation": "θɪŋk",
+    "synonyms": [
+      "believe",
+      "consider",
+      "feel",
+      "suppose"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I think so",
+      "think about",
+      "think of",
+      "think carefully"
+    ],
+    "example": "I think you are absolutely right."
+  },
+  {
+    "word": "look",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 14,
+    "meaning_en": "to direct your eyes toward something; to appear",
+    "meaning_ar": "ينظر",
+    "pronunciation": "lʊk",
+    "synonyms": [
+      "see",
+      "watch",
+      "observe",
+      "appear"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "look at",
+      "look for",
+      "look after",
+      "look forward to"
+    ],
+    "example": "Look at that beautiful sunset!"
+  },
+  {
+    "word": "want",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 15,
+    "meaning_en": "to have a desire for something",
+    "meaning_ar": "يريد",
+    "pronunciation": "wɒnt",
+    "synonyms": [
+      "desire",
+      "wish",
+      "need",
+      "like"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I want",
+      "want to",
+      "do you want",
+      "want more"
+    ],
+    "example": "I want to learn English well."
+  },
+  {
+    "word": "give",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 16,
+    "meaning_en": "to hand something to someone; to provide",
+    "meaning_ar": "يعطي",
+    "pronunciation": "ɡɪv",
+    "synonyms": [
+      "hand",
+      "offer",
+      "provide",
+      "donate"
+    ],
+    "antonyms": [
+      "take",
+      "receive"
+    ],
+    "collocations": [
+      "give a gift",
+      "give up",
+      "give me",
+      "give it a try"
+    ],
+    "example": "Please give me your pen."
+  },
+  {
+    "word": "use",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 17,
+    "meaning_en": "to put something into service for a purpose",
+    "meaning_ar": "يستخدم",
+    "pronunciation": "juːz",
+    "synonyms": [
+      "employ",
+      "apply",
+      "utilize",
+      "operate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "use a computer",
+      "in use",
+      "use your head",
+      "make use of"
+    ],
+    "example": "How do you use this tool?"
+  },
+  {
+    "word": "find",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 18,
+    "meaning_en": "to discover or locate something",
+    "meaning_ar": "يجد",
+    "pronunciation": "faɪnd",
+    "synonyms": [
+      "discover",
+      "locate",
+      "spot",
+      "come across"
+    ],
+    "antonyms": [
+      "lose"
+    ],
+    "collocations": [
+      "find a job",
+      "hard to find",
+      "find out",
+      "find it easy"
+    ],
+    "example": "I can't find my keys."
+  },
+  {
+    "word": "tell",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 19,
+    "meaning_en": "to give information to someone; to narrate",
+    "meaning_ar": "يخبر",
+    "pronunciation": "tel",
+    "synonyms": [
+      "say",
+      "inform",
+      "explain",
+      "report"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "tell me",
+      "tell the truth",
+      "tell a story",
+      "I'll tell you"
+    ],
+    "example": "Please tell me the truth."
+  },
+  {
+    "word": "work",
+    "pos": "verb",
+    "level": "A1",
+    "freq": 20,
+    "meaning_en": "to do a job or task; to function properly",
+    "meaning_ar": "يعمل",
+    "pronunciation": "wɜːk",
+    "synonyms": [
+      "labor",
+      "function",
+      "operate",
+      "effort"
+    ],
+    "antonyms": [
+      "rest",
+      "play"
+    ],
+    "collocations": [
+      "work hard",
+      "go to work",
+      "work out",
+      "teamwork"
+    ],
+    "example": "She works in a hospital."
+  },
+  {
+    "word": "good",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 21,
+    "meaning_en": "having the right qualities; satisfactory",
+    "meaning_ar": "جيد",
+    "pronunciation": "ɡʊd",
+    "synonyms": [
+      "great",
+      "fine",
+      "nice",
+      "excellent"
+    ],
+    "antonyms": [
+      "bad",
+      "poor",
+      "terrible"
+    ],
+    "collocations": [
+      "good morning",
+      "a good idea",
+      "feel good",
+      "good luck"
+    ],
+    "example": "She is a very good student."
+  },
+  {
+    "word": "new",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 22,
+    "meaning_en": "not existing before; recently made",
+    "meaning_ar": "جديد",
+    "pronunciation": "njuː",
+    "synonyms": [
+      "fresh",
+      "recent",
+      "modern",
+      "latest"
+    ],
+    "antonyms": [
+      "old",
+      "outdated"
+    ],
+    "collocations": [
+      "new year",
+      "a new idea",
+      "brand new",
+      "new to"
+    ],
+    "example": "I bought a new phone yesterday."
+  },
+  {
+    "word": "old",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 23,
+    "meaning_en": "having lived or existed for a long time",
+    "meaning_ar": "قديم",
+    "pronunciation": "əʊld",
+    "synonyms": [
+      "aged",
+      "ancient",
+      "mature"
+    ],
+    "antonyms": [
+      "new",
+      "young",
+      "modern"
+    ],
+    "collocations": [
+      "old friend",
+      "how old",
+      "get old",
+      "old-fashioned"
+    ],
+    "example": "How old are you?"
+  },
+  {
+    "word": "big",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 24,
+    "meaning_en": "large in size or importance",
+    "meaning_ar": "كبير",
+    "pronunciation": "bɪɡ",
+    "synonyms": [
+      "large",
+      "huge",
+      "great",
+      "enormous"
+    ],
+    "antonyms": [
+      "small",
+      "little",
+      "tiny"
+    ],
+    "collocations": [
+      "a big city",
+      "big deal",
+      "think big",
+      "big problem"
+    ],
+    "example": "She has a very big family."
+  },
+  {
+    "word": "small",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 25,
+    "meaning_en": "not large in size; minor",
+    "meaning_ar": "صغير",
+    "pronunciation": "smɔːl",
+    "synonyms": [
+      "little",
+      "tiny",
+      "mini",
+      "compact"
+    ],
+    "antonyms": [
+      "big",
+      "large"
+    ],
+    "collocations": [
+      "a small room",
+      "small changes",
+      "small talk",
+      "start small"
+    ],
+    "example": "This is a small but cozy house."
+  },
+  {
+    "word": "happy",
+    "pos": "adjective",
+    "level": "A1",
+    "freq": 26,
+    "meaning_en": "feeling or showing pleasure or satisfaction",
+    "meaning_ar": "سعيد",
+    "pronunciation": "hæpi",
+    "synonyms": [
+      "glad",
+      "joyful",
+      "pleased",
+      "content"
+    ],
+    "antonyms": [
+      "sad",
+      "unhappy",
+      "miserable"
+    ],
+    "collocations": [
+      "feel happy",
+      "make happy",
+      "happy birthday",
+      "happy ending"
+    ],
+    "example": "I am very happy today."
+  },
+  {
+    "word": "time",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 27,
+    "meaning_en": "the continuous passage of existence",
+    "meaning_ar": "الوقت",
+    "pronunciation": "taɪm",
+    "synonyms": [
+      "moment",
+      "period",
+      "occasion",
+      "duration"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "free time",
+      "a long time",
+      "on time",
+      "take your time",
+      "waste time"
+    ],
+    "example": "I don't have much time right now."
+  },
+  {
+    "word": "people",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 28,
+    "meaning_en": "men, women, and children in general",
+    "meaning_ar": "الناس",
+    "pronunciation": "piːpl",
+    "synonyms": [
+      "persons",
+      "humans",
+      "individuals",
+      "folk"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "many people",
+      "young people",
+      "people say",
+      "meet people"
+    ],
+    "example": "Many people live in this city."
+  },
+  {
+    "word": "day",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 29,
+    "meaning_en": "a period of 24 hours; the hours of light",
+    "meaning_ar": "يوم",
+    "pronunciation": "deɪ",
+    "synonyms": [
+      "date",
+      "period",
+      "daytime"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "every day",
+      "one day",
+      "all day",
+      "day by day",
+      "have a nice day"
+    ],
+    "example": "What day is it today?"
+  },
+  {
+    "word": "year",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 30,
+    "meaning_en": "a period of twelve months",
+    "meaning_ar": "سنة",
+    "pronunciation": "jɪə",
+    "synonyms": [
+      "annual",
+      "12 months"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "last year",
+      "this year",
+      "next year",
+      "for years",
+      "once a year"
+    ],
+    "example": "I lived in London for one year."
+  },
+  {
+    "word": "school",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 31,
+    "meaning_en": "a place where children are educated",
+    "meaning_ar": "مدرسة",
+    "pronunciation": "skuːl",
+    "synonyms": [
+      "college",
+      "academy",
+      "institution"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "go to school",
+      "school day",
+      "after school",
+      "primary school"
+    ],
+    "example": "She goes to school every morning."
+  },
+  {
+    "word": "home",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 32,
+    "meaning_en": "the place where someone lives",
+    "meaning_ar": "منزل",
+    "pronunciation": "həʊm",
+    "synonyms": [
+      "house",
+      "residence",
+      "place"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "go home",
+      "at home",
+      "home town",
+      "feel at home",
+      "work from home"
+    ],
+    "example": "I'll be at home all day."
+  },
+  {
+    "word": "water",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 33,
+    "meaning_en": "a clear liquid essential for life",
+    "meaning_ar": "ماء",
+    "pronunciation": "wɔːtə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "drink water",
+      "a glass of water",
+      "hot water",
+      "cold water",
+      "running water"
+    ],
+    "example": "Please drink more water every day."
+  },
+  {
+    "word": "money",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 34,
+    "meaning_en": "coins and notes used for buying things",
+    "meaning_ar": "مال",
+    "pronunciation": "mʌni",
+    "synonyms": [
+      "cash",
+      "currency",
+      "funds",
+      "finance"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "earn money",
+      "save money",
+      "spend money",
+      "make money"
+    ],
+    "example": "I don't have enough money today."
+  },
+  {
+    "word": "food",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 35,
+    "meaning_en": "things that people or animals eat",
+    "meaning_ar": "طعام",
+    "pronunciation": "fuːd",
+    "synonyms": [
+      "meal",
+      "nourishment",
+      "nutrition",
+      "diet"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "eat food",
+      "fast food",
+      "healthy food",
+      "junk food",
+      "fresh food"
+    ],
+    "example": "I love trying new types of food."
+  },
+  {
+    "word": "hand",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 36,
+    "meaning_en": "the part at the end of an arm with fingers",
+    "meaning_ar": "يد",
+    "pronunciation": "hænd",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "shake hands",
+      "by hand",
+      "lend a hand",
+      "give a hand"
+    ],
+    "example": "She waved her hand to say hello."
+  },
+  {
+    "word": "way",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 37,
+    "meaning_en": "a method or manner of doing something",
+    "meaning_ar": "طريقة",
+    "pronunciation": "weɪ",
+    "synonyms": [
+      "method",
+      "manner",
+      "route",
+      "approach"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "find a way",
+      "on the way",
+      "by the way",
+      "no way",
+      "which way"
+    ],
+    "example": "Is there a better way to do this?"
+  },
+  {
+    "word": "friend",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 38,
+    "meaning_en": "a person you know well and like",
+    "meaning_ar": "صديق",
+    "pronunciation": "frend",
+    "synonyms": [
+      "pal",
+      "companion",
+      "buddy",
+      "mate"
+    ],
+    "antonyms": [
+      "enemy",
+      "stranger"
+    ],
+    "collocations": [
+      "best friend",
+      "make friends",
+      "close friend",
+      "old friend"
+    ],
+    "example": "She is my best friend."
+  },
+  {
+    "word": "name",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 39,
+    "meaning_en": "a word used to identify a person or thing",
+    "meaning_ar": "اسم",
+    "pronunciation": "neɪm",
+    "synonyms": [
+      "title",
+      "label",
+      "designation"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "my name is",
+      "first name",
+      "last name",
+      "give a name to"
+    ],
+    "example": "What is your name?"
+  },
+  {
+    "word": "family",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 40,
+    "meaning_en": "a group of people related to each other",
+    "meaning_ar": "عائلة",
+    "pronunciation": "fæmɪli",
+    "synonyms": [
+      "relatives",
+      "household",
+      "parents"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "family member",
+      "family dinner",
+      "start a family",
+      "extended family"
+    ],
+    "example": "My family is very important to me."
+  },
+  {
+    "word": "life",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 41,
+    "meaning_en": "the period between birth and death; the way someone lives",
+    "meaning_ar": "حياة",
+    "pronunciation": "laɪf",
+    "synonyms": [
+      "existence",
+      "living",
+      "lifestyle"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "way of life",
+      "all my life",
+      "save a life",
+      "enjoy life"
+    ],
+    "example": "I want to live a healthy life."
+  },
+  {
+    "word": "hand",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 42,
+    "meaning_en": "physical help; assistance",
+    "meaning_ar": "مساعدة",
+    "pronunciation": "hænd",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "give me a hand",
+      "lend a hand"
+    ],
+    "example": "Can you give me a hand with this box?"
+  },
+  {
+    "word": "place",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 43,
+    "meaning_en": "a particular area or location",
+    "meaning_ar": "مكان",
+    "pronunciation": "pleɪs",
+    "synonyms": [
+      "location",
+      "area",
+      "spot",
+      "site"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take place",
+      "in place",
+      "place to stay",
+      "my place"
+    ],
+    "example": "This is a beautiful place."
+  },
+  {
+    "word": "world",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 44,
+    "meaning_en": "the earth; all people",
+    "meaning_ar": "العالم",
+    "pronunciation": "wɜːld",
+    "synonyms": [
+      "earth",
+      "globe",
+      "planet"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "all over the world",
+      "around the world",
+      "world record",
+      "real world"
+    ],
+    "example": "She wants to travel the world."
+  },
+  {
+    "word": "house",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 45,
+    "meaning_en": "a building where people live",
+    "meaning_ar": "منزل",
+    "pronunciation": "haʊs",
+    "synonyms": [
+      "home",
+      "building",
+      "residence"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "at home",
+      "my house",
+      "family house",
+      "house party"
+    ],
+    "example": "We moved to a new house last month."
+  },
+  {
+    "word": "point",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 46,
+    "meaning_en": "a particular fact or idea; a unit of score",
+    "meaning_ar": "نقطة",
+    "pronunciation": "pɔɪnt",
+    "synonyms": [
+      "tip",
+      "idea",
+      "score",
+      "detail"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make a point",
+      "the point is",
+      "good point",
+      "miss the point"
+    ],
+    "example": "That's a very good point."
+  },
+  {
+    "word": "body",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 47,
+    "meaning_en": "the physical structure of a person or animal",
+    "meaning_ar": "جسم",
+    "pronunciation": "bɒdi",
+    "synonyms": [
+      "figure",
+      "form",
+      "physique"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "your body",
+      "body language",
+      "body of water"
+    ],
+    "example": "Exercise is good for your body and mind."
+  },
+  {
+    "word": "eye",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 48,
+    "meaning_en": "the organ used for seeing",
+    "meaning_ar": "عين",
+    "pronunciation": "aɪ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "blue eyes",
+      "keep an eye on",
+      "eye contact",
+      "in the eyes of"
+    ],
+    "example": "She has beautiful green eyes."
+  },
+  {
+    "word": "country",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 49,
+    "meaning_en": "a nation with its own government",
+    "meaning_ar": "بلد",
+    "pronunciation": "kʌntri",
+    "synonyms": [
+      "nation",
+      "state",
+      "land"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "home country",
+      "in the country",
+      "from another country"
+    ],
+    "example": "Which country are you from?"
+  },
+  {
+    "word": "city",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 50,
+    "meaning_en": "a large and important town",
+    "meaning_ar": "مدينة",
+    "pronunciation": "sɪti",
+    "synonyms": [
+      "town",
+      "capital",
+      "metropolis",
+      "urban area"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "big city",
+      "city centre",
+      "inner city"
+    ],
+    "example": "She lives in a big city."
+  },
+  {
+    "word": "important",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 51,
+    "meaning_en": "having great significance or value",
+    "meaning_ar": "مهم",
+    "pronunciation": "ɪmˈpɔːtnt",
+    "synonyms": [
+      "significant",
+      "essential",
+      "key",
+      "critical"
+    ],
+    "antonyms": [
+      "unimportant",
+      "trivial",
+      "minor"
+    ],
+    "collocations": [
+      "very important",
+      "important role",
+      "most important",
+      "extremely important"
+    ],
+    "example": "It is important to study regularly."
+  },
+  {
+    "word": "different",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 52,
+    "meaning_en": "not the same as another or each other",
+    "meaning_ar": "مختلف",
+    "pronunciation": "dɪfrənt",
+    "synonyms": [
+      "unlike",
+      "various",
+      "distinct"
+    ],
+    "antonyms": [
+      "same",
+      "similar",
+      "identical"
+    ],
+    "collocations": [
+      "completely different",
+      "be different",
+      "totally different"
+    ],
+    "example": "We have very different opinions on this."
+  },
+  {
+    "word": "problem",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 53,
+    "meaning_en": "a difficult situation requiring a solution",
+    "meaning_ar": "مشكلة",
+    "pronunciation": "prɒbləm",
+    "synonyms": [
+      "issue",
+      "difficulty",
+      "challenge",
+      "trouble"
+    ],
+    "antonyms": [
+      "solution",
+      "answer"
+    ],
+    "collocations": [
+      "no problem",
+      "solve a problem",
+      "big problem",
+      "face a problem"
+    ],
+    "example": "There is a problem with my computer."
+  },
+  {
+    "word": "idea",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 54,
+    "meaning_en": "a thought, plan, or suggestion",
+    "meaning_ar": "فكرة",
+    "pronunciation": "aɪˈdɪə",
+    "synonyms": [
+      "thought",
+      "concept",
+      "plan",
+      "suggestion"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "great idea",
+      "any ideas",
+      "come up with an idea",
+      "share an idea"
+    ],
+    "example": "That's a brilliant idea!"
+  },
+  {
+    "word": "understand",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 55,
+    "meaning_en": "to know the meaning or reason for something",
+    "meaning_ar": "يفهم",
+    "pronunciation": "ʌndəˈstænd",
+    "synonyms": [
+      "grasp",
+      "comprehend",
+      "get",
+      "follow"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "do you understand",
+      "I don't understand",
+      "understand me",
+      "hard to understand"
+    ],
+    "example": "I don't understand this question."
+  },
+  {
+    "word": "learn",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 56,
+    "meaning_en": "to gain knowledge or a skill",
+    "meaning_ar": "يتعلم",
+    "pronunciation": "lɜːn",
+    "synonyms": [
+      "study",
+      "discover",
+      "master",
+      "acquire"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "learn from",
+      "learn by heart",
+      "learn a language",
+      "eager to learn"
+    ],
+    "example": "I want to learn to play the guitar."
+  },
+  {
+    "word": "help",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 57,
+    "meaning_en": "to make it easier for someone to do something",
+    "meaning_ar": "يساعد",
+    "pronunciation": "help",
+    "synonyms": [
+      "assist",
+      "support",
+      "aid",
+      "guide"
+    ],
+    "antonyms": [
+      "hinder",
+      "harm"
+    ],
+    "collocations": [
+      "help me",
+      "ask for help",
+      "help yourself",
+      "be of help"
+    ],
+    "example": "Can you help me carry these boxes?"
+  },
+  {
+    "word": "believe",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 58,
+    "meaning_en": "to think something is true or right",
+    "meaning_ar": "يؤمن",
+    "pronunciation": "bɪˈliːv",
+    "synonyms": [
+      "think",
+      "trust",
+      "feel",
+      "consider"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I believe",
+      "believe in yourself",
+      "hard to believe",
+      "believe it or not"
+    ],
+    "example": "I believe we can succeed."
+  },
+  {
+    "word": "change",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 59,
+    "meaning_en": "to make or become different",
+    "meaning_ar": "يغير",
+    "pronunciation": "tʃeɪndʒ",
+    "synonyms": [
+      "alter",
+      "modify",
+      "transform",
+      "convert"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "change your mind",
+      "make a change",
+      "change the subject",
+      "change clothes"
+    ],
+    "example": "The weather can change very quickly."
+  },
+  {
+    "word": "study",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 60,
+    "meaning_en": "to spend time learning about something",
+    "meaning_ar": "يدرس",
+    "pronunciation": "stʌdi",
+    "synonyms": [
+      "learn",
+      "research",
+      "investigate",
+      "review"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "study hard",
+      "area of study",
+      "study abroad",
+      "full-time study"
+    ],
+    "example": "I study English every day."
+  },
+  {
+    "word": "move",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 61,
+    "meaning_en": "to go from one position or place to another",
+    "meaning_ar": "يتحرك",
+    "pronunciation": "muːv",
+    "synonyms": [
+      "shift",
+      "transfer",
+      "relocate",
+      "go"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "move on",
+      "move forward",
+      "make a move",
+      "move house"
+    ],
+    "example": "Please move your chair back."
+  },
+  {
+    "word": "start",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 62,
+    "meaning_en": "to begin something",
+    "meaning_ar": "يبدأ",
+    "pronunciation": "stɑːt",
+    "synonyms": [
+      "begin",
+      "commence",
+      "launch",
+      "initiate"
+    ],
+    "antonyms": [
+      "stop",
+      "finish",
+      "end"
+    ],
+    "collocations": [
+      "start now",
+      "good start",
+      "start over",
+      "fresh start"
+    ],
+    "example": "Let's start the meeting now."
+  },
+  {
+    "word": "show",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 63,
+    "meaning_en": "to make something visible or demonstrate",
+    "meaning_ar": "يُظهر",
+    "pronunciation": "ʃəʊ",
+    "synonyms": [
+      "display",
+      "demonstrate",
+      "reveal",
+      "present"
+    ],
+    "antonyms": [
+      "hide",
+      "conceal"
+    ],
+    "collocations": [
+      "show me",
+      "show off",
+      "TV show",
+      "show up"
+    ],
+    "example": "Can you show me how to do it?"
+  },
+  {
+    "word": "feel",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 64,
+    "meaning_en": "to be aware of a sensation or emotion",
+    "meaning_ar": "يشعر",
+    "pronunciation": "fiːl",
+    "synonyms": [
+      "sense",
+      "experience",
+      "notice"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "feel good",
+      "feel like",
+      "feel free",
+      "not feel well"
+    ],
+    "example": "How do you feel today?"
+  },
+  {
+    "word": "try",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 65,
+    "meaning_en": "to attempt to do something",
+    "meaning_ar": "يحاول",
+    "pronunciation": "traɪ",
+    "synonyms": [
+      "attempt",
+      "aim",
+      "endeavour"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "try again",
+      "try your best",
+      "give it a try",
+      "try out"
+    ],
+    "example": "Always try your best."
+  },
+  {
+    "word": "leave",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 66,
+    "meaning_en": "to go away from a place; to let something stay",
+    "meaning_ar": "يغادر",
+    "pronunciation": "liːv",
+    "synonyms": [
+      "depart",
+      "go",
+      "exit",
+      "abandon"
+    ],
+    "antonyms": [
+      "arrive",
+      "stay"
+    ],
+    "collocations": [
+      "leave home",
+      "leave it",
+      "leave a message",
+      "leave early"
+    ],
+    "example": "I need to leave soon."
+  },
+  {
+    "word": "call",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 67,
+    "meaning_en": "to speak to someone on a phone; to name",
+    "meaning_ar": "يتصل",
+    "pronunciation": "kɔːl",
+    "synonyms": [
+      "phone",
+      "contact",
+      "ring",
+      "name"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "call me",
+      "phone call",
+      "make a call",
+      "wake-up call"
+    ],
+    "example": "Can you call me later tonight?"
+  },
+  {
+    "word": "ask",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 68,
+    "meaning_en": "to put a question to someone",
+    "meaning_ar": "يسأل",
+    "pronunciation": "ɑːsk",
+    "synonyms": [
+      "question",
+      "inquire",
+      "request",
+      "query"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "ask a question",
+      "ask for help",
+      "ask permission",
+      "ask around"
+    ],
+    "example": "May I ask you something?"
+  },
+  {
+    "word": "remember",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 69,
+    "meaning_en": "to have something in your memory",
+    "meaning_ar": "يتذكر",
+    "pronunciation": "rɪˈmembə",
+    "synonyms": [
+      "recall",
+      "not forget",
+      "bear in mind"
+    ],
+    "antonyms": [
+      "forget",
+      "overlook"
+    ],
+    "collocations": [
+      "can you remember",
+      "remember to",
+      "remember when",
+      "if I remember"
+    ],
+    "example": "Do you remember meeting me?"
+  },
+  {
+    "word": "happen",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 70,
+    "meaning_en": "to take place, often unexpectedly",
+    "meaning_ar": "يحدث",
+    "pronunciation": "hæpən",
+    "synonyms": [
+      "occur",
+      "take place",
+      "arise",
+      "come about"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "what happened",
+      "happen to",
+      "accidents happen",
+      "as it happens"
+    ],
+    "example": "What happened to your car?"
+  },
+  {
+    "word": "talk",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 71,
+    "meaning_en": "to say things; to have a conversation",
+    "meaning_ar": "يتحدث",
+    "pronunciation": "tɔːk",
+    "synonyms": [
+      "speak",
+      "converse",
+      "discuss",
+      "chat"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "talk to",
+      "talk about",
+      "have a talk",
+      "small talk"
+    ],
+    "example": "We need to talk about this."
+  },
+  {
+    "word": "follow",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 72,
+    "meaning_en": "to go after; to obey rules or instructions",
+    "meaning_ar": "يتبع",
+    "pronunciation": "fɒləʊ",
+    "synonyms": [
+      "pursue",
+      "come after",
+      "track",
+      "comply with"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "follow me",
+      "follow the rules",
+      "follow up",
+      "follow instructions"
+    ],
+    "example": "Please follow the instructions carefully."
+  },
+  {
+    "word": "enjoy",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 73,
+    "meaning_en": "to take pleasure in something",
+    "meaning_ar": "يستمتع",
+    "pronunciation": "ɪnˈdʒɔɪ",
+    "synonyms": [
+      "like",
+      "love",
+      "appreciate",
+      "relish"
+    ],
+    "antonyms": [
+      "hate",
+      "dislike"
+    ],
+    "collocations": [
+      "enjoy life",
+      "enjoy the meal",
+      "enjoy yourself",
+      "enjoy reading"
+    ],
+    "example": "Did you enjoy the film?"
+  },
+  {
+    "word": "create",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 74,
+    "meaning_en": "to bring something into existence",
+    "meaning_ar": "يخلق",
+    "pronunciation": "kriˈeɪt",
+    "synonyms": [
+      "make",
+      "produce",
+      "build",
+      "develop"
+    ],
+    "antonyms": [
+      "destroy",
+      "demolish"
+    ],
+    "collocations": [
+      "create a plan",
+      "create opportunities",
+      "create art"
+    ],
+    "example": "She loves to create new things."
+  },
+  {
+    "word": "live",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 75,
+    "meaning_en": "to have life; to reside somewhere",
+    "meaning_ar": "يعيش",
+    "pronunciation": "lɪv",
+    "synonyms": [
+      "reside",
+      "dwell",
+      "exist",
+      "inhabit"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "live in",
+      "live well",
+      "live long",
+      "live and learn"
+    ],
+    "example": "She lives in a small apartment."
+  },
+  {
+    "word": "bring",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 76,
+    "meaning_en": "to carry something to a place",
+    "meaning_ar": "يحضر",
+    "pronunciation": "brɪŋ",
+    "synonyms": [
+      "carry",
+      "fetch",
+      "take",
+      "deliver"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "bring me",
+      "bring along",
+      "bring about",
+      "bring up"
+    ],
+    "example": "Can you bring me a glass of water?"
+  },
+  {
+    "word": "meet",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 77,
+    "meaning_en": "to come face to face with someone",
+    "meaning_ar": "يقابل",
+    "pronunciation": "miːt",
+    "synonyms": [
+      "encounter",
+      "see",
+      "greet",
+      "gather"
+    ],
+    "antonyms": [
+      "avoid"
+    ],
+    "collocations": [
+      "nice to meet you",
+      "meet a friend",
+      "meeting point",
+      "meet up"
+    ],
+    "example": "Nice to meet you!"
+  },
+  {
+    "word": "pay",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 78,
+    "meaning_en": "to give money for goods or services",
+    "meaning_ar": "يدفع",
+    "pronunciation": "peɪ",
+    "synonyms": [
+      "spend",
+      "settle",
+      "cover"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "pay attention",
+      "pay for",
+      "pay a bill",
+      "pay a visit"
+    ],
+    "example": "How would you like to pay?"
+  },
+  {
+    "word": "plan",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 79,
+    "meaning_en": "to decide what will happen in the future",
+    "meaning_ar": "يخطط",
+    "pronunciation": "plæn",
+    "synonyms": [
+      "organize",
+      "prepare",
+      "arrange",
+      "schedule"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "plan ahead",
+      "make a plan",
+      "business plan",
+      "life plan"
+    ],
+    "example": "We need to plan our trip carefully."
+  },
+  {
+    "word": "build",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 80,
+    "meaning_en": "to make something by putting parts together",
+    "meaning_ar": "يبني",
+    "pronunciation": "bɪld",
+    "synonyms": [
+      "construct",
+      "create",
+      "develop",
+      "establish"
+    ],
+    "antonyms": [
+      "destroy",
+      "demolish"
+    ],
+    "collocations": [
+      "build a house",
+      "build confidence",
+      "build up"
+    ],
+    "example": "They are building a new school."
+  },
+  {
+    "word": "send",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 81,
+    "meaning_en": "to cause something to go to another place",
+    "meaning_ar": "يرسل",
+    "pronunciation": "send",
+    "synonyms": [
+      "dispatch",
+      "transmit",
+      "mail",
+      "forward"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "send a message",
+      "send an email",
+      "send someone",
+      "send back"
+    ],
+    "example": "Can you send me the file?"
+  },
+  {
+    "word": "keep",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 82,
+    "meaning_en": "to continue; to hold and not give back",
+    "meaning_ar": "يحتفظ",
+    "pronunciation": "kiːp",
+    "synonyms": [
+      "hold",
+      "maintain",
+      "continue",
+      "retain"
+    ],
+    "antonyms": [
+      "give up",
+      "lose"
+    ],
+    "collocations": [
+      "keep going",
+      "keep in touch",
+      "keep a secret",
+      "keep calm"
+    ],
+    "example": "Keep up the good work!"
+  },
+  {
+    "word": "read",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 83,
+    "meaning_en": "to look at and understand written words",
+    "meaning_ar": "يقرأ",
+    "pronunciation": "riːd",
+    "synonyms": [
+      "study",
+      "browse",
+      "scan"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "read a book",
+      "read aloud",
+      "read between the lines",
+      "read up on"
+    ],
+    "example": "I like to read before sleeping."
+  },
+  {
+    "word": "write",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 84,
+    "meaning_en": "to mark letters or words; to compose",
+    "meaning_ar": "يكتب",
+    "pronunciation": "raɪt",
+    "synonyms": [
+      "compose",
+      "note",
+      "record",
+      "type"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "write a letter",
+      "write down",
+      "in writing",
+      "write off"
+    ],
+    "example": "Please write your name on the paper."
+  },
+  {
+    "word": "spend",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 85,
+    "meaning_en": "to use time or money on something",
+    "meaning_ar": "ينفق",
+    "pronunciation": "spend",
+    "synonyms": [
+      "use",
+      "pass",
+      "devote",
+      "invest"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "spend time",
+      "spend money",
+      "well spent",
+      "spend wisely"
+    ],
+    "example": "I like to spend time with my family."
+  },
+  {
+    "word": "open",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 86,
+    "meaning_en": "to move so something is no longer closed",
+    "meaning_ar": "يفتح",
+    "pronunciation": "əʊpən",
+    "synonyms": [
+      "unlock",
+      "uncover",
+      "reveal"
+    ],
+    "antonyms": [
+      "close",
+      "shut"
+    ],
+    "collocations": [
+      "open a door",
+      "open a book",
+      "wide open",
+      "open up"
+    ],
+    "example": "Please open the window a bit."
+  },
+  {
+    "word": "close",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 87,
+    "meaning_en": "to move so something is shut",
+    "meaning_ar": "يغلق",
+    "pronunciation": "kləʊz",
+    "synonyms": [
+      "shut",
+      "seal",
+      "end",
+      "conclude"
+    ],
+    "antonyms": [
+      "open"
+    ],
+    "collocations": [
+      "close the door",
+      "close your eyes",
+      "close a deal"
+    ],
+    "example": "Please close the door quietly."
+  },
+  {
+    "word": "begin",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 88,
+    "meaning_en": "to start something",
+    "meaning_ar": "يبدأ",
+    "pronunciation": "bɪˈɡɪn",
+    "synonyms": [
+      "start",
+      "commence",
+      "initiate",
+      "launch"
+    ],
+    "antonyms": [
+      "end",
+      "finish",
+      "stop"
+    ],
+    "collocations": [
+      "begin with",
+      "let's begin",
+      "begin to understand"
+    ],
+    "example": "Let's begin the lesson now."
+  },
+  {
+    "word": "stop",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 89,
+    "meaning_en": "to cease doing or happening",
+    "meaning_ar": "يوقف",
+    "pronunciation": "stɒp",
+    "synonyms": [
+      "halt",
+      "pause",
+      "end",
+      "cease"
+    ],
+    "antonyms": [
+      "start",
+      "continue",
+      "begin"
+    ],
+    "collocations": [
+      "stop it",
+      "bus stop",
+      "stop working",
+      "can't stop"
+    ],
+    "example": "Please stop talking in class."
+  },
+  {
+    "word": "return",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 90,
+    "meaning_en": "to come back or give back",
+    "meaning_ar": "يعود",
+    "pronunciation": "rɪˈtɜːn",
+    "synonyms": [
+      "come back",
+      "go back",
+      "give back",
+      "restore"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "return home",
+      "in return",
+      "return to work",
+      "point of no return"
+    ],
+    "example": "When will you return from your trip?"
+  },
+  {
+    "word": "experience",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 91,
+    "meaning_en": "something that you do or that happens to you; skill from practice",
+    "meaning_ar": "تجربة",
+    "pronunciation": "ɪkˈspɪərɪəns",
+    "synonyms": [
+      "event",
+      "encounter",
+      "skill",
+      "background"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "work experience",
+      "gain experience",
+      "learning experience",
+      "personal experience"
+    ],
+    "example": "She has a lot of teaching experience."
+  },
+  {
+    "word": "question",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 92,
+    "meaning_en": "a sentence that asks for information",
+    "meaning_ar": "سؤال",
+    "pronunciation": "kwestʃən",
+    "synonyms": [
+      "query",
+      "inquiry",
+      "issue"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "ask a question",
+      "answer a question",
+      "good question",
+      "out of the question"
+    ],
+    "example": "Do you have any questions?"
+  },
+  {
+    "word": "example",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 93,
+    "meaning_en": "something used to show what is typical",
+    "meaning_ar": "مثال",
+    "pronunciation": "ɪɡˈzɑːmpl",
+    "synonyms": [
+      "sample",
+      "instance",
+      "illustration",
+      "model"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "for example",
+      "give an example",
+      "set an example",
+      "a perfect example"
+    ],
+    "example": "Give me an example sentence please."
+  },
+  {
+    "word": "reason",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 94,
+    "meaning_en": "a cause or explanation for something",
+    "meaning_ar": "سبب",
+    "pronunciation": "riːzn",
+    "synonyms": [
+      "cause",
+      "explanation",
+      "motive",
+      "justification"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "for a reason",
+      "give a reason",
+      "no reason",
+      "main reason"
+    ],
+    "example": "What is the reason for your absence?"
+  },
+  {
+    "word": "result",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 95,
+    "meaning_en": "something that happens because of an action",
+    "meaning_ar": "نتيجة",
+    "pronunciation": "rɪˈzʌlt",
+    "synonyms": [
+      "outcome",
+      "consequence",
+      "effect",
+      "product"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "as a result",
+      "get results",
+      "final result",
+      "positive result"
+    ],
+    "example": "The test results were very good."
+  },
+  {
+    "word": "information",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 96,
+    "meaning_en": "facts or knowledge about something",
+    "meaning_ar": "معلومات",
+    "pronunciation": "ɪnfəˈmeɪʃn",
+    "synonyms": [
+      "data",
+      "facts",
+      "details",
+      "knowledge"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "useful information",
+      "find information",
+      "for more information",
+      "share information"
+    ],
+    "example": "Can you give me more information?"
+  },
+  {
+    "word": "job",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 97,
+    "meaning_en": "work done for payment",
+    "meaning_ar": "وظيفة",
+    "pronunciation": "dʒɒb",
+    "synonyms": [
+      "work",
+      "occupation",
+      "position",
+      "role"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "find a job",
+      "good job",
+      "full-time job",
+      "job interview"
+    ],
+    "example": "She got a new job last month."
+  },
+  {
+    "word": "business",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 98,
+    "meaning_en": "commercial activity; a company",
+    "meaning_ar": "تجارة",
+    "pronunciation": "bɪznəs",
+    "synonyms": [
+      "trade",
+      "commerce",
+      "company",
+      "enterprise"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "start a business",
+      "do business",
+      "business trip",
+      "none of your business"
+    ],
+    "example": "She runs a successful business."
+  },
+  {
+    "word": "point",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 99,
+    "meaning_en": "a particular fact, idea, or detail",
+    "meaning_ar": "نقطة",
+    "pronunciation": "pɔɪnt",
+    "synonyms": [
+      "tip",
+      "idea",
+      "score",
+      "detail"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make a point",
+      "good point",
+      "miss the point",
+      "to the point"
+    ],
+    "example": "That's an excellent point."
+  },
+  {
+    "word": "fact",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 100,
+    "meaning_en": "something known to be true",
+    "meaning_ar": "حقيقة",
+    "pronunciation": "fækt",
+    "synonyms": [
+      "truth",
+      "reality",
+      "information",
+      "detail"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "in fact",
+      "interesting fact",
+      "fact of life",
+      "face the facts"
+    ],
+    "example": "It's a fact that regular exercise is healthy."
+  },
+  {
+    "word": "situation",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 101,
+    "meaning_en": "a set of circumstances at a particular time",
+    "meaning_ar": "وضع",
+    "pronunciation": "sɪtʃuˈeɪʃn",
+    "synonyms": [
+      "condition",
+      "circumstances",
+      "position",
+      "state"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "difficult situation",
+      "in this situation",
+      "current situation",
+      "deal with a situation"
+    ],
+    "example": "We are in a difficult situation."
+  },
+  {
+    "word": "system",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 102,
+    "meaning_en": "a set of connected things working together",
+    "meaning_ar": "نظام",
+    "pronunciation": "sɪstəm",
+    "synonyms": [
+      "method",
+      "structure",
+      "process",
+      "framework"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "school system",
+      "health system",
+      "work as a system",
+      "in the system"
+    ],
+    "example": "The public transport system works well."
+  },
+  {
+    "word": "language",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 103,
+    "meaning_en": "a system of communication used by a community",
+    "meaning_ar": "لغة",
+    "pronunciation": "læŋɡwɪdʒ",
+    "synonyms": [
+      "tongue",
+      "speech",
+      "dialect"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "learn a language",
+      "foreign language",
+      "body language",
+      "language barrier"
+    ],
+    "example": "Learning a new language takes time."
+  },
+  {
+    "word": "health",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 104,
+    "meaning_en": "the condition of someone's body or mind",
+    "meaning_ar": "صحة",
+    "pronunciation": "helθ",
+    "synonyms": [
+      "fitness",
+      "wellness",
+      "condition"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "good health",
+      "mental health",
+      "health care",
+      "health problem"
+    ],
+    "example": "Exercise is important for your health."
+  },
+  {
+    "word": "game",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 105,
+    "meaning_en": "an activity done for fun or competition",
+    "meaning_ar": "لعبة",
+    "pronunciation": "ɡeɪm",
+    "synonyms": [
+      "match",
+      "contest",
+      "activity",
+      "sport"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "play a game",
+      "board game",
+      "computer game",
+      "video game",
+      "game over"
+    ],
+    "example": "Let's play a board game tonight."
+  },
+  {
+    "word": "place",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 106,
+    "meaning_en": "a particular position, area, or location",
+    "meaning_ar": "مكان",
+    "pronunciation": "pleɪs",
+    "synonyms": [
+      "location",
+      "area",
+      "spot",
+      "site"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take place",
+      "in place",
+      "favourite place",
+      "put something in its place"
+    ],
+    "example": "This is a beautiful place to visit."
+  },
+  {
+    "word": "number",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 107,
+    "meaning_en": "a mathematical value; a quantity",
+    "meaning_ar": "رقم",
+    "pronunciation": "nʌmbə",
+    "synonyms": [
+      "figure",
+      "digit",
+      "count",
+      "amount"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "phone number",
+      "large number",
+      "number one",
+      "by the numbers"
+    ],
+    "example": "What is your phone number?"
+  },
+  {
+    "word": "story",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 108,
+    "meaning_en": "a description of events; a tale",
+    "meaning_ar": "قصة",
+    "pronunciation": "stɔːri",
+    "synonyms": [
+      "tale",
+      "narrative",
+      "account",
+      "report"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "tell a story",
+      "short story",
+      "life story",
+      "success story"
+    ],
+    "example": "She told us an interesting story."
+  },
+  {
+    "word": "line",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 109,
+    "meaning_en": "a long thin mark; a row of things",
+    "meaning_ar": "خط",
+    "pronunciation": "laɪn",
+    "synonyms": [
+      "row",
+      "series",
+      "stripe",
+      "border"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "stand in line",
+      "a long line",
+      "bottom line",
+      "read between the lines"
+    ],
+    "example": "Please stand in line and wait."
+  },
+  {
+    "word": "word",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 110,
+    "meaning_en": "a single unit of language",
+    "meaning_ar": "كلمة",
+    "pronunciation": "wɜːd",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "new word",
+      "key word",
+      "say the word",
+      "give your word"
+    ],
+    "example": "I learned a useful new word today."
+  },
+  {
+    "word": "achieve",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 111,
+    "meaning_en": "to successfully complete or reach a goal",
+    "meaning_ar": "يحقق",
+    "pronunciation": "əˈtʃiːv",
+    "synonyms": [
+      "accomplish",
+      "attain",
+      "reach",
+      "succeed"
+    ],
+    "antonyms": [
+      "fail",
+      "miss"
+    ],
+    "collocations": [
+      "achieve a goal",
+      "achieve success",
+      "hard to achieve"
+    ],
+    "example": "She worked hard to achieve her dream."
+  },
+  {
+    "word": "advantage",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 112,
+    "meaning_en": "a benefit or helpful quality",
+    "meaning_ar": "ميزة",
+    "pronunciation": "ədˈvɑːntɪdʒ",
+    "synonyms": [
+      "benefit",
+      "gain",
+      "plus",
+      "merit"
+    ],
+    "antonyms": [
+      "disadvantage",
+      "drawback"
+    ],
+    "collocations": [
+      "take advantage",
+      "main advantage",
+      "competitive advantage"
+    ],
+    "example": "What is the advantage of this approach?"
+  },
+  {
+    "word": "affect",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 113,
+    "meaning_en": "to have an influence on something",
+    "meaning_ar": "يؤثر",
+    "pronunciation": "əˈfekt",
+    "synonyms": [
+      "influence",
+      "impact",
+      "change",
+      "touch"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "affect health",
+      "negatively affect",
+      "be affected by"
+    ],
+    "example": "Stress can negatively affect your health."
+  },
+  {
+    "word": "analysis",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 114,
+    "meaning_en": "a careful study of something",
+    "meaning_ar": "تحليل",
+    "pronunciation": "əˈnæləsɪs",
+    "synonyms": [
+      "study",
+      "examination",
+      "review",
+      "assessment"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "do an analysis",
+      "in-depth analysis",
+      "market analysis"
+    ],
+    "example": "The analysis showed positive results."
+  },
+  {
+    "word": "approach",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 115,
+    "meaning_en": "a way of dealing with something",
+    "meaning_ar": "مقاربة",
+    "pronunciation": "əˈprəʊtʃ",
+    "synonyms": [
+      "method",
+      "way",
+      "strategy",
+      "technique"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "new approach",
+      "take an approach",
+      "different approach"
+    ],
+    "example": "We need a new approach to this problem."
+  },
+  {
+    "word": "argue",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 116,
+    "meaning_en": "to give reasons for or against something; to disagree",
+    "meaning_ar": "يجادل",
+    "pronunciation": "ɑːɡjuː",
+    "synonyms": [
+      "debate",
+      "dispute",
+      "claim",
+      "maintain"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "argue about",
+      "argue that",
+      "strong argument",
+      "argue your case"
+    ],
+    "example": "They often argue about money."
+  },
+  {
+    "word": "attention",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 117,
+    "meaning_en": "mental focus or concentration on something",
+    "meaning_ar": "انتباه",
+    "pronunciation": "əˈtenʃn",
+    "synonyms": [
+      "focus",
+      "concentration",
+      "notice"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "pay attention",
+      "attract attention",
+      "undivided attention",
+      "catch someone's attention"
+    ],
+    "example": "Please pay attention to the instructions."
+  },
+  {
+    "word": "attitude",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 118,
+    "meaning_en": "a way of thinking or feeling about something",
+    "meaning_ar": "موقف",
+    "pronunciation": "ætɪtjuːd",
+    "synonyms": [
+      "viewpoint",
+      "stance",
+      "approach",
+      "mindset"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "positive attitude",
+      "attitude towards",
+      "change your attitude",
+      "bad attitude"
+    ],
+    "example": "She has a very positive attitude."
+  },
+  {
+    "word": "available",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 119,
+    "meaning_en": "able to be used or obtained",
+    "meaning_ar": "متاح",
+    "pronunciation": "əˈveɪləbl",
+    "synonyms": [
+      "accessible",
+      "ready",
+      "obtainable",
+      "free"
+    ],
+    "antonyms": [
+      "unavailable",
+      "busy",
+      "occupied"
+    ],
+    "collocations": [
+      "freely available",
+      "widely available",
+      "make available"
+    ],
+    "example": "Is this product available online?"
+  },
+  {
+    "word": "aware",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 120,
+    "meaning_en": "knowing that something exists or is true",
+    "meaning_ar": "واعٍ",
+    "pronunciation": "əˈweə",
+    "synonyms": [
+      "conscious",
+      "informed",
+      "knowledgeable",
+      "alert"
+    ],
+    "antonyms": [
+      "unaware",
+      "ignorant"
+    ],
+    "collocations": [
+      "be aware of",
+      "raise awareness",
+      "become aware",
+      "socially aware"
+    ],
+    "example": "Are you aware of the risks involved?"
+  },
+  {
+    "word": "challenge",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 121,
+    "meaning_en": "something that requires effort and determination",
+    "meaning_ar": "تحدٍّ",
+    "pronunciation": "tʃælɪndʒ",
+    "synonyms": [
+      "difficulty",
+      "obstacle",
+      "test",
+      "hurdle"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "face a challenge",
+      "rise to the challenge",
+      "major challenge",
+      "overcome a challenge"
+    ],
+    "example": "Learning a language is a fun challenge."
+  },
+  {
+    "word": "communicate",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 122,
+    "meaning_en": "to share information or ideas",
+    "meaning_ar": "يتواصل",
+    "pronunciation": "kəˈmjuːnɪkeɪt",
+    "synonyms": [
+      "convey",
+      "express",
+      "share",
+      "inform"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "communicate with",
+      "communicate clearly",
+      "effective communication"
+    ],
+    "example": "It's important to communicate clearly."
+  },
+  {
+    "word": "compare",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 123,
+    "meaning_en": "to examine how things are similar or different",
+    "meaning_ar": "يقارن",
+    "pronunciation": "kəmˈpeə",
+    "synonyms": [
+      "contrast",
+      "evaluate",
+      "assess",
+      "measure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "compare to",
+      "beyond compare",
+      "compare prices",
+      "hard to compare"
+    ],
+    "example": "Let's compare the two options."
+  },
+  {
+    "word": "concentrate",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 124,
+    "meaning_en": "to focus your attention on something",
+    "meaning_ar": "يركز",
+    "pronunciation": "kɒnsntreɪt",
+    "synonyms": [
+      "focus",
+      "pay attention",
+      "centre on"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "concentrate on",
+      "hard to concentrate",
+      "concentrate your efforts"
+    ],
+    "example": "I can't concentrate with all this noise."
+  },
+  {
+    "word": "condition",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 125,
+    "meaning_en": "the state something is in; a requirement",
+    "meaning_ar": "حالة",
+    "pronunciation": "kəndɪʃn",
+    "synonyms": [
+      "state",
+      "situation",
+      "requirement",
+      "standard"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "good condition",
+      "under the condition",
+      "medical condition",
+      "weather conditions"
+    ],
+    "example": "The condition of the road is very bad."
+  },
+  {
+    "word": "consider",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 126,
+    "meaning_en": "to think carefully about something",
+    "meaning_ar": "يعتبر",
+    "pronunciation": "kənsɪdə",
+    "synonyms": [
+      "think about",
+      "reflect on",
+      "evaluate",
+      "regard"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "consider carefully",
+      "take into consideration",
+      "consider all options"
+    ],
+    "example": "Please consider all the options first."
+  },
+  {
+    "word": "culture",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 127,
+    "meaning_en": "the beliefs, customs, and arts of a society",
+    "meaning_ar": "ثقافة",
+    "pronunciation": "kʌltʃə",
+    "synonyms": [
+      "tradition",
+      "society",
+      "heritage",
+      "civilization"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "local culture",
+      "cultural differences",
+      "pop culture",
+      "company culture"
+    ],
+    "example": "I love learning about different cultures."
+  },
+  {
+    "word": "decision",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 128,
+    "meaning_en": "a choice made after thinking",
+    "meaning_ar": "قرار",
+    "pronunciation": "dɪˈsɪʒn",
+    "synonyms": [
+      "choice",
+      "selection",
+      "conclusion",
+      "resolution"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make a decision",
+      "final decision",
+      "right decision",
+      "decision-making"
+    ],
+    "example": "That was the best decision of her life."
+  },
+  {
+    "word": "describe",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 129,
+    "meaning_en": "to give a detailed account of something",
+    "meaning_ar": "يصف",
+    "pronunciation": "dɪˈskraɪb",
+    "synonyms": [
+      "explain",
+      "depict",
+      "portray",
+      "characterize"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "describe it",
+      "can you describe",
+      "describe in detail"
+    ],
+    "example": "Can you describe what happened?"
+  },
+  {
+    "word": "develop",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 130,
+    "meaning_en": "to grow or make something grow",
+    "meaning_ar": "يطور",
+    "pronunciation": "dɪˈveləp",
+    "synonyms": [
+      "grow",
+      "improve",
+      "advance",
+      "build"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "develop skills",
+      "develop a plan",
+      "rapid development",
+      "personal development"
+    ],
+    "example": "She is developing her English skills."
+  },
+  {
+    "word": "discuss",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 131,
+    "meaning_en": "to talk about something in detail with others",
+    "meaning_ar": "يناقش",
+    "pronunciation": "dɪˈskʌs",
+    "synonyms": [
+      "debate",
+      "talk about",
+      "consider",
+      "explore"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "discuss a topic",
+      "open for discussion",
+      "under discussion"
+    ],
+    "example": "Let's discuss the results of the test."
+  },
+  {
+    "word": "education",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 132,
+    "meaning_en": "the process of teaching or learning",
+    "meaning_ar": "تعليم",
+    "pronunciation": "edjʊˈkeɪʃn",
+    "synonyms": [
+      "schooling",
+      "learning",
+      "training",
+      "knowledge"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "higher education",
+      "quality of education",
+      "physical education",
+      "support education"
+    ],
+    "example": "Education is the key to success."
+  },
+  {
+    "word": "environment",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 133,
+    "meaning_en": "the natural world around us; surroundings",
+    "meaning_ar": "بيئة",
+    "pronunciation": "ɪnˈvaɪrənmənt",
+    "synonyms": [
+      "surroundings",
+      "ecosystem",
+      "nature",
+      "habitat"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "protect the environment",
+      "work environment",
+      "business environment"
+    ],
+    "example": "We must protect the environment."
+  },
+  {
+    "word": "evidence",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 134,
+    "meaning_en": "information showing whether something is true",
+    "meaning_ar": "دليل",
+    "pronunciation": "evɪdəns",
+    "synonyms": [
+      "proof",
+      "indication",
+      "sign",
+      "data"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "strong evidence",
+      "based on evidence",
+      "lack of evidence",
+      "scientific evidence"
+    ],
+    "example": "There is clear evidence of the problem."
+  },
+  {
+    "word": "experience",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 135,
+    "meaning_en": "to have something happen to you",
+    "meaning_ar": "يختبر",
+    "pronunciation": "ɪkˈspɪərɪəns",
+    "synonyms": [
+      "encounter",
+      "go through",
+      "face",
+      "undergo"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "experience difficulty",
+      "experience success",
+      "first-hand experience"
+    ],
+    "example": "She has experienced many challenges."
+  },
+  {
+    "word": "explain",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 136,
+    "meaning_en": "to make something clear and understandable",
+    "meaning_ar": "يشرح",
+    "pronunciation": "ɪkˈspleɪn",
+    "synonyms": [
+      "describe",
+      "clarify",
+      "illustrate",
+      "detail"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "explain to me",
+      "let me explain",
+      "explain in detail"
+    ],
+    "example": "Can you explain this rule again?"
+  },
+  {
+    "word": "focus",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 137,
+    "meaning_en": "to concentrate on one thing",
+    "meaning_ar": "يركز",
+    "pronunciation": "fəʊkəs",
+    "synonyms": [
+      "concentrate",
+      "center",
+      "direct",
+      "aim"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "focus on",
+      "main focus",
+      "sharp focus",
+      "in focus",
+      "out of focus"
+    ],
+    "example": "Focus on the most important task first."
+  },
+  {
+    "word": "government",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 138,
+    "meaning_en": "the group of people who control a country",
+    "meaning_ar": "حكومة",
+    "pronunciation": "ɡʌvənmənt",
+    "synonyms": [
+      "administration",
+      "authority",
+      "leadership",
+      "state"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "local government",
+      "central government",
+      "run a government"
+    ],
+    "example": "The government announced new policies."
+  },
+  {
+    "word": "happen",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 139,
+    "meaning_en": "to occur or take place",
+    "meaning_ar": "يحدث",
+    "pronunciation": "hæpən",
+    "synonyms": [
+      "occur",
+      "take place",
+      "arise",
+      "come about"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "what happened",
+      "make it happen",
+      "happen to be",
+      "as it happens"
+    ],
+    "example": "How did the accident happen?"
+  },
+  {
+    "word": "impact",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 140,
+    "meaning_en": "a strong effect on something",
+    "meaning_ar": "أثر",
+    "pronunciation": "ɪmpækt",
+    "synonyms": [
+      "effect",
+      "influence",
+      "consequence",
+      "impression"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "have an impact",
+      "major impact",
+      "positive impact",
+      "environmental impact"
+    ],
+    "example": "The new law had a huge impact."
+  },
+  {
+    "word": "improve",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 141,
+    "meaning_en": "to make or become better",
+    "meaning_ar": "يحسّن",
+    "pronunciation": "ɪmˈpruːv",
+    "synonyms": [
+      "enhance",
+      "advance",
+      "develop",
+      "upgrade"
+    ],
+    "antonyms": [
+      "worsen",
+      "deteriorate"
+    ],
+    "collocations": [
+      "improve your skills",
+      "room for improvement",
+      "continuously improve"
+    ],
+    "example": "I want to improve my English."
+  },
+  {
+    "word": "include",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 142,
+    "meaning_en": "to make part of a group or whole",
+    "meaning_ar": "يشمل",
+    "pronunciation": "ɪnˈkluːd",
+    "synonyms": [
+      "contain",
+      "involve",
+      "incorporate",
+      "cover"
+    ],
+    "antonyms": [
+      "exclude",
+      "omit"
+    ],
+    "collocations": [
+      "include in",
+      "include everyone",
+      "price includes"
+    ],
+    "example": "The price includes breakfast."
+  },
+  {
+    "word": "increase",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 143,
+    "meaning_en": "to become or make greater in number",
+    "meaning_ar": "يزيد",
+    "pronunciation": "ɪnˈkriːs",
+    "synonyms": [
+      "grow",
+      "rise",
+      "expand",
+      "raise"
+    ],
+    "antonyms": [
+      "decrease",
+      "reduce",
+      "fall"
+    ],
+    "collocations": [
+      "increase by",
+      "sharply increase",
+      "continuous increase"
+    ],
+    "example": "Prices continue to increase every year."
+  },
+  {
+    "word": "individual",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 144,
+    "meaning_en": "a single person or thing",
+    "meaning_ar": "فرد",
+    "pronunciation": "ɪndɪˈvɪdʒʊəl",
+    "synonyms": [
+      "person",
+      "human",
+      "single",
+      "solo"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "as an individual",
+      "individual rights",
+      "every individual",
+      "individual effort"
+    ],
+    "example": "Each individual has different needs."
+  },
+  {
+    "word": "involve",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 145,
+    "meaning_en": "to include as a necessary part",
+    "meaning_ar": "يتضمن",
+    "pronunciation": "ɪnˈvɒlv",
+    "synonyms": [
+      "include",
+      "contain",
+      "require",
+      "concern"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "involve in",
+      "get involved",
+      "be involved in",
+      "involve risk"
+    ],
+    "example": "This project involves a lot of work."
+  },
+  {
+    "word": "issue",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 146,
+    "meaning_en": "an important topic or problem",
+    "meaning_ar": "قضية",
+    "pronunciation": "ɪʃuː",
+    "synonyms": [
+      "topic",
+      "problem",
+      "matter",
+      "concern"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "key issue",
+      "raise an issue",
+      "address an issue",
+      "current issues"
+    ],
+    "example": "This is a serious environmental issue."
+  },
+  {
+    "word": "knowledge",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 147,
+    "meaning_en": "information and understanding that you have",
+    "meaning_ar": "معرفة",
+    "pronunciation": "nɒlɪdʒ",
+    "synonyms": [
+      "understanding",
+      "awareness",
+      "expertise",
+      "wisdom"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "gain knowledge",
+      "background knowledge",
+      "common knowledge",
+      "knowledge base"
+    ],
+    "example": "She has great knowledge of history."
+  },
+  {
+    "word": "manage",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 148,
+    "meaning_en": "to be in charge of; to succeed in doing something",
+    "meaning_ar": "يدير",
+    "pronunciation": "mænɪdʒ",
+    "synonyms": [
+      "handle",
+      "control",
+      "organize",
+      "succeed"
+    ],
+    "antonyms": [
+      "fail"
+    ],
+    "collocations": [
+      "manage to do",
+      "manage a team",
+      "time management",
+      "stress management"
+    ],
+    "example": "She manages a large team."
+  },
+  {
+    "word": "method",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 149,
+    "meaning_en": "a way of doing something",
+    "meaning_ar": "طريقة",
+    "pronunciation": "meθəd",
+    "synonyms": [
+      "approach",
+      "technique",
+      "way",
+      "procedure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "teaching method",
+      "use a method",
+      "best method",
+      "scientific method"
+    ],
+    "example": "What method did you use?"
+  },
+  {
+    "word": "mind",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 150,
+    "meaning_en": "the part of a person that thinks and feels",
+    "meaning_ar": "عقل",
+    "pronunciation": "maɪnd",
+    "synonyms": [
+      "brain",
+      "intellect",
+      "thought",
+      "consciousness"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "keep in mind",
+      "never mind",
+      "make up your mind",
+      "peace of mind",
+      "state of mind"
+    ],
+    "example": "Keep this in mind when you decide."
+  },
+  {
+    "word": "natural",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 151,
+    "meaning_en": "existing in or caused by nature; expected",
+    "meaning_ar": "طبيعي",
+    "pronunciation": "nætʃrəl",
+    "synonyms": [
+      "normal",
+      "organic",
+      "pure",
+      "genuine"
+    ],
+    "antonyms": [
+      "artificial",
+      "unnatural"
+    ],
+    "collocations": [
+      "natural disaster",
+      "it's natural",
+      "natural talent",
+      "natural beauty"
+    ],
+    "example": "It's completely natural to feel nervous."
+  },
+  {
+    "word": "necessary",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 152,
+    "meaning_en": "needed for a reason; essential",
+    "meaning_ar": "ضروري",
+    "pronunciation": "nesɪsəri",
+    "synonyms": [
+      "essential",
+      "required",
+      "vital",
+      "needed"
+    ],
+    "antonyms": [
+      "unnecessary",
+      "optional"
+    ],
+    "collocations": [
+      "if necessary",
+      "absolutely necessary",
+      "necessary steps"
+    ],
+    "example": "Is it necessary to wear a uniform?"
+  },
+  {
+    "word": "opportunity",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 153,
+    "meaning_en": "a chance to do or achieve something",
+    "meaning_ar": "فرصة",
+    "pronunciation": "ɒpəˈtjuːnɪti",
+    "synonyms": [
+      "chance",
+      "possibility",
+      "opening",
+      "prospect"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take an opportunity",
+      "miss an opportunity",
+      "career opportunity",
+      "golden opportunity"
+    ],
+    "example": "This is a great opportunity for growth."
+  },
+  {
+    "word": "organization",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 154,
+    "meaning_en": "a group of people working together for a purpose",
+    "meaning_ar": "منظمة",
+    "pronunciation": "ɔːɡənɪˈzeɪʃn",
+    "synonyms": [
+      "institution",
+      "company",
+      "group",
+      "body"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "run an organization",
+      "non-profit organization",
+      "join an organization"
+    ],
+    "example": "She works for an international organization."
+  },
+  {
+    "word": "prepare",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 155,
+    "meaning_en": "to make something or someone ready",
+    "meaning_ar": "يستعد",
+    "pronunciation": "prɪˈpeə",
+    "synonyms": [
+      "get ready",
+      "arrange",
+      "organize",
+      "plan"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "prepare for",
+      "be prepared",
+      "prepare a meal",
+      "well prepared"
+    ],
+    "example": "Prepare your things for the trip."
+  },
+  {
+    "word": "produce",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 156,
+    "meaning_en": "to make or create something",
+    "meaning_ar": "ينتج",
+    "pronunciation": "prəˈdjuːs",
+    "synonyms": [
+      "make",
+      "create",
+      "generate",
+      "manufacture"
+    ],
+    "antonyms": [
+      "consume"
+    ],
+    "collocations": [
+      "produce results",
+      "produce goods",
+      "mass production"
+    ],
+    "example": "This factory produces cars."
+  },
+  {
+    "word": "protect",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 157,
+    "meaning_en": "to keep something safe from harm",
+    "meaning_ar": "يحمي",
+    "pronunciation": "prəˈtekt",
+    "synonyms": [
+      "defend",
+      "guard",
+      "preserve",
+      "secure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "protect from",
+      "protect the environment",
+      "self-protection",
+      "animal protection"
+    ],
+    "example": "We must protect our natural resources."
+  },
+  {
+    "word": "provide",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 158,
+    "meaning_en": "to make something available to someone",
+    "meaning_ar": "يوفر",
+    "pronunciation": "prəˈvaɪd",
+    "synonyms": [
+      "supply",
+      "give",
+      "offer",
+      "deliver"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "provide information",
+      "provide support",
+      "service provider"
+    ],
+    "example": "The company provides free training."
+  },
+  {
+    "word": "reduce",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 159,
+    "meaning_en": "to make smaller in size or amount",
+    "meaning_ar": "يقلل",
+    "pronunciation": "rɪˈdjuːs",
+    "synonyms": [
+      "decrease",
+      "lower",
+      "cut",
+      "minimize"
+    ],
+    "antonyms": [
+      "increase",
+      "raise"
+    ],
+    "collocations": [
+      "reduce costs",
+      "reduce stress",
+      "significantly reduce",
+      "reduce waste"
+    ],
+    "example": "We need to reduce pollution."
+  },
+  {
+    "word": "relationship",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 160,
+    "meaning_en": "a connection between people or things",
+    "meaning_ar": "علاقة",
+    "pronunciation": "rɪˈleɪʃnʃɪp",
+    "synonyms": [
+      "connection",
+      "bond",
+      "link",
+      "association"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "build a relationship",
+      "personal relationship",
+      "working relationship"
+    ],
+    "example": "A good relationship is built on trust."
+  },
+  {
+    "word": "require",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 161,
+    "meaning_en": "to need something; to demand",
+    "meaning_ar": "يتطلب",
+    "pronunciation": "rɪˈkwaɪə",
+    "synonyms": [
+      "need",
+      "demand",
+      "call for",
+      "involve"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "require attention",
+      "as required",
+      "job requirements"
+    ],
+    "example": "This job requires good communication skills."
+  },
+  {
+    "word": "research",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 162,
+    "meaning_en": "careful study to find out facts",
+    "meaning_ar": "بحث",
+    "pronunciation": "rɪˈsɜːtʃ",
+    "synonyms": [
+      "study",
+      "investigation",
+      "analysis",
+      "inquiry"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "do research",
+      "scientific research",
+      "carry out research"
+    ],
+    "example": "She is doing research into cancer."
+  },
+  {
+    "word": "responsibility",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 163,
+    "meaning_en": "a duty or obligation",
+    "meaning_ar": "مسؤولية",
+    "pronunciation": "rɪˌspɒnsɪˈbɪlɪti",
+    "synonyms": [
+      "duty",
+      "obligation",
+      "accountability",
+      "role"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take responsibility",
+      "sense of responsibility",
+      "personal responsibility"
+    ],
+    "example": "It's your responsibility to arrive on time."
+  },
+  {
+    "word": "serious",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 164,
+    "meaning_en": "important or worrying; not joking",
+    "meaning_ar": "جدي",
+    "pronunciation": "sɪərɪəs",
+    "synonyms": [
+      "significant",
+      "critical",
+      "grave",
+      "solemn"
+    ],
+    "antonyms": [
+      "trivial",
+      "minor",
+      "lighthearted"
+    ],
+    "collocations": [
+      "serious problem",
+      "be serious about",
+      "dead serious"
+    ],
+    "example": "This is a very serious issue."
+  },
+  {
+    "word": "share",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 165,
+    "meaning_en": "to give part of something to others; to tell others",
+    "meaning_ar": "يشارك",
+    "pronunciation": "ʃeə",
+    "synonyms": [
+      "divide",
+      "distribute",
+      "give",
+      "tell"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "share with",
+      "share information",
+      "share a meal",
+      "share your thoughts"
+    ],
+    "example": "Please share your ideas with the group."
+  },
+  {
+    "word": "solve",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 166,
+    "meaning_en": "to find an answer to a problem",
+    "meaning_ar": "يحل",
+    "pronunciation": "sɒlv",
+    "synonyms": [
+      "resolve",
+      "fix",
+      "answer",
+      "work out"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "solve a problem",
+      "solve an equation",
+      "find a solution"
+    ],
+    "example": "We need to solve this quickly."
+  },
+  {
+    "word": "suggest",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 167,
+    "meaning_en": "to put forward an idea for consideration",
+    "meaning_ar": "يقترح",
+    "pronunciation": "səˈdʒest",
+    "synonyms": [
+      "propose",
+      "recommend",
+      "advise",
+      "hint"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I suggest",
+      "make a suggestion",
+      "strongly suggest"
+    ],
+    "example": "I suggest we start earlier."
+  },
+  {
+    "word": "support",
+    "pos": "verb",
+    "level": "B1",
+    "freq": 168,
+    "meaning_en": "to give help or encouragement to someone",
+    "meaning_ar": "يدعم",
+    "pronunciation": "səˈpɔːt",
+    "synonyms": [
+      "help",
+      "assist",
+      "encourage",
+      "back"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "support someone",
+      "financial support",
+      "show support",
+      "moral support"
+    ],
+    "example": "I really appreciate your support."
+  },
+  {
+    "word": "technology",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 169,
+    "meaning_en": "scientific knowledge used in practical ways",
+    "meaning_ar": "تقنية",
+    "pronunciation": "tekˈnɒlədʒi",
+    "synonyms": [
+      "science",
+      "innovation",
+      "digital",
+      "tools"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "modern technology",
+      "technology sector",
+      "new technology"
+    ],
+    "example": "Technology has changed our lives."
+  },
+  {
+    "word": "throughout",
+    "pos": "preposition",
+    "level": "B1",
+    "freq": 170,
+    "meaning_en": "in every part of; from beginning to end",
+    "meaning_ar": "طوال",
+    "pronunciation": "θruːˈaʊt",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "throughout the year",
+      "throughout history",
+      "throughout the world"
+    ],
+    "example": "This theme appears throughout the book."
+  },
+  {
+    "word": "towards",
+    "pos": "preposition",
+    "level": "B1",
+    "freq": 171,
+    "meaning_en": "in the direction of; approaching",
+    "meaning_ar": "نحو",
+    "pronunciation": "təˈwɔːdz",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "move towards",
+      "attitude towards",
+      "a step towards",
+      "towards the end"
+    ],
+    "example": "She is working towards her degree."
+  },
+  {
+    "word": "traditional",
+    "pos": "adjective",
+    "level": "B1",
+    "freq": 172,
+    "meaning_en": "following long-established customs",
+    "meaning_ar": "تقليدي",
+    "pronunciation": "trəˈdɪʃənl",
+    "synonyms": [
+      "conventional",
+      "classic",
+      "customary"
+    ],
+    "antonyms": [
+      "modern",
+      "contemporary"
+    ],
+    "collocations": [
+      "traditional values",
+      "traditional food",
+      "traditional approach"
+    ],
+    "example": "I love traditional Arabic music."
+  },
+  {
+    "word": "understanding",
+    "pos": "noun",
+    "level": "B1",
+    "freq": 173,
+    "meaning_en": "the ability to comprehend something",
+    "meaning_ar": "فهم",
+    "pronunciation": "ʌndəˈstændɪŋ",
+    "synonyms": [
+      "comprehension",
+      "grasp",
+      "insight",
+      "awareness"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "good understanding",
+      "show understanding",
+      "come to an understanding"
+    ],
+    "example": "I have a good understanding of this."
+  },
+  {
+    "word": "acknowledge",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 174,
+    "meaning_en": "to accept or recognize something is true",
+    "meaning_ar": "يُقر",
+    "pronunciation": "ækˈnɒlɪdʒ",
+    "synonyms": [
+      "recognize",
+      "admit",
+      "accept",
+      "confirm"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "acknowledge a mistake",
+      "acknowledge someone",
+      "widely acknowledged"
+    ],
+    "example": "She acknowledged her mistake immediately."
+  },
+  {
+    "word": "acquire",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 175,
+    "meaning_en": "to gain or obtain something over time",
+    "meaning_ar": "يكتسب",
+    "pronunciation": "əˈkwaɪə",
+    "synonyms": [
+      "obtain",
+      "gain",
+      "develop",
+      "get"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "acquire skills",
+      "acquire knowledge",
+      "newly acquired"
+    ],
+    "example": "You can acquire new skills through practice."
+  },
+  {
+    "word": "adapt",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 176,
+    "meaning_en": "to change to suit different conditions",
+    "meaning_ar": "يتكيف",
+    "pronunciation": "əˈdæpt",
+    "synonyms": [
+      "adjust",
+      "modify",
+      "change",
+      "conform"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "adapt to",
+      "adapt quickly",
+      "well adapted"
+    ],
+    "example": "You need to adapt to new situations."
+  },
+  {
+    "word": "alternative",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 177,
+    "meaning_en": "a different choice or option",
+    "meaning_ar": "بديل",
+    "pronunciation": "ɔːlˈtɜːnətɪv",
+    "synonyms": [
+      "option",
+      "choice",
+      "substitute"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "alternative solution",
+      "have no alternative",
+      "find an alternative"
+    ],
+    "example": "Is there an alternative route?"
+  },
+  {
+    "word": "analyze",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 178,
+    "meaning_en": "to examine something carefully in detail",
+    "meaning_ar": "يحلل",
+    "pronunciation": "ænəlaɪz",
+    "synonyms": [
+      "examine",
+      "study",
+      "investigate",
+      "evaluate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "analyze data",
+      "critically analyze",
+      "analyze results"
+    ],
+    "example": "Let's analyze the situation carefully."
+  },
+  {
+    "word": "aspect",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 179,
+    "meaning_en": "a particular part or feature of something",
+    "meaning_ar": "جانب",
+    "pronunciation": "æspekt",
+    "synonyms": [
+      "feature",
+      "part",
+      "element",
+      "dimension"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "important aspect",
+      "every aspect",
+      "consider all aspects"
+    ],
+    "example": "Health is an important aspect of life."
+  },
+  {
+    "word": "assumption",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 180,
+    "meaning_en": "something taken for granted without proof",
+    "meaning_ar": "افتراض",
+    "pronunciation": "əˈsʌmpʃn",
+    "synonyms": [
+      "presumption",
+      "belief",
+      "conjecture",
+      "guess"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make an assumption",
+      "false assumption",
+      "underlying assumption"
+    ],
+    "example": "Don't make assumptions without evidence."
+  },
+  {
+    "word": "benefit",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 181,
+    "meaning_en": "something that is helpful or useful",
+    "meaning_ar": "فائدة",
+    "pronunciation": "benɪfɪt",
+    "synonyms": [
+      "advantage",
+      "gain",
+      "profit",
+      "reward"
+    ],
+    "antonyms": [
+      "disadvantage",
+      "harm"
+    ],
+    "collocations": [
+      "mutual benefit",
+      "for your benefit",
+      "benefit from",
+      "cost-benefit"
+    ],
+    "example": "What are the benefits of this approach?"
+  },
+  {
+    "word": "capacity",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 182,
+    "meaning_en": "the ability to contain or do something",
+    "meaning_ar": "قدرة",
+    "pronunciation": "kəˈpæsɪti",
+    "synonyms": [
+      "ability",
+      "volume",
+      "power",
+      "potential"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "full capacity",
+      "human capacity",
+      "capacity for change",
+      "at capacity"
+    ],
+    "example": "The hall was filled to capacity."
+  },
+  {
+    "word": "complex",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 183,
+    "meaning_en": "consisting of many connected parts; complicated",
+    "meaning_ar": "معقد",
+    "pronunciation": "kɒmpleks",
+    "synonyms": [
+      "complicated",
+      "intricate",
+      "difficult"
+    ],
+    "antonyms": [
+      "simple",
+      "straightforward"
+    ],
+    "collocations": [
+      "complex problem",
+      "highly complex",
+      "complex system"
+    ],
+    "example": "This is a very complex issue."
+  },
+  {
+    "word": "concept",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 184,
+    "meaning_en": "an abstract idea or principle",
+    "meaning_ar": "مفهوم",
+    "pronunciation": "kɒnsept",
+    "synonyms": [
+      "idea",
+      "notion",
+      "principle",
+      "theory"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "basic concept",
+      "new concept",
+      "understand a concept",
+      "apply a concept"
+    ],
+    "example": "I need to understand this concept better."
+  },
+  {
+    "word": "consequence",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 185,
+    "meaning_en": "a result of an action or condition",
+    "meaning_ar": "عاقبة",
+    "pronunciation": "kɒnsɪkwəns",
+    "synonyms": [
+      "result",
+      "outcome",
+      "effect",
+      "repercussion"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "as a consequence",
+      "serious consequences",
+      "face the consequences",
+      "negative consequence"
+    ],
+    "example": "Think about the consequences of your actions."
+  },
+  {
+    "word": "considerable",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 186,
+    "meaning_en": "large in size or amount",
+    "meaning_ar": "كبير",
+    "pronunciation": "kənˈsɪdərəbl",
+    "synonyms": [
+      "significant",
+      "substantial",
+      "notable",
+      "sizable"
+    ],
+    "antonyms": [
+      "insignificant",
+      "minor"
+    ],
+    "collocations": [
+      "considerable amount",
+      "a considerable number",
+      "considerable effort"
+    ],
+    "example": "She put in considerable effort."
+  },
+  {
+    "word": "context",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 187,
+    "meaning_en": "the circumstances surrounding something",
+    "meaning_ar": "سياق",
+    "pronunciation": "kɒntekst",
+    "synonyms": [
+      "background",
+      "setting",
+      "framework",
+      "circumstances"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "in this context",
+      "put in context",
+      "out of context",
+      "cultural context"
+    ],
+    "example": "Understand the word in its context."
+  },
+  {
+    "word": "contribute",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 188,
+    "meaning_en": "to give something toward a result",
+    "meaning_ar": "يساهم",
+    "pronunciation": "kəntˈrɪbjuːt",
+    "synonyms": [
+      "add to",
+      "give",
+      "help",
+      "support"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "contribute to",
+      "make a contribution",
+      "significantly contribute"
+    ],
+    "example": "Everyone can contribute to the solution."
+  },
+  {
+    "word": "controversial",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 189,
+    "meaning_en": "causing disagreement or debate",
+    "meaning_ar": "مثير للجدل",
+    "pronunciation": "kɒntrəˈvɜːʃl",
+    "synonyms": [
+      "debatable",
+      "disputed",
+      "contentious"
+    ],
+    "antonyms": [
+      "uncontroversial",
+      "accepted"
+    ],
+    "collocations": [
+      "controversial topic",
+      "highly controversial",
+      "remain controversial"
+    ],
+    "example": "This is a very controversial topic."
+  },
+  {
+    "word": "debate",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 190,
+    "meaning_en": "a formal discussion of opposing views",
+    "meaning_ar": "نقاش",
+    "pronunciation": "dɪˈbeɪt",
+    "synonyms": [
+      "discussion",
+      "argument",
+      "dispute",
+      "controversy"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "open debate",
+      "heated debate",
+      "join a debate",
+      "topic for debate"
+    ],
+    "example": "There is ongoing debate about climate change."
+  },
+  {
+    "word": "demonstrate",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 191,
+    "meaning_en": "to show clearly; to prove by action",
+    "meaning_ar": "يُثبت",
+    "pronunciation": "demənstreɪt",
+    "synonyms": [
+      "show",
+      "prove",
+      "illustrate",
+      "display"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "demonstrate skills",
+      "demonstrate understanding",
+      "clearly demonstrate"
+    ],
+    "example": "She demonstrated her skills perfectly."
+  },
+  {
+    "word": "diversity",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 192,
+    "meaning_en": "a range of different things or people",
+    "meaning_ar": "تنوع",
+    "pronunciation": "daɪˈvɜːsɪti",
+    "synonyms": [
+      "variety",
+      "range",
+      "mixture",
+      "breadth"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "cultural diversity",
+      "promote diversity",
+      "embrace diversity"
+    ],
+    "example": "We celebrate diversity in our workplace."
+  },
+  {
+    "word": "efficient",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 193,
+    "meaning_en": "achieving results without wasting time or effort",
+    "meaning_ar": "فعّال",
+    "pronunciation": "ɪˈfɪʃnt",
+    "synonyms": [
+      "effective",
+      "productive",
+      "organized"
+    ],
+    "antonyms": [
+      "inefficient",
+      "wasteful"
+    ],
+    "collocations": [
+      "highly efficient",
+      "energy efficient",
+      "efficient use of time"
+    ],
+    "example": "We need a more efficient system."
+  },
+  {
+    "word": "emerge",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 194,
+    "meaning_en": "to appear or come out from something",
+    "meaning_ar": "يظهر",
+    "pronunciation": "ɪˈmɜːdʒ",
+    "synonyms": [
+      "appear",
+      "come out",
+      "arise",
+      "develop"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "emerge from",
+      "patterns emerge",
+      "newly emerged",
+      "begin to emerge"
+    ],
+    "example": "New solutions are beginning to emerge."
+  },
+  {
+    "word": "evaluate",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 195,
+    "meaning_en": "to judge or assess the value of something",
+    "meaning_ar": "يُقيّم",
+    "pronunciation": "ɪˈvæljʊeɪt",
+    "synonyms": [
+      "assess",
+      "judge",
+      "analyze",
+      "measure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "evaluate performance",
+      "carefully evaluate",
+      "evaluate options"
+    ],
+    "example": "We need to evaluate all the options."
+  },
+  {
+    "word": "explicit",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 196,
+    "meaning_en": "clearly and directly stated",
+    "meaning_ar": "صريح",
+    "pronunciation": "ɪkˈsplɪsɪt",
+    "synonyms": [
+      "clear",
+      "direct",
+      "precise",
+      "unambiguous"
+    ],
+    "antonyms": [
+      "implicit",
+      "vague",
+      "indirect"
+    ],
+    "collocations": [
+      "explicit instructions",
+      "make it explicit"
+    ],
+    "example": "The instructions were very explicit."
+  },
+  {
+    "word": "factor",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 197,
+    "meaning_en": "something that influences a result",
+    "meaning_ar": "عامل",
+    "pronunciation": "fæktə",
+    "synonyms": [
+      "element",
+      "component",
+      "aspect",
+      "influence"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "key factor",
+      "determining factor",
+      "risk factor",
+      "contributing factor"
+    ],
+    "example": "Price is an important factor in choosing."
+  },
+  {
+    "word": "framework",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 198,
+    "meaning_en": "a basic structure or set of principles",
+    "meaning_ar": "إطار",
+    "pronunciation": "freɪmwɜːk",
+    "synonyms": [
+      "structure",
+      "system",
+      "model",
+      "basis"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "within a framework",
+      "theoretical framework",
+      "legal framework"
+    ],
+    "example": "We need a clear framework for this project."
+  },
+  {
+    "word": "generate",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 199,
+    "meaning_en": "to produce or create something",
+    "meaning_ar": "يُنتج",
+    "pronunciation": "dʒenəreɪt",
+    "synonyms": [
+      "produce",
+      "create",
+      "develop",
+      "cause"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "generate ideas",
+      "generate income",
+      "generate interest"
+    ],
+    "example": "This campaign will generate a lot of interest."
+  },
+  {
+    "word": "identify",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 200,
+    "meaning_en": "to recognize and be able to name something",
+    "meaning_ar": "يُحدد",
+    "pronunciation": "aɪˈdentɪfaɪ",
+    "synonyms": [
+      "recognize",
+      "spot",
+      "detect",
+      "determine"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "identify a problem",
+      "identify with",
+      "be identified as"
+    ],
+    "example": "Can you identify the main issue?"
+  },
+  {
+    "word": "illustrate",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 201,
+    "meaning_en": "to explain or make something clear with examples",
+    "meaning_ar": "يُوضح",
+    "pronunciation": "ɪləstreɪt",
+    "synonyms": [
+      "explain",
+      "show",
+      "demonstrate",
+      "depict"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "illustrate a point",
+      "clearly illustrate",
+      "illustrate with an example"
+    ],
+    "example": "Let me illustrate my point with an example."
+  },
+  {
+    "word": "implement",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 202,
+    "meaning_en": "to put a plan into action",
+    "meaning_ar": "يُطبّق",
+    "pronunciation": "ɪmplɪment",
+    "synonyms": [
+      "carry out",
+      "execute",
+      "apply",
+      "enforce"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "implement a strategy",
+      "successfully implement",
+      "full implementation"
+    ],
+    "example": "We need to implement this plan now."
+  },
+  {
+    "word": "imply",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 203,
+    "meaning_en": "to suggest something without stating it directly",
+    "meaning_ar": "يُلمّح",
+    "pronunciation": "ɪmˈplaɪ",
+    "synonyms": [
+      "suggest",
+      "hint",
+      "indicate",
+      "infer"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "what does it imply",
+      "seem to imply",
+      "strongly imply"
+    ],
+    "example": "What exactly does he imply by that?"
+  },
+  {
+    "word": "innovative",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 204,
+    "meaning_en": "using new and original ideas",
+    "meaning_ar": "مبتكر",
+    "pronunciation": "ɪnəveɪtɪv",
+    "synonyms": [
+      "creative",
+      "original",
+      "inventive",
+      "pioneering"
+    ],
+    "antonyms": [
+      "traditional",
+      "conventional"
+    ],
+    "collocations": [
+      "innovative solution",
+      "highly innovative",
+      "innovative approach"
+    ],
+    "example": "She came up with an innovative solution."
+  },
+  {
+    "word": "insight",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 205,
+    "meaning_en": "a deep understanding of something",
+    "meaning_ar": "بصيرة",
+    "pronunciation": "ɪnsaɪt",
+    "synonyms": [
+      "understanding",
+      "perception",
+      "awareness",
+      "wisdom"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "valuable insight",
+      "gain insight into",
+      "sharp insight"
+    ],
+    "example": "Her speech gave great insight into the issue."
+  },
+  {
+    "word": "integrate",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 206,
+    "meaning_en": "to combine things to form a whole",
+    "meaning_ar": "يدمج",
+    "pronunciation": "ɪntɪɡreɪt",
+    "synonyms": [
+      "combine",
+      "merge",
+      "incorporate",
+      "unite"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "integrate into",
+      "fully integrated",
+      "integrate technology"
+    ],
+    "example": "We should integrate this into the plan."
+  },
+  {
+    "word": "interpret",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 207,
+    "meaning_en": "to explain the meaning of something",
+    "meaning_ar": "يُفسّر",
+    "pronunciation": "ɪntɜːprɪt",
+    "synonyms": [
+      "explain",
+      "analyze",
+      "translate",
+      "understand"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "interpret results",
+      "how do you interpret",
+      "open to interpretation"
+    ],
+    "example": "How do you interpret this data?"
+  },
+  {
+    "word": "justify",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 208,
+    "meaning_en": "to show or prove something is right",
+    "meaning_ar": "يُبرر",
+    "pronunciation": "dʒʌstɪfaɪ",
+    "synonyms": [
+      "defend",
+      "explain",
+      "support",
+      "validate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "justify a decision",
+      "hard to justify",
+      "justify the cost"
+    ],
+    "example": "Can you justify this decision?"
+  },
+  {
+    "word": "maintain",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 209,
+    "meaning_en": "to keep something in its current state",
+    "meaning_ar": "يُحافظ",
+    "pronunciation": "meɪnˈteɪn",
+    "synonyms": [
+      "keep",
+      "preserve",
+      "sustain",
+      "uphold"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "maintain order",
+      "maintain contact",
+      "well maintained"
+    ],
+    "example": "We must maintain high standards."
+  },
+  {
+    "word": "motivation",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 210,
+    "meaning_en": "a reason or drive to do something",
+    "meaning_ar": "دافع",
+    "pronunciation": "məʊtɪˈveɪʃn",
+    "synonyms": [
+      "drive",
+      "incentive",
+      "inspiration",
+      "reason"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "find motivation",
+      "lack of motivation",
+      "inner motivation",
+      "stay motivated"
+    ],
+    "example": "What is your motivation for studying?"
+  },
+  {
+    "word": "obtain",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 211,
+    "meaning_en": "to get something, usually by effort",
+    "meaning_ar": "يحصل على",
+    "pronunciation": "əbˈteɪn",
+    "synonyms": [
+      "get",
+      "acquire",
+      "gain",
+      "secure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "obtain information",
+      "obtain permission",
+      "obtain results"
+    ],
+    "example": "How can I obtain this information?"
+  },
+  {
+    "word": "outcome",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 212,
+    "meaning_en": "the result of an action or event",
+    "meaning_ar": "نتيجة",
+    "pronunciation": "aʊtkʌm",
+    "synonyms": [
+      "result",
+      "consequence",
+      "effect",
+      "conclusion"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "positive outcome",
+      "desired outcome",
+      "final outcome",
+      "outcome of the meeting"
+    ],
+    "example": "The outcome was better than expected."
+  },
+  {
+    "word": "perspective",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 213,
+    "meaning_en": "a particular way of thinking about something",
+    "meaning_ar": "منظور",
+    "pronunciation": "pəˈspektɪv",
+    "synonyms": [
+      "viewpoint",
+      "angle",
+      "standpoint",
+      "outlook"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "from my perspective",
+      "different perspectives",
+      "gain perspective",
+      "global perspective"
+    ],
+    "example": "Try to see it from her perspective."
+  },
+  {
+    "word": "principle",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 214,
+    "meaning_en": "a basic rule or truth that guides behavior",
+    "meaning_ar": "مبدأ",
+    "pronunciation": "prɪnsɪpl",
+    "synonyms": [
+      "rule",
+      "standard",
+      "belief",
+      "guideline"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "basic principle",
+      "in principle",
+      "stand by your principles",
+      "ethical principle"
+    ],
+    "example": "I act according to my principles."
+  },
+  {
+    "word": "process",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 215,
+    "meaning_en": "a series of actions to achieve something",
+    "meaning_ar": "عملية",
+    "pronunciation": "prɒses",
+    "synonyms": [
+      "procedure",
+      "method",
+      "system",
+      "steps"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "in the process",
+      "thought process",
+      "learning process",
+      "lengthy process"
+    ],
+    "example": "This is a complex process."
+  },
+  {
+    "word": "promote",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 216,
+    "meaning_en": "to support or encourage something; to raise in rank",
+    "meaning_ar": "يروّج",
+    "pronunciation": "prəˈməʊt",
+    "synonyms": [
+      "encourage",
+      "advance",
+      "support",
+      "market"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "promote health",
+      "get promoted",
+      "promote a product",
+      "actively promote"
+    ],
+    "example": "Exercise promotes good health."
+  },
+  {
+    "word": "propose",
+    "pos": "verb",
+    "level": "B2",
+    "freq": 217,
+    "meaning_en": "to suggest a plan or idea",
+    "meaning_ar": "يقترح",
+    "pronunciation": "prəˈpəʊz",
+    "synonyms": [
+      "suggest",
+      "recommend",
+      "put forward",
+      "offer"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "propose a solution",
+      "as proposed",
+      "proposal accepted"
+    ],
+    "example": "I propose we meet next Monday."
+  },
+  {
+    "word": "relevant",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 218,
+    "meaning_en": "closely related to the matter at hand",
+    "meaning_ar": "ذو صلة",
+    "pronunciation": "reləvənt",
+    "synonyms": [
+      "related",
+      "applicable",
+      "pertinent",
+      "significant"
+    ],
+    "antonyms": [
+      "irrelevant",
+      "unrelated"
+    ],
+    "collocations": [
+      "highly relevant",
+      "directly relevant",
+      "relevant information"
+    ],
+    "example": "Make sure your answer is relevant."
+  },
+  {
+    "word": "significant",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 219,
+    "meaning_en": "important or large enough to notice",
+    "meaning_ar": "هام",
+    "pronunciation": "sɪɡˈnɪfɪkənt",
+    "synonyms": [
+      "important",
+      "notable",
+      "considerable",
+      "substantial"
+    ],
+    "antonyms": [
+      "insignificant",
+      "minor",
+      "trivial"
+    ],
+    "collocations": [
+      "significant impact",
+      "statistically significant",
+      "highly significant"
+    ],
+    "example": "There has been a significant improvement."
+  },
+  {
+    "word": "specific",
+    "pos": "adjective",
+    "level": "B2",
+    "freq": 220,
+    "meaning_en": "exact and clear; relating to one thing",
+    "meaning_ar": "محدد",
+    "pronunciation": "spəˈsɪfɪk",
+    "synonyms": [
+      "particular",
+      "precise",
+      "exact",
+      "definite"
+    ],
+    "antonyms": [
+      "general",
+      "vague"
+    ],
+    "collocations": [
+      "be specific",
+      "specific example",
+      "specific instructions"
+    ],
+    "example": "Can you be more specific please?"
+  },
+  {
+    "word": "strategy",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 221,
+    "meaning_en": "a plan for achieving a goal",
+    "meaning_ar": "استراتيجية",
+    "pronunciation": "strætɪdʒi",
+    "synonyms": [
+      "plan",
+      "approach",
+      "tactic",
+      "method"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "develop a strategy",
+      "marketing strategy",
+      "winning strategy",
+      "effective strategy"
+    ],
+    "example": "We need a clear strategy for success."
+  },
+  {
+    "word": "structure",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 222,
+    "meaning_en": "the way something is organized or built",
+    "meaning_ar": "هيكل",
+    "pronunciation": "strʌktʃə",
+    "synonyms": [
+      "organization",
+      "framework",
+      "arrangement",
+      "design"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "organizational structure",
+      "sentence structure",
+      "clear structure",
+      "social structure"
+    ],
+    "example": "The structure of the essay is important."
+  },
+  {
+    "word": "task",
+    "pos": "noun",
+    "level": "B2",
+    "freq": 223,
+    "meaning_en": "a piece of work to be done",
+    "meaning_ar": "مهمة",
+    "pronunciation": "tɑːsk",
+    "synonyms": [
+      "job",
+      "duty",
+      "assignment",
+      "activity"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "complete a task",
+      "main task",
+      "difficult task",
+      "give a task"
+    ],
+    "example": "The first task is to collect the data."
+  },
+  {
+    "word": "abstract",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 224,
+    "meaning_en": "existing as an idea rather than as a thing",
+    "meaning_ar": "مجرد",
+    "pronunciation": "æbstrækt",
+    "synonyms": [
+      "theoretical",
+      "conceptual",
+      "intangible"
+    ],
+    "antonyms": [
+      "concrete",
+      "tangible",
+      "physical"
+    ],
+    "collocations": [
+      "abstract concept",
+      "abstract thinking",
+      "abstract art"
+    ],
+    "example": "Philosophy deals with abstract concepts."
+  },
+  {
+    "word": "adversity",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 225,
+    "meaning_en": "a difficult or unpleasant situation",
+    "meaning_ar": "شدة",
+    "pronunciation": "ədˈvɜːsɪti",
+    "synonyms": [
+      "hardship",
+      "difficulty",
+      "misfortune",
+      "struggle"
+    ],
+    "antonyms": [
+      "prosperity",
+      "ease"
+    ],
+    "collocations": [
+      "face adversity",
+      "overcome adversity",
+      "in the face of adversity"
+    ],
+    "example": "She showed great strength in adversity."
+  },
+  {
+    "word": "ambiguous",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 226,
+    "meaning_en": "having more than one possible meaning",
+    "meaning_ar": "مبهم",
+    "pronunciation": "æmˈbɪɡjʊəs",
+    "synonyms": [
+      "unclear",
+      "vague",
+      "equivocal"
+    ],
+    "antonyms": [
+      "clear",
+      "unambiguous",
+      "explicit"
+    ],
+    "collocations": [
+      "ambiguous statement",
+      "deliberately ambiguous",
+      "remain ambiguous"
+    ],
+    "example": "His answer was deliberately ambiguous."
+  },
+  {
+    "word": "assertion",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 227,
+    "meaning_en": "a confident statement of fact",
+    "meaning_ar": "ادعاء",
+    "pronunciation": "əˈsɜːʃn",
+    "synonyms": [
+      "claim",
+      "declaration",
+      "statement",
+      "insistence"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make an assertion",
+      "bold assertion",
+      "unsupported assertion"
+    ],
+    "example": "Her assertion was difficult to prove."
+  },
+  {
+    "word": "coherent",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 228,
+    "meaning_en": "logical and consistent; easy to understand",
+    "meaning_ar": "متماسك",
+    "pronunciation": "kəʊˈhɪərənt",
+    "synonyms": [
+      "logical",
+      "consistent",
+      "clear"
+    ],
+    "antonyms": [
+      "incoherent",
+      "confused",
+      "inconsistent"
+    ],
+    "collocations": [
+      "coherent argument",
+      "present a coherent case"
+    ],
+    "example": "Please give a coherent explanation."
+  },
+  {
+    "word": "comprehensive",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 229,
+    "meaning_en": "including everything that is necessary",
+    "meaning_ar": "شامل",
+    "pronunciation": "kɒmprɪˈhensɪv",
+    "synonyms": [
+      "complete",
+      "thorough",
+      "all-inclusive",
+      "exhaustive"
+    ],
+    "antonyms": [
+      "partial",
+      "incomplete"
+    ],
+    "collocations": [
+      "comprehensive guide",
+      "comprehensive study",
+      "comprehensive plan"
+    ],
+    "example": "We need a comprehensive strategy."
+  },
+  {
+    "word": "contentious",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 230,
+    "meaning_en": "causing disagreement; likely to cause debate",
+    "meaning_ar": "خلافي",
+    "pronunciation": "kənˈtenʃəs",
+    "synonyms": [
+      "controversial",
+      "disputed",
+      "debatable"
+    ],
+    "antonyms": [
+      "uncontroversial"
+    ],
+    "collocations": [
+      "contentious issue",
+      "remain contentious",
+      "highly contentious"
+    ],
+    "example": "Immigration is a contentious issue."
+  },
+  {
+    "word": "criterion",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 231,
+    "meaning_en": "a standard used to judge something",
+    "meaning_ar": "معيار",
+    "pronunciation": "kraɪˈtɪərɪən",
+    "synonyms": [
+      "standard",
+      "measure",
+      "benchmark",
+      "rule"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "meet the criteria",
+      "selection criteria",
+      "key criterion",
+      "evaluation criteria"
+    ],
+    "example": "What are the criteria for selection?"
+  },
+  {
+    "word": "crucial",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 232,
+    "meaning_en": "extremely important",
+    "meaning_ar": "حاسم",
+    "pronunciation": "kruːʃl",
+    "synonyms": [
+      "vital",
+      "essential",
+      "critical",
+      "decisive"
+    ],
+    "antonyms": [
+      "unimportant",
+      "trivial"
+    ],
+    "collocations": [
+      "crucial role",
+      "crucial moment",
+      "absolutely crucial"
+    ],
+    "example": "Timing is crucial in this situation."
+  },
+  {
+    "word": "derive",
+    "pos": "verb",
+    "level": "C1",
+    "freq": 233,
+    "meaning_en": "to obtain something from a source",
+    "meaning_ar": "يستمد",
+    "pronunciation": "dɪˈraɪv",
+    "synonyms": [
+      "obtain",
+      "get",
+      "draw",
+      "come from"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "derive from",
+      "derive benefit",
+      "derive meaning",
+      "derive pleasure"
+    ],
+    "example": "We can derive meaning from this text."
+  },
+  {
+    "word": "dimension",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 234,
+    "meaning_en": "an aspect or feature of a situation",
+    "meaning_ar": "بُعد",
+    "pronunciation": "daɪˈmenʃn",
+    "synonyms": [
+      "aspect",
+      "element",
+      "scale",
+      "extent"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "new dimension",
+      "political dimension",
+      "add a dimension",
+      "social dimension"
+    ],
+    "example": "This adds a new dimension to the debate."
+  },
+  {
+    "word": "dilemma",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 235,
+    "meaning_en": "a situation where a difficult choice must be made",
+    "meaning_ar": "معضلة",
+    "pronunciation": "dɪˈlemə",
+    "synonyms": [
+      "problem",
+      "difficulty",
+      "quandary",
+      "predicament"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "face a dilemma",
+      "ethical dilemma",
+      "present a dilemma"
+    ],
+    "example": "She faced a real ethical dilemma."
+  },
+  {
+    "word": "discourse",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 236,
+    "meaning_en": "written or spoken communication or debate",
+    "meaning_ar": "خطاب",
+    "pronunciation": "dɪskɔːs",
+    "synonyms": [
+      "discussion",
+      "conversation",
+      "debate",
+      "dialogue"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "academic discourse",
+      "political discourse",
+      "enter the discourse"
+    ],
+    "example": "The public discourse on this topic is changing."
+  },
+  {
+    "word": "elaborate",
+    "pos": "verb",
+    "level": "C1",
+    "freq": 237,
+    "meaning_en": "to explain in more detail",
+    "meaning_ar": "يُوضح",
+    "pronunciation": "ɪˈlæbəreɪt",
+    "synonyms": [
+      "expand",
+      "detail",
+      "explain further",
+      "develop"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "elaborate on",
+      "please elaborate",
+      "elaborate a plan"
+    ],
+    "example": "Could you elaborate on that point?"
+  },
+  {
+    "word": "empirical",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 238,
+    "meaning_en": "based on observation or experiment",
+    "meaning_ar": "تجريبي",
+    "pronunciation": "ɪmˈpɪrɪkl",
+    "synonyms": [
+      "experimental",
+      "observational",
+      "evidence-based"
+    ],
+    "antonyms": [
+      "theoretical",
+      "speculative"
+    ],
+    "collocations": [
+      "empirical evidence",
+      "empirical study",
+      "empirical approach"
+    ],
+    "example": "This claim needs empirical evidence."
+  },
+  {
+    "word": "enhance",
+    "pos": "verb",
+    "level": "C1",
+    "freq": 239,
+    "meaning_en": "to improve the quality or value of something",
+    "meaning_ar": "يُعزز",
+    "pronunciation": "ɪnˈhɑːns",
+    "synonyms": [
+      "improve",
+      "boost",
+      "increase",
+      "strengthen"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "enhance performance",
+      "enhance understanding",
+      "enhance the experience"
+    ],
+    "example": "Exercise enhances mental clarity."
+  },
+  {
+    "word": "excerpt",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 240,
+    "meaning_en": "a short piece taken from a larger work",
+    "meaning_ar": "مقتطف",
+    "pronunciation": "eksɜːpt",
+    "synonyms": [
+      "extract",
+      "passage",
+      "section",
+      "quote"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "brief excerpt",
+      "read an excerpt",
+      "excerpt from a book"
+    ],
+    "example": "Here is an excerpt from the novel."
+  },
+  {
+    "word": "facilitate",
+    "pos": "verb",
+    "level": "C1",
+    "freq": 241,
+    "meaning_en": "to make something easier or possible",
+    "meaning_ar": "يُيسّر",
+    "pronunciation": "fəˈsɪlɪteɪt",
+    "synonyms": [
+      "enable",
+      "help",
+      "assist",
+      "support"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "facilitate learning",
+      "facilitate discussion",
+      "facilitate access"
+    ],
+    "example": "Technology can facilitate communication."
+  },
+  {
+    "word": "fundamental",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 242,
+    "meaning_en": "forming the essential base of something",
+    "meaning_ar": "أساسي",
+    "pronunciation": "fʌndəˈmentl",
+    "synonyms": [
+      "basic",
+      "core",
+      "essential",
+      "primary"
+    ],
+    "antonyms": [
+      "secondary",
+      "minor"
+    ],
+    "collocations": [
+      "fundamental principle",
+      "fundamental change",
+      "fundamental right"
+    ],
+    "example": "This is a fundamental mistake."
+  },
+  {
+    "word": "hypothesis",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 243,
+    "meaning_en": "a suggested explanation for something",
+    "meaning_ar": "فرضية",
+    "pronunciation": "haɪˈpɒθɪsɪs",
+    "synonyms": [
+      "theory",
+      "proposition",
+      "assumption",
+      "conjecture"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "test a hypothesis",
+      "form a hypothesis",
+      "support a hypothesis"
+    ],
+    "example": "We need to test this hypothesis."
+  },
+  {
+    "word": "implication",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 244,
+    "meaning_en": "a conclusion that can be drawn from something",
+    "meaning_ar": "تداعية",
+    "pronunciation": "ɪmplɪˈkeɪʃn",
+    "synonyms": [
+      "consequence",
+      "meaning",
+      "suggestion",
+      "ramification"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "political implications",
+      "serious implications",
+      "what are the implications"
+    ],
+    "example": "What are the implications of this decision?"
+  },
+  {
+    "word": "inherent",
+    "pos": "adjective",
+    "level": "C1",
+    "freq": 245,
+    "meaning_en": "existing as a natural or essential part",
+    "meaning_ar": "متأصّل",
+    "pronunciation": "ɪnˈhɪərənt",
+    "synonyms": [
+      "intrinsic",
+      "innate",
+      "built-in",
+      "natural"
+    ],
+    "antonyms": [
+      "extrinsic",
+      "external"
+    ],
+    "collocations": [
+      "inherent risk",
+      "inherent value",
+      "inherent in the system"
+    ],
+    "example": "There is an inherent risk in this plan."
+  },
+  {
+    "word": "methodology",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 246,
+    "meaning_en": "a system of methods used in a field",
+    "meaning_ar": "منهجية",
+    "pronunciation": "meθəˈdɒlədʒi",
+    "synonyms": [
+      "approach",
+      "system",
+      "procedure",
+      "framework"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "research methodology",
+      "clear methodology",
+      "effective methodology"
+    ],
+    "example": "What methodology did you use?"
+  },
+  {
+    "word": "nuance",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 247,
+    "meaning_en": "a subtle difference in meaning or expression",
+    "meaning_ar": "فارق دقيق",
+    "pronunciation": "njuːɑːns",
+    "synonyms": [
+      "subtlety",
+      "shade",
+      "distinction",
+      "variation"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "subtle nuance",
+      "appreciate the nuance",
+      "nuances of language"
+    ],
+    "example": "There are important nuances in this text."
+  },
+  {
+    "word": "objective",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 248,
+    "meaning_en": "a goal or aim",
+    "meaning_ar": "هدف",
+    "pronunciation": "əbˈdʒektɪv",
+    "synonyms": [
+      "goal",
+      "aim",
+      "target",
+      "purpose"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "achieve an objective",
+      "clear objective",
+      "business objective",
+      "primary objective"
+    ],
+    "example": "What is the main objective here?"
+  },
+  {
+    "word": "paradox",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 249,
+    "meaning_en": "a statement that seems contradictory but may be true",
+    "meaning_ar": "مفارقة",
+    "pronunciation": "pærədɒks",
+    "synonyms": [
+      "contradiction",
+      "irony",
+      "inconsistency"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "apparent paradox",
+      "present a paradox",
+      "the paradox is that"
+    ],
+    "example": "There is a paradox at the heart of this argument."
+  },
+  {
+    "word": "phenomenon",
+    "pos": "noun",
+    "level": "C1",
+    "freq": 250,
+    "meaning_en": "an observable event or occurrence",
+    "meaning_ar": "ظاهرة",
+    "pronunciation": "fɪˈnɒmɪnən",
+    "synonyms": [
+      "event",
+      "occurrence",
+      "fact",
+      "happening"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "natural phenomenon",
+      "widespread phenomenon",
+      "explain the phenomenon"
+    ],
+    "example": "Climate change is a global phenomenon."
+  },
+  {
+    "word": "aberrant",
+    "pos": "adjective",
+    "level": "C2",
+    "freq": 251,
+    "meaning_en": "departing from expected behaviour",
+    "meaning_ar": "شاذ",
+    "pronunciation": "æˈberənt",
+    "synonyms": [
+      "abnormal",
+      "deviant",
+      "atypical"
+    ],
+    "antonyms": [
+      "normal",
+      "typical"
+    ],
+    "collocations": [
+      "aberrant behaviour",
+      "statistically aberrant"
+    ],
+    "example": "Scientists studied the aberrant data."
+  },
+  {
+    "word": "acrimony",
+    "pos": "noun",
+    "level": "C2",
+    "freq": 252,
+    "meaning_en": "bitter and angry disagreement",
+    "meaning_ar": "مرارة",
+    "pronunciation": "ækrɪməni",
+    "synonyms": [
+      "bitterness",
+      "animosity",
+      "hostility"
+    ],
+    "antonyms": [
+      "goodwill",
+      "harmony"
+    ],
+    "collocations": [
+      "with acrimony",
+      "end in acrimony",
+      "marked by acrimony"
+    ],
+    "example": "The negotiations ended in acrimony."
+  },
+  {
+    "word": "adroit",
+    "pos": "adjective",
+    "level": "C2",
+    "freq": 253,
+    "meaning_en": "clever or skillful",
+    "meaning_ar": "ماهر",
+    "pronunciation": "əˈdrɔɪt",
+    "synonyms": [
+      "skillful",
+      "deft",
+      "clever",
+      "dexterous"
+    ],
+    "antonyms": [
+      "clumsy",
+      "inept"
+    ],
+    "collocations": [
+      "adroit handling",
+      "adroit politician"
+    ],
+    "example": "She was adroit at handling difficult questions."
+  },
+  {
+    "word": "ameliorate",
+    "pos": "verb",
+    "level": "C2",
+    "freq": 254,
+    "meaning_en": "to make something bad better",
+    "meaning_ar": "يحسّن",
+    "pronunciation": "əˈmiːlɪəreɪt",
+    "synonyms": [
+      "improve",
+      "alleviate",
+      "better",
+      "enhance"
+    ],
+    "antonyms": [
+      "worsen",
+      "exacerbate"
+    ],
+    "collocations": [
+      "ameliorate the situation",
+      "seek to ameliorate"
+    ],
+    "example": "Policies were introduced to ameliorate poverty."
+  },
+  {
+    "word": "ambivalent",
+    "pos": "adjective",
+    "level": "C2",
+    "freq": 255,
+    "meaning_en": "having mixed or uncertain feelings",
+    "meaning_ar": "متضارب المشاعر",
+    "pronunciation": "æmˈbɪvələnt",
+    "synonyms": [
+      "uncertain",
+      "conflicted",
+      "undecided"
+    ],
+    "antonyms": [
+      "certain",
+      "decisive"
+    ],
+    "collocations": [
+      "feel ambivalent",
+      "ambivalent about",
+      "remain ambivalent"
+    ],
+    "example": "She felt ambivalent about the decision."
+  },
+  {
+    "word": "anachronism",
+    "pos": "noun",
+    "level": "C2",
+    "freq": 256,
+    "meaning_en": "something out of its proper time",
+    "meaning_ar": "غلط تاريخي",
+    "pronunciation": "əˈnækrənɪzəm",
+    "synonyms": [
+      "anomaly",
+      "inconsistency"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "glaring anachronism",
+      "deliberate anachronism"
+    ],
+    "example": "Using a mobile phone in that film was an anachronism."
+  },
+  {
+    "word": "axiom",
+    "pos": "noun",
+    "level": "C2",
+    "freq": 257,
+    "meaning_en": "a statement accepted as true without proof",
+    "meaning_ar": "بديهية",
+    "pronunciation": "æksiəm",
+    "synonyms": [
+      "truth",
+      "maxim",
+      "principle",
+      "assumption"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "basic axiom",
+      "mathematical axiom",
+      "accept as an axiom"
+    ],
+    "example": "It is an axiom that time is money."
+  },
+  {
+    "word": "catharsis",
+    "pos": "noun",
+    "level": "C2",
+    "freq": 258,
+    "meaning_en": "the release of strong emotions through an experience",
+    "meaning_ar": "تطهير عاطفي",
+    "pronunciation": "kəˈθɑːsɪs",
+    "synonyms": [
+      "release",
+      "purging",
+      "cleansing"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "emotional catharsis",
+      "undergo catharsis",
+      "moment of catharsis"
+    ],
+    "example": "The film provided real catharsis for the audience."
+  },
+  {
+    "word": "circumspect",
+    "pos": "adjective",
+    "level": "C2",
+    "freq": 259,
+    "meaning_en": "cautious and careful about possible risks",
+    "meaning_ar": "حذر",
+    "pronunciation": "sɜːkəmspekt",
+    "synonyms": [
+      "cautious",
+      "careful",
+      "wary",
+      "prudent"
+    ],
+    "antonyms": [
+      "reckless",
+      "impulsive"
+    ],
+    "collocations": [
+      "be circumspect",
+      "act circumspectly"
+    ],
+    "example": "She was circumspect in her dealings."
+  },
+  {
+    "word": "commensurate",
+    "pos": "adjective",
+    "level": "C2",
+    "freq": 260,
+    "meaning_en": "in proportion to something",
+    "meaning_ar": "متناسب",
+    "pronunciation": "kəˈmenʃərət",
+    "synonyms": [
+      "proportional",
+      "proportionate",
+      "corresponding"
+    ],
+    "antonyms": [
+      "disproportionate"
+    ],
+    "collocations": [
+      "commensurate with",
+      "commensurate salary"
+    ],
+    "example": "The salary should be commensurate with experience."
+  },
+  {
+    "word": "mother",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 261,
+    "meaning_en": "a woman who has a child",
+    "meaning_ar": "أم",
+    "pronunciation": "mʌðə",
+    "synonyms": [
+      "mom",
+      "mum"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "my mother",
+      "mother tongue",
+      "single mother"
+    ],
+    "example": "My mother is a great cook."
+  },
+  {
+    "word": "father",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 262,
+    "meaning_en": "a man who has a child",
+    "meaning_ar": "أب",
+    "pronunciation": "fɑːðə",
+    "synonyms": [
+      "dad",
+      "papa"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "my father",
+      "father figure",
+      "working father"
+    ],
+    "example": "My father taught me to ride a bike."
+  },
+  {
+    "word": "brother",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 263,
+    "meaning_en": "a boy or man with the same parents as another",
+    "meaning_ar": "أخ",
+    "pronunciation": "brʌðə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "older brother",
+      "little brother"
+    ],
+    "example": "My brother is three years older than me."
+  },
+  {
+    "word": "sister",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 264,
+    "meaning_en": "a girl or woman with the same parents as another",
+    "meaning_ar": "أخت",
+    "pronunciation": "sɪstə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "older sister",
+      "twin sister"
+    ],
+    "example": "She and her sister look very similar."
+  },
+  {
+    "word": "son",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 265,
+    "meaning_en": "a male child in relation to his parents",
+    "meaning_ar": "ابن",
+    "pronunciation": "sʌn",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "only son",
+      "grown-up son"
+    ],
+    "example": "They have a son and a daughter."
+  },
+  {
+    "word": "daughter",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 266,
+    "meaning_en": "a female child in relation to her parents",
+    "meaning_ar": "ابنة",
+    "pronunciation": "dɔːtə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "only daughter",
+      "eldest daughter"
+    ],
+    "example": "Their daughter is studying at university."
+  },
+  {
+    "word": "morning",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 267,
+    "meaning_en": "the time from dawn until noon",
+    "meaning_ar": "صباح",
+    "pronunciation": "mɔːnɪŋ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "good morning",
+      "every morning",
+      "early morning"
+    ],
+    "example": "I love going for walks in the morning."
+  },
+  {
+    "word": "night",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 268,
+    "meaning_en": "the period of darkness between sunset and sunrise",
+    "meaning_ar": "ليل",
+    "pronunciation": "naɪt",
+    "synonyms": [
+      "evening",
+      "dark"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "good night",
+      "at night",
+      "last night"
+    ],
+    "example": "I study better at night."
+  },
+  {
+    "word": "afternoon",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 269,
+    "meaning_en": "the time from noon to evening",
+    "meaning_ar": "بعد الظهر",
+    "pronunciation": "ɑːftəˈnuːn",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "good afternoon",
+      "this afternoon",
+      "late afternoon"
+    ],
+    "example": "We have class in the afternoon."
+  },
+  {
+    "word": "evening",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 270,
+    "meaning_en": "the part of the day from late afternoon until bedtime",
+    "meaning_ar": "مساء",
+    "pronunciation": "iːvnɪŋ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "good evening",
+      "this evening",
+      "every evening"
+    ],
+    "example": "Good evening! How was your day?"
+  },
+  {
+    "word": "week",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 271,
+    "meaning_en": "a period of seven consecutive days",
+    "meaning_ar": "أسبوع",
+    "pronunciation": "wiːk",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "last week",
+      "next week",
+      "this week",
+      "once a week"
+    ],
+    "example": "I'll see you next week."
+  },
+  {
+    "word": "month",
+    "pos": "noun",
+    "level": "A1",
+    "freq": 272,
+    "meaning_en": "one of the twelve divisions of a year",
+    "meaning_ar": "شهر",
+    "pronunciation": "mʌnθ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "last month",
+      "next month",
+      "this month"
+    ],
+    "example": "She started last month."
+  },
+  {
+    "word": "today",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 273,
+    "meaning_en": "on this present day",
+    "meaning_ar": "اليوم",
+    "pronunciation": "təˈdeɪ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "today is",
+      "later today",
+      "today's news"
+    ],
+    "example": "I will finish it today."
+  },
+  {
+    "word": "tomorrow",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 274,
+    "meaning_en": "on the day after today",
+    "meaning_ar": "غداً",
+    "pronunciation": "təˈmɒrəʊ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "see you tomorrow",
+      "tomorrow morning",
+      "until tomorrow"
+    ],
+    "example": "I will see you tomorrow."
+  },
+  {
+    "word": "yesterday",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 275,
+    "meaning_en": "on the day before today",
+    "meaning_ar": "أمس",
+    "pronunciation": "jestədeɪ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "yesterday morning",
+      "just yesterday"
+    ],
+    "example": "I met her yesterday at the market."
+  },
+  {
+    "word": "always",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 276,
+    "meaning_en": "at all times; on every occasion",
+    "meaning_ar": "دائماً",
+    "pronunciation": "ɔːlweɪz",
+    "synonyms": [
+      "every time",
+      "constantly",
+      "forever"
+    ],
+    "antonyms": [
+      "never"
+    ],
+    "collocations": [
+      "I always",
+      "almost always",
+      "always remember"
+    ],
+    "example": "She always smiles when she sees you."
+  },
+  {
+    "word": "never",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 277,
+    "meaning_en": "at no time; not ever",
+    "meaning_ar": "أبداً",
+    "pronunciation": "nevə",
+    "synonyms": [
+      "not ever",
+      "not once"
+    ],
+    "antonyms": [
+      "always"
+    ],
+    "collocations": [
+      "never mind",
+      "I've never",
+      "better never than late"
+    ],
+    "example": "I have never been to Africa."
+  },
+  {
+    "word": "sometimes",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 278,
+    "meaning_en": "occasionally, not always",
+    "meaning_ar": "أحياناً",
+    "pronunciation": "sʌmtaɪmz",
+    "synonyms": [
+      "occasionally",
+      "at times",
+      "now and then"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "sometimes I",
+      "every so often",
+      "sometimes when"
+    ],
+    "example": "I sometimes walk to work."
+  },
+  {
+    "word": "often",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 279,
+    "meaning_en": "many times; frequently",
+    "meaning_ar": "كثيراً",
+    "pronunciation": "ɒfən",
+    "synonyms": [
+      "frequently",
+      "regularly",
+      "repeatedly"
+    ],
+    "antonyms": [
+      "rarely",
+      "seldom"
+    ],
+    "collocations": [
+      "quite often",
+      "how often",
+      "more often"
+    ],
+    "example": "How often do you exercise?"
+  },
+  {
+    "word": "usually",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 280,
+    "meaning_en": "normally; as a habit",
+    "meaning_ar": "عادةً",
+    "pronunciation": "juːʒʊəli",
+    "synonyms": [
+      "normally",
+      "generally",
+      "typically"
+    ],
+    "antonyms": [
+      "rarely",
+      "unusually"
+    ],
+    "collocations": [
+      "I usually",
+      "as usual",
+      "usually happens"
+    ],
+    "example": "I usually wake up at 7 AM."
+  },
+  {
+    "word": "now",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 281,
+    "meaning_en": "at the present moment",
+    "meaning_ar": "الآن",
+    "pronunciation": "naʊ",
+    "synonyms": [
+      "at this moment",
+      "currently",
+      "immediately"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "right now",
+      "just now",
+      "by now",
+      "for now"
+    ],
+    "example": "I need your help right now."
+  },
+  {
+    "word": "still",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 282,
+    "meaning_en": "continuing up to a time; not moving",
+    "meaning_ar": "لا يزال / هادئ",
+    "pronunciation": "stɪl",
+    "synonyms": [
+      "yet",
+      "even now",
+      "motionless"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "still here",
+      "sit still",
+      "still working"
+    ],
+    "example": "She is still sleeping."
+  },
+  {
+    "word": "just",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 283,
+    "meaning_en": "very recently; simply; exactly",
+    "meaning_ar": "للتو / فقط",
+    "pronunciation": "dʒʌst",
+    "synonyms": [
+      "simply",
+      "merely",
+      "only",
+      "recently"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "just now",
+      "just a moment",
+      "just do it",
+      "just in case"
+    ],
+    "example": "I just finished my homework."
+  },
+  {
+    "word": "very",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 284,
+    "meaning_en": "to a high degree",
+    "meaning_ar": "جداً",
+    "pronunciation": "veri",
+    "synonyms": [
+      "extremely",
+      "really",
+      "highly"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "very much",
+      "very good",
+      "very well"
+    ],
+    "example": "Thank you very much."
+  },
+  {
+    "word": "too",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 285,
+    "meaning_en": "also; in addition; more than is good",
+    "meaning_ar": "أيضاً / جداً",
+    "pronunciation": "tuː",
+    "synonyms": [
+      "also",
+      "as well",
+      "additionally"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "me too",
+      "too much",
+      "too late"
+    ],
+    "example": "I want some too please."
+  },
+  {
+    "word": "really",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 286,
+    "meaning_en": "very; in reality",
+    "meaning_ar": "حقاً",
+    "pronunciation": "rɪəli",
+    "synonyms": [
+      "truly",
+      "actually",
+      "very",
+      "genuinely"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "really good",
+      "is it really",
+      "do you really"
+    ],
+    "example": "I really like this place."
+  },
+  {
+    "word": "again",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 287,
+    "meaning_en": "one more time; returning to a previous state",
+    "meaning_ar": "مرة أخرى",
+    "pronunciation": "əˈɡen",
+    "synonyms": [
+      "once more",
+      "another time"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "try again",
+      "see you again",
+      "once again"
+    ],
+    "example": "Can you say that again please?"
+  },
+  {
+    "word": "here",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 288,
+    "meaning_en": "in or to this place",
+    "meaning_ar": "هنا",
+    "pronunciation": "hɪə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "come here",
+      "right here",
+      "over here",
+      "down here"
+    ],
+    "example": "Please come here for a moment."
+  },
+  {
+    "word": "there",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 289,
+    "meaning_en": "in or to that place",
+    "meaning_ar": "هناك",
+    "pronunciation": "ðeə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "over there",
+      "there is",
+      "get there"
+    ],
+    "example": "The bank is over there."
+  },
+  {
+    "word": "already",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 290,
+    "meaning_en": "before now or earlier than expected",
+    "meaning_ar": "بالفعل",
+    "pronunciation": "ɔːlˈredi",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "already done",
+      "have already",
+      "already here"
+    ],
+    "example": "I've already eaten."
+  },
+  {
+    "word": "also",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 291,
+    "meaning_en": "in addition; as well",
+    "meaning_ar": "أيضاً",
+    "pronunciation": "ɔːlsəʊ",
+    "synonyms": [
+      "too",
+      "as well",
+      "additionally"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I also",
+      "also important",
+      "also known as"
+    ],
+    "example": "She also speaks French."
+  },
+  {
+    "word": "maybe",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 292,
+    "meaning_en": "perhaps; possibly",
+    "meaning_ar": "ربما",
+    "pronunciation": "meɪbi",
+    "synonyms": [
+      "perhaps",
+      "possibly",
+      "probably"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "maybe later",
+      "maybe not",
+      "just maybe"
+    ],
+    "example": "Maybe we should go home now."
+  },
+  {
+    "word": "almost",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 293,
+    "meaning_en": "nearly; not quite",
+    "meaning_ar": "تقريباً",
+    "pronunciation": "ɔːlməʊst",
+    "synonyms": [
+      "nearly",
+      "practically",
+      "just about"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "almost there",
+      "almost done",
+      "almost always"
+    ],
+    "example": "I've almost finished."
+  },
+  {
+    "word": "quite",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 294,
+    "meaning_en": "to some degree; completely",
+    "meaning_ar": "إلى حد ما",
+    "pronunciation": "kwaɪt",
+    "synonyms": [
+      "fairly",
+      "rather",
+      "completely"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "quite good",
+      "quite a lot",
+      "not quite",
+      "quite right"
+    ],
+    "example": "This is quite difficult."
+  },
+  {
+    "word": "so",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 295,
+    "meaning_en": "to such a great extent; therefore",
+    "meaning_ar": "جداً / لذا",
+    "pronunciation": "səʊ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "so much",
+      "so far",
+      "so what",
+      "even so"
+    ],
+    "example": "I'm so tired today."
+  },
+  {
+    "word": "even",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 296,
+    "meaning_en": "used for emphasis; to the same level",
+    "meaning_ar": "حتى / مستوٍ",
+    "pronunciation": "iːvn",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "even if",
+      "not even",
+      "even more",
+      "even though"
+    ],
+    "example": "Even a child can understand this."
+  },
+  {
+    "word": "rather",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 297,
+    "meaning_en": "to a certain extent; preferably",
+    "meaning_ar": "إلى حد ما",
+    "pronunciation": "rɑːðə",
+    "synonyms": [
+      "quite",
+      "fairly",
+      "somewhat",
+      "instead"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "rather than",
+      "would rather",
+      "rather good"
+    ],
+    "example": "I would rather stay home tonight."
+  },
+  {
+    "word": "enough",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 298,
+    "meaning_en": "to the required degree",
+    "meaning_ar": "كافٍ",
+    "pronunciation": "ɪˈnʌf",
+    "synonyms": [
+      "sufficient",
+      "adequate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "good enough",
+      "more than enough",
+      "not enough",
+      "enough for"
+    ],
+    "example": "Is that enough food for everyone?"
+  },
+  {
+    "word": "less",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 299,
+    "meaning_en": "to a smaller extent",
+    "meaning_ar": "أقل",
+    "pronunciation": "les",
+    "synonyms": [],
+    "antonyms": [
+      "more"
+    ],
+    "collocations": [
+      "less than",
+      "more or less",
+      "less often"
+    ],
+    "example": "I eat less sugar now."
+  },
+  {
+    "word": "more",
+    "pos": "adverb",
+    "level": "A1",
+    "freq": 300,
+    "meaning_en": "to a greater extent",
+    "meaning_ar": "أكثر",
+    "pronunciation": "mɔː",
+    "synonyms": [],
+    "antonyms": [
+      "less"
+    ],
+    "collocations": [
+      "more than",
+      "once more",
+      "want more",
+      "need more"
+    ],
+    "example": "Can I have more water please?"
+  },
+  {
+    "word": "advice",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 301,
+    "meaning_en": "suggestions about what to do",
+    "meaning_ar": "نصيحة",
+    "pronunciation": "ədˈvaɪs",
+    "synonyms": [
+      "suggestion",
+      "guidance",
+      "recommendation",
+      "tip"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "give advice",
+      "take advice",
+      "good advice",
+      "ask for advice"
+    ],
+    "example": "She gave me good advice."
+  },
+  {
+    "word": "afraid",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 302,
+    "meaning_en": "feeling fear or worry",
+    "meaning_ar": "خائف",
+    "pronunciation": "əˈfreɪd",
+    "synonyms": [
+      "scared",
+      "frightened",
+      "worried",
+      "nervous"
+    ],
+    "antonyms": [
+      "brave",
+      "fearless"
+    ],
+    "collocations": [
+      "be afraid of",
+      "I'm afraid not",
+      "don't be afraid"
+    ],
+    "example": "Don't be afraid to ask questions."
+  },
+  {
+    "word": "age",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 303,
+    "meaning_en": "the length of time someone has lived",
+    "meaning_ar": "العمر",
+    "pronunciation": "eɪdʒ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "at your age",
+      "old age",
+      "what age",
+      "come of age"
+    ],
+    "example": "What age did you start learning English?"
+  },
+  {
+    "word": "agree",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 304,
+    "meaning_en": "to share the same opinion as someone",
+    "meaning_ar": "يوافق",
+    "pronunciation": "əˈɡriː",
+    "synonyms": [
+      "accept",
+      "concur",
+      "consent"
+    ],
+    "antonyms": [
+      "disagree",
+      "oppose"
+    ],
+    "collocations": [
+      "I agree",
+      "agree with",
+      "totally agree",
+      "couldn't agree more"
+    ],
+    "example": "I completely agree with your point."
+  },
+  {
+    "word": "angry",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 305,
+    "meaning_en": "feeling strong displeasure",
+    "meaning_ar": "غاضب",
+    "pronunciation": "æŋɡri",
+    "synonyms": [
+      "annoyed",
+      "furious",
+      "upset",
+      "mad"
+    ],
+    "antonyms": [
+      "calm",
+      "pleased"
+    ],
+    "collocations": [
+      "get angry",
+      "make someone angry",
+      "really angry"
+    ],
+    "example": "She was angry when she heard the news."
+  },
+  {
+    "word": "animal",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 306,
+    "meaning_en": "a living organism that is not a plant or human",
+    "meaning_ar": "حيوان",
+    "pronunciation": "ænɪml",
+    "synonyms": [
+      "creature",
+      "beast",
+      "pet"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "wild animal",
+      "pet animal",
+      "animal rights",
+      "stray animal"
+    ],
+    "example": "The zoo has many interesting animals."
+  },
+  {
+    "word": "answer",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 307,
+    "meaning_en": "a reply to a question",
+    "meaning_ar": "جواب",
+    "pronunciation": "ɑːnsə",
+    "synonyms": [
+      "reply",
+      "response",
+      "solution"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "give an answer",
+      "the right answer",
+      "no answer",
+      "simple answer"
+    ],
+    "example": "That's the correct answer!"
+  },
+  {
+    "word": "area",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 308,
+    "meaning_en": "a region or part of a place",
+    "meaning_ar": "منطقة",
+    "pronunciation": "eərɪə",
+    "synonyms": [
+      "region",
+      "zone",
+      "district",
+      "section"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "local area",
+      "residential area",
+      "problem area",
+      "area of expertise"
+    ],
+    "example": "She lives in a quiet area."
+  },
+  {
+    "word": "arrive",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 309,
+    "meaning_en": "to reach a destination",
+    "meaning_ar": "يصل",
+    "pronunciation": "əˈraɪv",
+    "synonyms": [
+      "reach",
+      "get to",
+      "turn up"
+    ],
+    "antonyms": [
+      "leave",
+      "depart"
+    ],
+    "collocations": [
+      "arrive at",
+      "arrive on time",
+      "just arrived",
+      "arrive early"
+    ],
+    "example": "What time does the bus arrive?"
+  },
+  {
+    "word": "article",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 310,
+    "meaning_en": "a piece of writing in a newspaper; a grammar word",
+    "meaning_ar": "مقال / أداة",
+    "pronunciation": "ɑːtɪkl",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "magazine article",
+      "newspaper article",
+      "write an article"
+    ],
+    "example": "Have you read this article?"
+  },
+  {
+    "word": "attempt",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 311,
+    "meaning_en": "to try to do something",
+    "meaning_ar": "يحاول",
+    "pronunciation": "əˈtempt",
+    "synonyms": [
+      "try",
+      "effort",
+      "endeavour",
+      "bid"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "make an attempt",
+      "first attempt",
+      "failed attempt"
+    ],
+    "example": "She made an attempt to solve it."
+  },
+  {
+    "word": "attention",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 312,
+    "meaning_en": "the act of concentrating on something",
+    "meaning_ar": "انتباه",
+    "pronunciation": "əˈtenʃn",
+    "synonyms": [
+      "focus",
+      "notice",
+      "consideration"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "pay attention",
+      "draw attention",
+      "short attention span"
+    ],
+    "example": "Please pay attention to the teacher."
+  },
+  {
+    "word": "beautiful",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 313,
+    "meaning_en": "very pleasing to see or experience",
+    "meaning_ar": "جميل",
+    "pronunciation": "bjuːtɪfl",
+    "synonyms": [
+      "lovely",
+      "pretty",
+      "gorgeous",
+      "stunning"
+    ],
+    "antonyms": [
+      "ugly",
+      "plain"
+    ],
+    "collocations": [
+      "beautiful view",
+      "how beautiful",
+      "beautiful day"
+    ],
+    "example": "What a beautiful landscape!"
+  },
+  {
+    "word": "because",
+    "pos": "conjunction",
+    "level": "A2",
+    "freq": 314,
+    "meaning_en": "for the reason that",
+    "meaning_ar": "لأن",
+    "pronunciation": "bɪˈkɒz",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "because of",
+      "just because",
+      "it's because",
+      "simply because"
+    ],
+    "example": "I stayed inside because it was raining."
+  },
+  {
+    "word": "become",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 315,
+    "meaning_en": "to start to be something",
+    "meaning_ar": "يصبح",
+    "pronunciation": "bɪˈkʌm",
+    "synonyms": [
+      "turn",
+      "grow",
+      "develop",
+      "transform"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "become better",
+      "become famous",
+      "become a problem",
+      "become available"
+    ],
+    "example": "She wants to become an engineer."
+  },
+  {
+    "word": "between",
+    "pos": "preposition",
+    "level": "A2",
+    "freq": 316,
+    "meaning_en": "in the space separating two things or people",
+    "meaning_ar": "بين",
+    "pronunciation": "bɪˈtwiːn",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "between two",
+      "in between",
+      "come between",
+      "the difference between"
+    ],
+    "example": "The shop is between the bank and the cafe."
+  },
+  {
+    "word": "break",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 317,
+    "meaning_en": "a short period of rest from work",
+    "meaning_ar": "استراحة",
+    "pronunciation": "breɪk",
+    "synonyms": [
+      "rest",
+      "pause",
+      "interval",
+      "holiday"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take a break",
+      "lunch break",
+      "coffee break",
+      "short break"
+    ],
+    "example": "Let's take a short break."
+  },
+  {
+    "word": "busy",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 318,
+    "meaning_en": "having a lot of things to do",
+    "meaning_ar": "مشغول",
+    "pronunciation": "bɪzi",
+    "synonyms": [
+      "occupied",
+      "active",
+      "engaged"
+    ],
+    "antonyms": [
+      "free",
+      "idle",
+      "available"
+    ],
+    "collocations": [
+      "too busy",
+      "stay busy",
+      "busy schedule",
+      "busy street"
+    ],
+    "example": "Sorry, I'm too busy right now."
+  },
+  {
+    "word": "catch",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 319,
+    "meaning_en": "to take hold of something moving; to take an illness",
+    "meaning_ar": "يمسك",
+    "pronunciation": "kætʃ",
+    "synonyms": [
+      "grab",
+      "seize",
+      "trap",
+      "get"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "catch a ball",
+      "catch a bus",
+      "catch a cold",
+      "hard to catch"
+    ],
+    "example": "Can you catch this?"
+  },
+  {
+    "word": "cause",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 320,
+    "meaning_en": "to make something happen",
+    "meaning_ar": "يُسبب",
+    "pronunciation": "kɔːz",
+    "synonyms": [
+      "lead to",
+      "produce",
+      "create",
+      "trigger"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "cause problems",
+      "cause damage",
+      "cause and effect",
+      "root cause"
+    ],
+    "example": "What caused the accident?"
+  },
+  {
+    "word": "certain",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 321,
+    "meaning_en": "known for sure; having no doubt",
+    "meaning_ar": "مؤكد",
+    "pronunciation": "sɜːtn",
+    "synonyms": [
+      "sure",
+      "definite",
+      "confident",
+      "positive"
+    ],
+    "antonyms": [
+      "uncertain",
+      "unsure"
+    ],
+    "collocations": [
+      "be certain",
+      "make certain",
+      "a certain amount",
+      "for certain"
+    ],
+    "example": "I'm not certain about the answer."
+  },
+  {
+    "word": "charge",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 322,
+    "meaning_en": "an amount of money asked for something",
+    "meaning_ar": "رسوم",
+    "pronunciation": "tʃɑːdʒ",
+    "synonyms": [
+      "fee",
+      "cost",
+      "price",
+      "rate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "free of charge",
+      "in charge",
+      "charge a fee",
+      "take charge"
+    ],
+    "example": "There is no charge for parking."
+  },
+  {
+    "word": "cheap",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 323,
+    "meaning_en": "costing little money",
+    "meaning_ar": "رخيص",
+    "pronunciation": "tʃiːp",
+    "synonyms": [
+      "inexpensive",
+      "affordable",
+      "low-cost"
+    ],
+    "antonyms": [
+      "expensive",
+      "costly"
+    ],
+    "collocations": [
+      "cheap price",
+      "buy cheap",
+      "dirt cheap"
+    ],
+    "example": "This restaurant is very cheap."
+  },
+  {
+    "word": "complete",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 324,
+    "meaning_en": "having all necessary parts; finished",
+    "meaning_ar": "مكتمل",
+    "pronunciation": "kəmˈpliːt",
+    "synonyms": [
+      "finished",
+      "whole",
+      "total",
+      "entire"
+    ],
+    "antonyms": [
+      "incomplete",
+      "unfinished"
+    ],
+    "collocations": [
+      "complete a task",
+      "completely new",
+      "the complete version"
+    ],
+    "example": "Have you complete the report?"
+  },
+  {
+    "word": "connect",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 325,
+    "meaning_en": "to join or link together",
+    "meaning_ar": "يربط",
+    "pronunciation": "kəˈnekt",
+    "synonyms": [
+      "link",
+      "join",
+      "attach",
+      "associate"
+    ],
+    "antonyms": [
+      "disconnect",
+      "separate"
+    ],
+    "collocations": [
+      "connect to",
+      "connect with",
+      "stay connected"
+    ],
+    "example": "Connect your device to WiFi."
+  },
+  {
+    "word": "correct",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 326,
+    "meaning_en": "free from mistakes; right",
+    "meaning_ar": "صحيح",
+    "pronunciation": "kərekt",
+    "synonyms": [
+      "right",
+      "accurate",
+      "proper",
+      "exact"
+    ],
+    "antonyms": [
+      "wrong",
+      "incorrect",
+      "mistaken"
+    ],
+    "collocations": [
+      "absolutely correct",
+      "correct answer",
+      "correct me"
+    ],
+    "example": "That is the correct answer."
+  },
+  {
+    "word": "cost",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 327,
+    "meaning_en": "the amount of money needed to buy something",
+    "meaning_ar": "تكلفة",
+    "pronunciation": "kɒst",
+    "synonyms": [
+      "price",
+      "expense",
+      "charge",
+      "fee"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "low cost",
+      "total cost",
+      "cost of living",
+      "at all costs"
+    ],
+    "example": "What is the cost of the ticket?"
+  },
+  {
+    "word": "cover",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 328,
+    "meaning_en": "to place something over; to include or deal with",
+    "meaning_ar": "يغطي",
+    "pronunciation": "kʌvə",
+    "synonyms": [
+      "hide",
+      "protect",
+      "include",
+      "deal with"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "cover a topic",
+      "cover the cost",
+      "take cover",
+      "under cover"
+    ],
+    "example": "The price covers everything."
+  },
+  {
+    "word": "customer",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 329,
+    "meaning_en": "a person who buys goods or services",
+    "meaning_ar": "عميل",
+    "pronunciation": "kʌstəmə",
+    "synonyms": [
+      "client",
+      "buyer",
+      "consumer",
+      "shopper"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "regular customer",
+      "valued customer",
+      "serve a customer",
+      "customer service"
+    ],
+    "example": "The customer is always right."
+  },
+  {
+    "word": "damage",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 330,
+    "meaning_en": "harm done to something",
+    "meaning_ar": "ضرر",
+    "pronunciation": "dæmɪdʒ",
+    "synonyms": [
+      "harm",
+      "destruction",
+      "injury",
+      "loss"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "cause damage",
+      "serious damage",
+      "water damage",
+      "property damage"
+    ],
+    "example": "The storm caused serious damage."
+  },
+  {
+    "word": "deal",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 331,
+    "meaning_en": "an agreement; a large amount",
+    "meaning_ar": "صفقة",
+    "pronunciation": "diːl",
+    "synonyms": [
+      "agreement",
+      "arrangement",
+      "bargain"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "a good deal",
+      "big deal",
+      "deal with",
+      "close a deal"
+    ],
+    "example": "That sounds like a great deal."
+  },
+  {
+    "word": "deep",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 332,
+    "meaning_en": "going far down; intense",
+    "meaning_ar": "عميق",
+    "pronunciation": "diːp",
+    "synonyms": [
+      "profound",
+      "intense",
+      "bottomless"
+    ],
+    "antonyms": [
+      "shallow",
+      "superficial"
+    ],
+    "collocations": [
+      "deep breath",
+      "deep water",
+      "deep thought"
+    ],
+    "example": "Take a deep breath and relax."
+  },
+  {
+    "word": "demand",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 333,
+    "meaning_en": "a strong request; need for something",
+    "meaning_ar": "طلب",
+    "pronunciation": "dɪˈmɑːnd",
+    "synonyms": [
+      "request",
+      "need",
+      "requirement",
+      "claim"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "high demand",
+      "in demand",
+      "supply and demand",
+      "meet the demand"
+    ],
+    "example": "There is high demand for engineers."
+  },
+  {
+    "word": "develop",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 334,
+    "meaning_en": "to grow or become more advanced",
+    "meaning_ar": "يتطور",
+    "pronunciation": "dɪˈveləp",
+    "synonyms": [
+      "improve",
+      "grow",
+      "progress",
+      "advance"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "develop skills",
+      "develop a plan",
+      "rapidly developing"
+    ],
+    "example": "Children develop quickly in the first years."
+  },
+  {
+    "word": "direct",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 335,
+    "meaning_en": "going from one point to another without stopping",
+    "meaning_ar": "مباشر",
+    "pronunciation": "dɪˈrekt",
+    "synonyms": [
+      "straight",
+      "immediate",
+      "frank"
+    ],
+    "antonyms": [
+      "indirect",
+      "roundabout"
+    ],
+    "collocations": [
+      "direct flight",
+      "direct approach",
+      "be direct",
+      "direct contact"
+    ],
+    "example": "Is there a direct flight to Dubai?"
+  },
+  {
+    "word": "discover",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 336,
+    "meaning_en": "to find or learn something for the first time",
+    "meaning_ar": "يكتشف",
+    "pronunciation": "dɪˈskʌvə",
+    "synonyms": [
+      "find",
+      "uncover",
+      "reveal",
+      "learn"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "discover a new way",
+      "make a discovery",
+      "discover that"
+    ],
+    "example": "She discovered a talent for singing."
+  },
+  {
+    "word": "distance",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 337,
+    "meaning_en": "the amount of space between two things",
+    "meaning_ar": "مسافة",
+    "pronunciation": "dɪstəns",
+    "synonyms": [
+      "space",
+      "gap",
+      "range",
+      "span"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "long distance",
+      "at a distance",
+      "keep your distance"
+    ],
+    "example": "The school is within walking distance."
+  },
+  {
+    "word": "doubt",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 338,
+    "meaning_en": "a feeling of uncertainty",
+    "meaning_ar": "شك",
+    "pronunciation": "daʊt",
+    "synonyms": [
+      "uncertainty",
+      "question",
+      "suspicion"
+    ],
+    "antonyms": [
+      "certainty",
+      "confidence"
+    ],
+    "collocations": [
+      "no doubt",
+      "without doubt",
+      "have doubts",
+      "beyond doubt"
+    ],
+    "example": "I have no doubt she will succeed."
+  },
+  {
+    "word": "dream",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 339,
+    "meaning_en": "something you hope for; images in sleep",
+    "meaning_ar": "حلم",
+    "pronunciation": "driːm",
+    "synonyms": [
+      "aspiration",
+      "vision",
+      "goal",
+      "hope"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "follow your dream",
+      "sweet dreams",
+      "dream job",
+      "daydream"
+    ],
+    "example": "My dream is to visit Japan."
+  },
+  {
+    "word": "drive",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 340,
+    "meaning_en": "to control a vehicle; to strongly motivate",
+    "meaning_ar": "يقود",
+    "pronunciation": "draɪv",
+    "synonyms": [
+      "operate",
+      "steer",
+      "motivate",
+      "push"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "drive a car",
+      "drive to work",
+      "inner drive",
+      "drive someone crazy"
+    ],
+    "example": "Can you drive me to the airport?"
+  },
+  {
+    "word": "drop",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 341,
+    "meaning_en": "to let something fall; to decrease",
+    "meaning_ar": "يُسقط",
+    "pronunciation": "drɒp",
+    "synonyms": [
+      "fall",
+      "descend",
+      "decrease",
+      "release"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "drop prices",
+      "drop off",
+      "raindrop",
+      "don't drop it"
+    ],
+    "example": "Be careful not to drop that!"
+  },
+  {
+    "word": "during",
+    "pos": "preposition",
+    "level": "A2",
+    "freq": 342,
+    "meaning_en": "throughout the course of something",
+    "meaning_ar": "خلال",
+    "pronunciation": "djʊərɪŋ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "during the day",
+      "during class",
+      "during the meeting"
+    ],
+    "example": "Please be quiet during the lesson."
+  },
+  {
+    "word": "each",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 343,
+    "meaning_en": "every one of two or more things",
+    "meaning_ar": "كل",
+    "pronunciation": "iːtʃ",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "each other",
+      "each one",
+      "for each",
+      "each time"
+    ],
+    "example": "Each student has a different style."
+  },
+  {
+    "word": "earn",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 344,
+    "meaning_en": "to receive money for work done",
+    "meaning_ar": "يكسب",
+    "pronunciation": "ɜːn",
+    "synonyms": [
+      "make",
+      "receive",
+      "get paid",
+      "gain"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "earn money",
+      "earn a living",
+      "earn respect",
+      "earn points"
+    ],
+    "example": "She earns a good salary."
+  },
+  {
+    "word": "effect",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 345,
+    "meaning_en": "a change produced by a cause",
+    "meaning_ar": "تأثير",
+    "pronunciation": "ɪˈfekt",
+    "synonyms": [
+      "result",
+      "impact",
+      "influence",
+      "outcome"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "side effect",
+      "in effect",
+      "cause and effect",
+      "positive effect"
+    ],
+    "example": "The medicine had a good effect."
+  },
+  {
+    "word": "enough",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 346,
+    "meaning_en": "as much as is needed",
+    "meaning_ar": "كافٍ",
+    "pronunciation": "ɪˈnʌf",
+    "synonyms": [
+      "sufficient",
+      "adequate",
+      "plenty"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "more than enough",
+      "have enough",
+      "not enough time"
+    ],
+    "example": "Do you have enough money?"
+  },
+  {
+    "word": "especially",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 347,
+    "meaning_en": "more than usual or others",
+    "meaning_ar": "خاصة",
+    "pronunciation": "ɪˈspeʃəli",
+    "synonyms": [
+      "particularly",
+      "notably",
+      "above all",
+      "in particular"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "especially when",
+      "I especially like",
+      "especially important"
+    ],
+    "example": "I love fruit, especially mangoes."
+  },
+  {
+    "word": "event",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 348,
+    "meaning_en": "a planned public occasion",
+    "meaning_ar": "حدث",
+    "pronunciation": "ɪˈvent",
+    "synonyms": [
+      "occasion",
+      "happening",
+      "function",
+      "activity"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "special event",
+      "sporting event",
+      "upcoming event",
+      "attend an event"
+    ],
+    "example": "It was a great event."
+  },
+  {
+    "word": "ever",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 349,
+    "meaning_en": "at any time",
+    "meaning_ar": "قط / دائماً",
+    "pronunciation": "evə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "have you ever",
+      "best ever",
+      "ever since",
+      "for ever",
+      "hardly ever"
+    ],
+    "example": "Have you ever been to Paris?"
+  },
+  {
+    "word": "everybody",
+    "pos": "pronoun",
+    "level": "A2",
+    "freq": 350,
+    "meaning_en": "all people",
+    "meaning_ar": "الجميع",
+    "pronunciation": "evrɪbɒdi",
+    "synonyms": [
+      "everyone",
+      "all",
+      "each person"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "everybody knows",
+      "for everybody",
+      "not everybody"
+    ],
+    "example": "Everybody makes mistakes sometimes."
+  },
+  {
+    "word": "everywhere",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 351,
+    "meaning_en": "in all places",
+    "meaning_ar": "في كل مكان",
+    "pronunciation": "evrɪweə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "look everywhere",
+      "everywhere I go",
+      "almost everywhere"
+    ],
+    "example": "She looked everywhere for her keys."
+  },
+  {
+    "word": "expect",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 352,
+    "meaning_en": "to think something will happen",
+    "meaning_ar": "يتوقع",
+    "pronunciation": "ɪkˈspekt",
+    "synonyms": [
+      "anticipate",
+      "predict",
+      "await",
+      "assume"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "as expected",
+      "I expect",
+      "high expectations",
+      "meet expectations"
+    ],
+    "example": "I expect it will rain today."
+  },
+  {
+    "word": "experience",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 353,
+    "meaning_en": "something that happens to you; skills from practice",
+    "meaning_ar": "خبرة",
+    "pronunciation": "ɪkˈspɪərɪəns",
+    "synonyms": [
+      "encounter",
+      "skill",
+      "background",
+      "knowledge"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "work experience",
+      "learn from experience",
+      "hands-on experience"
+    ],
+    "example": "This will be a great learning experience."
+  },
+  {
+    "word": "extra",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 354,
+    "meaning_en": "more than usual",
+    "meaning_ar": "إضافي",
+    "pronunciation": "ekstrə",
+    "synonyms": [
+      "additional",
+      "bonus",
+      "supplementary"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "extra time",
+      "extra charge",
+      "go the extra mile"
+    ],
+    "example": "Do you need any extra help?"
+  },
+  {
+    "word": "fail",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 355,
+    "meaning_en": "to not succeed; to stop working",
+    "meaning_ar": "يفشل",
+    "pronunciation": "feɪl",
+    "synonyms": [
+      "lose",
+      "miss",
+      "disappoint"
+    ],
+    "antonyms": [
+      "succeed",
+      "pass"
+    ],
+    "collocations": [
+      "fail an exam",
+      "fail to do",
+      "without fail"
+    ],
+    "example": "Don't be afraid to fail."
+  },
+  {
+    "word": "fall",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 356,
+    "meaning_en": "to drop down; to decrease",
+    "meaning_ar": "يسقط",
+    "pronunciation": "fɔːl",
+    "synonyms": [
+      "drop",
+      "descend",
+      "decrease",
+      "come down"
+    ],
+    "antonyms": [
+      "rise"
+    ],
+    "collocations": [
+      "fall down",
+      "fall asleep",
+      "fall in love",
+      "rainfall"
+    ],
+    "example": "Prices fell dramatically last year."
+  },
+  {
+    "word": "false",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 357,
+    "meaning_en": "not true or correct",
+    "meaning_ar": "خاطئ",
+    "pronunciation": "fɔːls",
+    "synonyms": [
+      "incorrect",
+      "wrong",
+      "untrue",
+      "fake"
+    ],
+    "antonyms": [
+      "true",
+      "correct"
+    ],
+    "collocations": [
+      "false information",
+      "true or false",
+      "false alarm"
+    ],
+    "example": "That statement is completely false."
+  },
+  {
+    "word": "familiar",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 358,
+    "meaning_en": "known; easy to recognize",
+    "meaning_ar": "مألوف",
+    "pronunciation": "fəˈmɪlɪə",
+    "synonyms": [
+      "known",
+      "common",
+      "recognizable"
+    ],
+    "antonyms": [
+      "strange",
+      "unfamiliar",
+      "unknown"
+    ],
+    "collocations": [
+      "familiar face",
+      "become familiar with",
+      "sound familiar"
+    ],
+    "example": "Does this name sound familiar?"
+  },
+  {
+    "word": "famous",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 359,
+    "meaning_en": "known by many people",
+    "meaning_ar": "مشهور",
+    "pronunciation": "feɪməs",
+    "synonyms": [
+      "well-known",
+      "celebrated",
+      "renowned"
+    ],
+    "antonyms": [
+      "unknown",
+      "obscure"
+    ],
+    "collocations": [
+      "world famous",
+      "become famous",
+      "famous for"
+    ],
+    "example": "This city is famous for its food."
+  },
+  {
+    "word": "favourite",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 360,
+    "meaning_en": "liked more than any other",
+    "meaning_ar": "المفضل",
+    "pronunciation": "feɪvərɪt",
+    "synonyms": [
+      "preferred",
+      "beloved",
+      "best-loved"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "my favourite",
+      "all-time favourite",
+      "favourite colour"
+    ],
+    "example": "Pizza is my favourite food."
+  },
+  {
+    "word": "few",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 361,
+    "meaning_en": "a small number of",
+    "meaning_ar": "قليل",
+    "pronunciation": "fjuː",
+    "synonyms": [
+      "some",
+      "not many",
+      "a couple"
+    ],
+    "antonyms": [
+      "many",
+      "several",
+      "lots"
+    ],
+    "collocations": [
+      "a few",
+      "quite a few",
+      "the last few",
+      "every few"
+    ],
+    "example": "I have a few questions."
+  },
+  {
+    "word": "finish",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 362,
+    "meaning_en": "to complete or come to an end",
+    "meaning_ar": "ينهي",
+    "pronunciation": "fɪnɪʃ",
+    "synonyms": [
+      "complete",
+      "end",
+      "conclude",
+      "done"
+    ],
+    "antonyms": [
+      "start",
+      "begin"
+    ],
+    "collocations": [
+      "finish line",
+      "almost finished",
+      "when you finish"
+    ],
+    "example": "Have you finished your homework?"
+  },
+  {
+    "word": "fix",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 363,
+    "meaning_en": "to repair; to arrange",
+    "meaning_ar": "يُصلح",
+    "pronunciation": "fɪks",
+    "synonyms": [
+      "repair",
+      "mend",
+      "solve",
+      "arrange"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "fix a problem",
+      "fix a date",
+      "quick fix",
+      "broken and needs fixing"
+    ],
+    "example": "Can you fix my laptop?"
+  },
+  {
+    "word": "floor",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 364,
+    "meaning_en": "the bottom surface of a room",
+    "meaning_ar": "أرضية / طابق",
+    "pronunciation": "flɔː",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "ground floor",
+      "top floor",
+      "on the floor"
+    ],
+    "example": "The keys are on the floor."
+  },
+  {
+    "word": "forget",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 365,
+    "meaning_en": "to fail to remember",
+    "meaning_ar": "ينسى",
+    "pronunciation": "fəˈɡet",
+    "synonyms": [
+      "misplace",
+      "overlook"
+    ],
+    "antonyms": [
+      "remember",
+      "recall"
+    ],
+    "collocations": [
+      "forget to",
+      "never forget",
+      "don't forget",
+      "forgot my keys"
+    ],
+    "example": "Don't forget your passport."
+  },
+  {
+    "word": "full",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 366,
+    "meaning_en": "containing as much as possible",
+    "meaning_ar": "ممتلئ",
+    "pronunciation": "fʊl",
+    "synonyms": [
+      "complete",
+      "packed",
+      "whole"
+    ],
+    "antonyms": [
+      "empty",
+      "partial"
+    ],
+    "collocations": [
+      "full of",
+      "full time",
+      "full speed",
+      "a full day"
+    ],
+    "example": "The bus was completely full."
+  },
+  {
+    "word": "fun",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 367,
+    "meaning_en": "enjoyment or amusement",
+    "meaning_ar": "متعة",
+    "pronunciation": "fʌn",
+    "synonyms": [
+      "enjoyment",
+      "amusement",
+      "pleasure"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "have fun",
+      "great fun",
+      "for fun",
+      "fun activity"
+    ],
+    "example": "Learning English can be a lot of fun."
+  },
+  {
+    "word": "future",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 368,
+    "meaning_en": "the time that has not happened yet",
+    "meaning_ar": "المستقبل",
+    "pronunciation": "fjuːtʃə",
+    "synonyms": [
+      "tomorrow",
+      "prospect",
+      "ahead"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "in the future",
+      "bright future",
+      "future plans",
+      "near future"
+    ],
+    "example": "We need to think about the future."
+  },
+  {
+    "word": "general",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 369,
+    "meaning_en": "relating to most things; not specific",
+    "meaning_ar": "عام",
+    "pronunciation": "dʒenrəl",
+    "synonyms": [
+      "broad",
+      "overall",
+      "common"
+    ],
+    "antonyms": [
+      "specific",
+      "particular"
+    ],
+    "collocations": [
+      "in general",
+      "general idea",
+      "general knowledge"
+    ],
+    "example": "In general, I prefer tea."
+  },
+  {
+    "word": "grow",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 370,
+    "meaning_en": "to increase in size or amount",
+    "meaning_ar": "ينمو",
+    "pronunciation": "ɡrəʊ",
+    "synonyms": [
+      "increase",
+      "expand",
+      "develop",
+      "rise"
+    ],
+    "antonyms": [
+      "shrink",
+      "decrease"
+    ],
+    "collocations": [
+      "grow up",
+      "grow fast",
+      "grow older",
+      "grow a garden"
+    ],
+    "example": "Children grow very quickly."
+  },
+  {
+    "word": "guess",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 371,
+    "meaning_en": "to give an answer without being sure",
+    "meaning_ar": "يخمّن",
+    "pronunciation": "ɡes",
+    "synonyms": [
+      "estimate",
+      "suppose",
+      "assume",
+      "predict"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I guess",
+      "just a guess",
+      "wild guess",
+      "take a guess"
+    ],
+    "example": "I guess it will rain tomorrow."
+  },
+  {
+    "word": "heart",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 372,
+    "meaning_en": "the organ that pumps blood; the centre",
+    "meaning_ar": "قلب",
+    "pronunciation": "hɑːt",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "by heart",
+      "open heart",
+      "heart rate",
+      "from the heart"
+    ],
+    "example": "Learn this poem by heart."
+  },
+  {
+    "word": "high",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 373,
+    "meaning_en": "far above the ground; greater than normal",
+    "meaning_ar": "عالٍ",
+    "pronunciation": "haɪ",
+    "synonyms": [
+      "tall",
+      "elevated",
+      "great"
+    ],
+    "antonyms": [
+      "low"
+    ],
+    "collocations": [
+      "high speed",
+      "high quality",
+      "high price",
+      "hold your head high"
+    ],
+    "example": "The mountain is very high."
+  },
+  {
+    "word": "history",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 374,
+    "meaning_en": "past events; the study of the past",
+    "meaning_ar": "تاريخ",
+    "pronunciation": "hɪstri",
+    "synonyms": [
+      "past",
+      "record",
+      "background"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "world history",
+      "make history",
+      "history lesson",
+      "ancient history"
+    ],
+    "example": "She studied history at university."
+  },
+  {
+    "word": "hold",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 375,
+    "meaning_en": "to keep in your hand; to organize",
+    "meaning_ar": "يمسك",
+    "pronunciation": "həʊld",
+    "synonyms": [
+      "grip",
+      "carry",
+      "organize",
+      "conduct"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "hold on",
+      "hold back",
+      "hold a meeting",
+      "hold your breath"
+    ],
+    "example": "Hold on, I'll be right back."
+  },
+  {
+    "word": "holiday",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 376,
+    "meaning_en": "a time when you don't have to work or study",
+    "meaning_ar": "عطلة",
+    "pronunciation": "hɒlɪdeɪ",
+    "synonyms": [
+      "vacation",
+      "break",
+      "leave"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "public holiday",
+      "school holiday",
+      "go on holiday",
+      "bank holiday"
+    ],
+    "example": "I'm going on holiday next week."
+  },
+  {
+    "word": "hope",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 377,
+    "meaning_en": "a desire that something good will happen",
+    "meaning_ar": "أمل",
+    "pronunciation": "həʊp",
+    "synonyms": [
+      "wish",
+      "aspiration",
+      "desire"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "I hope",
+      "hope for",
+      "full of hope",
+      "last hope"
+    ],
+    "example": "She never lost hope."
+  },
+  {
+    "word": "hour",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 378,
+    "meaning_en": "sixty minutes",
+    "meaning_ar": "ساعة",
+    "pronunciation": "aʊə",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "an hour later",
+      "rush hour",
+      "opening hours",
+      "by the hour"
+    ],
+    "example": "The journey takes about two hours."
+  },
+  {
+    "word": "however",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 379,
+    "meaning_en": "in contrast; despite that",
+    "meaning_ar": "ومع ذلك",
+    "pronunciation": "haʊˈevə",
+    "synonyms": [
+      "but",
+      "nevertheless",
+      "yet",
+      "nonetheless"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "however much",
+      "however you",
+      "I would however"
+    ],
+    "example": "However, the results were surprising."
+  },
+  {
+    "word": "huge",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 380,
+    "meaning_en": "very large",
+    "meaning_ar": "ضخم",
+    "pronunciation": "hjuːdʒ",
+    "synonyms": [
+      "enormous",
+      "vast",
+      "gigantic"
+    ],
+    "antonyms": [
+      "tiny",
+      "small"
+    ],
+    "collocations": [
+      "a huge success",
+      "huge difference",
+      "massive and huge"
+    ],
+    "example": "There was a huge crowd at the concert."
+  },
+  {
+    "word": "human",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 381,
+    "meaning_en": "a person; relating to people",
+    "meaning_ar": "إنسان",
+    "pronunciation": "hjuːmən",
+    "synonyms": [
+      "person",
+      "individual",
+      "being"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "human being",
+      "human rights",
+      "human nature"
+    ],
+    "example": "Respect for human rights is essential."
+  },
+  {
+    "word": "imagine",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 382,
+    "meaning_en": "to form a picture in your mind",
+    "meaning_ar": "يتخيل",
+    "pronunciation": "ɪˈmædʒɪn",
+    "synonyms": [
+      "picture",
+      "envision",
+      "think of",
+      "suppose"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "imagine if",
+      "can you imagine",
+      "hard to imagine",
+      "just imagine"
+    ],
+    "example": "Imagine you are on a beach."
+  },
+  {
+    "word": "immediately",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 383,
+    "meaning_en": "without delay; at once",
+    "meaning_ar": "فوراً",
+    "pronunciation": "ɪˈmiːdɪətli",
+    "synonyms": [
+      "at once",
+      "instantly",
+      "right away",
+      "straightaway"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "immediately after",
+      "responded immediately",
+      "contact us immediately"
+    ],
+    "example": "Please call me immediately."
+  },
+  {
+    "word": "inside",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 384,
+    "meaning_en": "within something; indoors",
+    "meaning_ar": "بداخل",
+    "pronunciation": "ɪnˈsaɪd",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "come inside",
+      "inside the house",
+      "inside out",
+      "stay inside"
+    ],
+    "example": "Please come inside."
+  },
+  {
+    "word": "instead",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 385,
+    "meaning_en": "as an alternative; in place of",
+    "meaning_ar": "بدلاً",
+    "pronunciation": "ɪnˈsted",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "instead of",
+      "use this instead",
+      "or instead"
+    ],
+    "example": "Can I have juice instead of water?"
+  },
+  {
+    "word": "interest",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 386,
+    "meaning_en": "curiosity or attention toward something",
+    "meaning_ar": "اهتمام",
+    "pronunciation": "ɪntrəst",
+    "synonyms": [
+      "curiosity",
+      "attention",
+      "hobby",
+      "fascination"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "take an interest",
+      "show interest",
+      "area of interest",
+      "growing interest"
+    ],
+    "example": "She has a great interest in art."
+  },
+  {
+    "word": "internet",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 387,
+    "meaning_en": "a worldwide computer network",
+    "meaning_ar": "الإنترنت",
+    "pronunciation": "ɪntənet",
+    "synonyms": [],
+    "antonyms": [],
+    "collocations": [
+      "on the internet",
+      "internet connection",
+      "search the internet",
+      "access the internet"
+    ],
+    "example": "I use the internet every day."
+  },
+  {
+    "word": "jump",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 388,
+    "meaning_en": "to push yourself off the ground",
+    "meaning_ar": "يقفز",
+    "pronunciation": "dʒʌmp",
+    "synonyms": [
+      "leap",
+      "spring",
+      "bound"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "jump up",
+      "jump over",
+      "high jump",
+      "jump to conclusions"
+    ],
+    "example": "The children love to jump around."
+  },
+  {
+    "word": "keep",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 389,
+    "meaning_en": "to continue; to hold and not give back",
+    "meaning_ar": "يحتفظ",
+    "pronunciation": "kiːp",
+    "synonyms": [
+      "maintain",
+      "continue",
+      "hold",
+      "retain"
+    ],
+    "antonyms": [
+      "give up",
+      "lose"
+    ],
+    "collocations": [
+      "keep in touch",
+      "keep going",
+      "keep quiet",
+      "keep a promise"
+    ],
+    "example": "Keep up the excellent work!"
+  },
+  {
+    "word": "kill",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 390,
+    "meaning_en": "to cause death",
+    "meaning_ar": "يقتل",
+    "pronunciation": "kɪl",
+    "synonyms": [
+      "end",
+      "destroy",
+      "terminate"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "kill time",
+      "be killed",
+      "speed kills"
+    ],
+    "example": "Boredom is killing me today."
+  },
+  {
+    "word": "large",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 391,
+    "meaning_en": "of great size",
+    "meaning_ar": "كبير",
+    "pronunciation": "lɑːdʒ",
+    "synonyms": [
+      "big",
+      "huge",
+      "vast"
+    ],
+    "antonyms": [
+      "small",
+      "tiny"
+    ],
+    "collocations": [
+      "a large number",
+      "large family",
+      "at large",
+      "as large as"
+    ],
+    "example": "They live in a large house."
+  },
+  {
+    "word": "later",
+    "pos": "adverb",
+    "level": "A2",
+    "freq": 392,
+    "meaning_en": "after some time; at a time in the future",
+    "meaning_ar": "لاحقاً",
+    "pronunciation": "leɪtə",
+    "synonyms": [
+      "afterwards",
+      "eventually",
+      "soon"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "see you later",
+      "later on",
+      "sooner or later"
+    ],
+    "example": "I'll call you later."
+  },
+  {
+    "word": "laugh",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 393,
+    "meaning_en": "to make sounds showing you find something funny",
+    "meaning_ar": "يضحك",
+    "pronunciation": "lɑːf",
+    "synonyms": [
+      "giggle",
+      "chuckle",
+      "grin"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "laugh at",
+      "burst out laughing",
+      "have a laugh"
+    ],
+    "example": "She made everyone laugh."
+  },
+  {
+    "word": "law",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 394,
+    "meaning_en": "a rule made by the government",
+    "meaning_ar": "قانون",
+    "pronunciation": "lɔː",
+    "synonyms": [
+      "rule",
+      "regulation",
+      "legislation"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "break the law",
+      "follow the law",
+      "against the law",
+      "law enforcement"
+    ],
+    "example": "You must obey the law."
+  },
+  {
+    "word": "lead",
+    "pos": "verb",
+    "level": "A2",
+    "freq": 395,
+    "meaning_en": "to be in charge; to guide others",
+    "meaning_ar": "يقود",
+    "pronunciation": "liːd",
+    "synonyms": [
+      "guide",
+      "direct",
+      "manage",
+      "head"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "lead a team",
+      "lead the way",
+      "lead to",
+      "take the lead"
+    ],
+    "example": "She leads a team of twenty people."
+  },
+  {
+    "word": "lesson",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 396,
+    "meaning_en": "a period of teaching and learning",
+    "meaning_ar": "درس",
+    "pronunciation": "lesn",
+    "synonyms": [
+      "class",
+      "session",
+      "tutorial",
+      "lecture"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "piano lesson",
+      "give a lesson",
+      "learn a lesson",
+      "life lesson"
+    ],
+    "example": "I have an English lesson today."
+  },
+  {
+    "word": "level",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 397,
+    "meaning_en": "a height or degree",
+    "meaning_ar": "مستوى",
+    "pronunciation": "levl",
+    "synonyms": [
+      "grade",
+      "stage",
+      "standard",
+      "tier"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "level up",
+      "high level",
+      "basic level",
+      "at the same level"
+    ],
+    "example": "Her English is at an advanced level."
+  },
+  {
+    "word": "life",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 398,
+    "meaning_en": "the period between birth and death; a way of living",
+    "meaning_ar": "حياة",
+    "pronunciation": "laɪf",
+    "synonyms": [
+      "existence",
+      "living"
+    ],
+    "antonyms": [],
+    "collocations": [
+      "way of life",
+      "all my life",
+      "real life",
+      "life expectancy"
+    ],
+    "example": "She leads a very active life."
+  },
+  {
+    "word": "light",
+    "pos": "noun",
+    "level": "A2",
+    "freq": 399,
+    "meaning_en": "energy that makes things visible",
+    "meaning_ar": "ضوء",
+    "pronunciation": "laɪt",
+    "synonyms": [
+      "glow",
+      "brightness",
+      "illumination"
+    ],
+    "antonyms": [
+      "dark",
+      "darkness"
+    ],
+    "collocations": [
+      "in the light",
+      "turn on the light",
+      "traffic light"
+    ],
+    "example": "Turn off the light when you leave."
+  },
+  {
+    "word": "likely",
+    "pos": "adjective",
+    "level": "A2",
+    "freq": 400,
+    "meaning_en": "probable; expected to happen",
+    "meaning_ar": "محتمل",
+    "pronunciation": "laɪkli",
+    "synonyms": [
+      "probable",
+      "expected",
+      "possible"
+    ],
+    "antonyms": [
+      "unlikely",
+      "improbable"
+    ],
+    "collocations": [
+      "very likely",
+      "most likely",
+      "it's likely"
+    ],
+    "example": "It's very likely to rain today."
+  }
+]

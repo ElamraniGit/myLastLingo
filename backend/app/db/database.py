@@ -221,6 +221,72 @@ class DatabaseManager:
             )
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_xp_user ON user_xp(user_id)")
+        # ── Core English 3000 ─────────────────────────────────────────────
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS core_words (
+                id             TEXT PRIMARY KEY,
+                word           TEXT NOT NULL UNIQUE,
+                pronunciation  TEXT DEFAULT '',
+                part_of_speech TEXT DEFAULT '',
+                level          TEXT DEFAULT 'B1',
+                freq_rank      INTEGER DEFAULT 9999,
+                meaning_en     TEXT DEFAULT '',
+                meaning_ar     TEXT DEFAULT '',
+                synonyms       TEXT DEFAULT '[]',
+                antonyms       TEXT DEFAULT '[]',
+                collocations   TEXT DEFAULT '[]',
+                example        TEXT DEFAULT '',
+                grammar_notes  TEXT DEFAULT '[]',
+                definitions    TEXT DEFAULT '[]',
+                difficulty_score REAL DEFAULT 0.5,
+                created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_core_word ON core_words(word)"
+        )
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_core_level ON core_words(level, freq_rank)"
+        )
+
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_core_progress (
+                id             TEXT PRIMARY KEY,
+                user_id        TEXT NOT NULL,
+                core_word_id   TEXT NOT NULL,
+                status         TEXT DEFAULT 'learning',
+                ease_factor    REAL DEFAULT 2.5,
+                interval       INTEGER DEFAULT 0,
+                repetitions    INTEGER DEFAULT 0,
+                lapses         INTEGER DEFAULT 0,
+                reviewed_count INTEGER DEFAULT 0,
+                last_reviewed  TIMESTAMP,
+                next_review    TIMESTAMP,
+                created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, core_word_id),
+                FOREIGN KEY(core_word_id) REFERENCES core_words(id) ON DELETE CASCADE
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ucp_user ON user_core_progress(user_id, next_review)"
+        )
+
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS core_word_reviews (
+                id           TEXT PRIMARY KEY,
+                user_id      TEXT NOT NULL,
+                core_word_id TEXT NOT NULL,
+                quality      INTEGER,
+                reviewed_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(core_word_id) REFERENCES core_words(id) ON DELETE CASCADE
+            )
+        """)
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cwr_user ON core_word_reviews(user_id, core_word_id)"
+        )
+
+
 
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS text_sources (
@@ -445,6 +511,67 @@ class DatabaseManager:
     # =========================================================================
     # Video CRUD
     # =========================================================================
+
+    async def seed_core_words(self):
+        """
+        Load Core English 3000 word list from JSON seed file if not already seeded.
+        Runs on startup — idempotent (skips if data already present).
+        """
+        import os, json as _json, uuid as _uuid
+        from pathlib import Path
+
+        seed_path = Path("backend/data/core3000_words.json")
+        if not seed_path.exists():
+            logger.warning("Core 3000 seed file not found: %s", seed_path)
+            return
+
+        async with self.get_connection() as conn:
+            async with conn.execute("SELECT COUNT(*) FROM core_words") as cur:
+                count = (await cur.fetchone())[0]
+            if count > 0:
+                logger.info(f"Core 3000 already seeded ({count} words) — skipping")
+                return
+
+            with open(seed_path, encoding="utf-8") as f:
+                words = _json.load(f)
+
+            inserted = 0
+            for w in words:
+                wid = str(_uuid.uuid4())
+                try:
+                    await conn.execute(
+                        """INSERT OR IGNORE INTO core_words
+                           (id, word, pronunciation, part_of_speech, level, freq_rank,
+                            meaning_en, meaning_ar, synonyms, antonyms, collocations,
+                            example, grammar_notes, difficulty_score)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        (
+                            wid,
+                            w["word"],
+                            w.get("pronunciation", ""),
+                            w.get("pos", ""),
+                            w.get("level", "B1"),
+                            w.get("freq", 9999),
+                            w.get("meaning_en", ""),
+                            w.get("meaning_ar", ""),
+                            _json.dumps(w.get("synonyms", []),    ensure_ascii=False),
+                            _json.dumps(w.get("antonyms", []),    ensure_ascii=False),
+                            _json.dumps(w.get("collocations", []),ensure_ascii=False),
+                            w.get("example", ""),
+                            _json.dumps([],                        ensure_ascii=False),
+                            self._level_to_difficulty(w.get("level", "B1")),
+                        ),
+                    )
+                    inserted += 1
+                except Exception as e:
+                    logger.debug(f"Skipping word '{w.get('word')}': {e}")
+
+            logger.info(f"Core 3000 seeded: {inserted} words inserted")
+
+    @staticmethod
+    def _level_to_difficulty(level: str) -> float:
+        return {"A1": 0.1, "A2": 0.25, "B1": 0.45, "B2": 0.65, "C1": 0.82, "C2": 0.95}.get(level, 0.5)
+
 
     async def add_video(self, video_data: Dict[str, Any]) -> str:
         async with self.get_connection() as conn:

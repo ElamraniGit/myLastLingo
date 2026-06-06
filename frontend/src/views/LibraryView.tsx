@@ -27,7 +27,7 @@ interface Source {
   created_at?: string;
 }
 
-type AddMode = null | 'choose' | 'youtube' | 'text' | 'word';
+type AddMode = null | 'choose' | 'youtube' | 'text' | 'word' | 'core';
 type TabFilter = 'all' | 'youtube' | 'text';
 
 function fmtDate(v?: string) {

@@ -11,6 +11,7 @@ from .library import router as library_router
 from .chat import router as chat_router
 from .xp import router as xp_router
 from .tts import router as tts_router
+from .core_library import router as core_library_router
 
 router = APIRouter()
 
@@ -24,3 +25,4 @@ router.include_router(library_router, prefix="/library", tags=["Library"])
 router.include_router(chat_router, prefix="/chat", tags=["Chat"])
 router.include_router(xp_router, prefix="/xp", tags=["XP"])
 router.include_router(tts_router, prefix="/tts", tags=["TTS"])
+router.include_router(core_library_router, prefix="/core", tags=["Core Library"])

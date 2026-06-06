@@ -56,6 +56,9 @@ async def lifespan(app: FastAPI):
     db_manager = DatabaseManager(str(db_path))
     await db_manager.initialize()
 
+    # Seed Core English 3000 built-in vocabulary
+    await db_manager.seed_core_words()
+
     # Create auth tables
     import aiosqlite
     async with aiosqlite.connect(str(db_path)) as conn:
@@ -80,6 +83,7 @@ async def lifespan(app: FastAPI):
 
     # Inject db into modules
     from backend.app.api import videos, transcripts, dictionary, vocabulary, player, auth, library, chat, xp, tts
+    from backend.app.api.core_library import init_api as core_library_init
     videos.init_api(db_manager)
     transcripts.init_api(db_manager)
     dictionary.init_api(db_manager)
@@ -90,6 +94,7 @@ async def lifespan(app: FastAPI):
     chat.init_api(db_manager)
     xp.init_api(db_manager)
     tts.init_api(db_manager)
+    core_library_init(db_manager)
 
     logger.info("LinguaLearn started successfully")
     yield
