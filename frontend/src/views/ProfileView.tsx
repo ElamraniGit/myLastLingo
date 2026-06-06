@@ -331,11 +331,57 @@ function SettingsTab() {
   const [groqKey, setGroqKey] = useState('');
   const [savingKey, setSavingKey] = useState(false);
   const [keyMsg, setKeyMsg]   = useState('');
+  // Avatar colour
+  const [avatarColor, setAvatarColor] = useState(user?.avatar_color || '#2563eb');
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  // Danger zone
+  const [delPassword, setDelPassword]   = useState('');
+  const [delConfirm,  setDelConfirm]    = useState('');
+  const [deleting,    setDeleting]      = useState(false);
+  const [delMsg,      setDelMsg]        = useState('');
+  const [clearMsg,    setClearMsg]      = useState('');
 
   useEffect(() => {
     fetch(`${BACKEND_ORIGIN}/health`).then(r => r.json()).then(d => setBackendOk(d.status === 'healthy')).catch(() => setBackendOk(false));
-    if (user) setForm(f => ({ ...f, display_name: user.display_name || '', email: user.email || '' }));
+    if (user) {
+      setForm(f => ({ ...f, display_name: user.display_name || '', email: user.email || '' }));
+      setAvatarColor(user.avatar_color || '#2563eb');
+    }
   }, [user]);
+
+  const saveAvatarColor = async (color: string) => {
+    setAvatarColor(color);
+    setSavingAvatar(true);
+    try {
+      await authApi.updateProfile({ avatar_color: color });
+      const fresh = await authApi.me();
+      setUser(fresh);
+    } catch { /* silently fail */ }
+    setSavingAvatar(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!delPassword) { setDelMsg('Enter your password'); return; }
+    setDeleting(true); setDelMsg('');
+    try {
+      await authApi.deleteAccount(delPassword);
+      // Force full page reload → back to login
+      window.location.reload();
+    } catch (e: any) { setDelMsg(e?.message || 'Incorrect password'); }
+    setDeleting(false);
+  };
+
+  const handleClearData = async (type: 'vocabulary' | 'library' | 'chat') => {
+    if (!window.confirm(`Clear all ${type} data? This cannot be undone.`)) return;
+    setClearMsg('');
+    try {
+      if (type === 'vocabulary') await authApi.clearVocabulary();
+      else if (type === 'library') await authApi.clearLibrary();
+      else await authApi.clearChat();
+      setClearMsg(`${type} cleared`);
+      setTimeout(() => setClearMsg(''), 3000);
+    } catch (e: any) { setClearMsg(e?.message || 'Failed'); }
+  };
 
   const saveProfile = async () => {
     setSaving(true); setMsg('');
@@ -367,6 +413,50 @@ function SettingsTab() {
 
   return (
     <div className="space-y-4">
+
+      {/* Avatar colour */}
+      <div className="bg-card border border-default rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-heading">Profile Picture</h3>
+          {savingAvatar && <span className="text-xs text-muted animate-pulse">Saving…</span>}
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Preview */}
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white shadow-lg shrink-0 transition-all"
+            style={{ backgroundColor: avatarColor }}
+          >
+            {(user?.display_name || user?.username || 'U')[0].toUpperCase()}
+          </div>
+          {/* Colour swatches */}
+          <div className="flex flex-wrap gap-2 flex-1">
+            {[
+              '#2563eb','#7c3aed','#db2777','#dc2626',
+              '#ea580c','#d97706','#16a34a','#0891b2',
+              '#0f172a','#374151','#6b7280','#1e40af',
+            ].map(col => (
+              <button
+                key={col}
+                onClick={() => saveAvatarColor(col)}
+                className="w-8 h-8 rounded-full transition-transform active:scale-90 border-2"
+                style={{
+                  backgroundColor: col,
+                  borderColor: avatarColor === col ? 'white' : 'transparent',
+                  boxShadow: avatarColor === col ? `0 0 0 2px ${col}` : 'none',
+                }}
+              />
+            ))}
+            {/* Custom colour */}
+            <label className="w-8 h-8 rounded-full bg-elevated border-2 border-dashed border-default flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors" title="Custom colour">
+              <svg className="w-3.5 h-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635l-4 1 1-4z"/>
+              </svg>
+              <input type="color" className="sr-only" value={avatarColor}
+                onChange={e => saveAvatarColor(e.target.value)} />
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* Appearance */}
       <div className="bg-card border border-default rounded-2xl p-4">
@@ -488,6 +578,80 @@ function SettingsTab() {
 
       {/* Notifications */}
       <NotificationSettings />
+
+
+      {/* Data management */}
+      <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
+        <h3 className="text-base font-semibold text-heading">Clear Data</h3>
+        <p className="text-xs text-muted">Delete specific data without removing your account.</p>
+        {clearMsg && (
+          <p className={`text-xs font-medium ${clearMsg.includes('cleared') ? 'text-green-400' : 'text-red-400'}`}>
+            {clearMsg}
+          </p>
+        )}
+        <div className="space-y-2">
+          {([
+            { type: 'vocabulary' as const, label: 'Clear vocabulary & XP', desc: 'All saved words and review history' },
+            { type: 'library'    as const, label: 'Clear library',          desc: 'All videos and text sources' },
+            { type: 'chat'       as const, label: 'Clear chat history',     desc: 'All AI chat conversations' },
+          ]).map(item => (
+            <div key={item.type} className="flex items-center justify-between py-2 border-b border-subtle last:border-0">
+              <div>
+                <p className="text-sm font-medium text-heading">{item.label}</p>
+                <p className="text-xs text-muted">{item.desc}</p>
+              </div>
+              <button
+                onClick={() => handleClearData(item.type)}
+                className="text-xs font-semibold text-red-400 hover:text-red-300 px-3 py-1.5
+                           bg-red-500/8 hover:bg-red-500/15 rounded-lg transition-colors ml-3 shrink-0"
+              >
+                Clear
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Danger zone — delete account */}
+      <div className="bg-red-500/5 border border-red-500/25 rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/>
+          </svg>
+          <h3 className="text-base font-semibold text-red-400">Delete Account</h3>
+        </div>
+        <p className="text-xs text-muted leading-relaxed">
+          This will permanently delete your account and all data — words, reviews, library, chat, XP. This cannot be undone.
+        </p>
+        <input
+          type="password"
+          value={delPassword}
+          onChange={e => setDelPassword(e.target.value)}
+          placeholder="Enter your password to confirm"
+          className="input-field text-sm"
+        />
+        {delMsg && <p className="text-xs text-red-400">{delMsg}</p>}
+        <button
+          onClick={handleDeleteAccount}
+          disabled={deleting || !delPassword}
+          className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400
+                     font-semibold text-sm hover:bg-red-500/20 transition-all active:scale-[0.98]
+                     disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {deleting ? (
+            <><span className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"/>Deleting…</>
+          ) : (
+            <>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              </svg>
+              Delete My Account
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Backend status */}
       <div className="bg-card border border-default rounded-xl px-4 py-3 flex items-center justify-between">

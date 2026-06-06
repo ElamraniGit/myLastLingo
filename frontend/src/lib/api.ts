@@ -116,6 +116,19 @@ export const authApi = {
 
   updateProfile: (data: any) => req<any>('/auth/me', { method: 'PATCH', body: data }),
 
+  /** Permanently delete account + all data */
+  deleteAccount: (password: string) =>
+    req<any>('/auth/me', { method: 'DELETE', body: { password, confirm: 'DELETE MY ACCOUNT' } }),
+
+  /** Clear only vocabulary + XP */
+  clearVocabulary: () => req<any>('/auth/me/vocabulary', { method: 'DELETE' }),
+
+  /** Clear only library sources */
+  clearLibrary: () => req<any>('/auth/me/library', { method: 'DELETE' }),
+
+  /** Clear only chat history */
+  clearChat: () => req<any>('/auth/me/chat', { method: 'DELETE' }),
+
   refresh: () => req<any>('/auth/refresh', { method: 'POST' }),
 
   logout: () => req<any>('/auth/logout', { method: 'POST' }),

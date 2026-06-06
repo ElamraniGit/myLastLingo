@@ -228,6 +228,7 @@ class LoginRequest(BaseModel):
 class UpdateProfileRequest(BaseModel):
     display_name: Optional[str] = None
     email: Optional[str] = None
+    avatar_color: Optional[str] = None   # hex colour for avatar background
     current_password: Optional[str] = None
     new_password: Optional[str] = None
 
@@ -408,6 +409,13 @@ async def update_profile(
             updates.append("email = ?")
             params.append(req.email)
 
+        if req.avatar_color is not None:
+            # Basic hex colour validation
+            import re as _re
+            if _re.match(r'^#[0-9a-fA-F]{6}$', req.avatar_color):
+                updates.append("avatar_color = ?")
+                params.append(req.avatar_color)
+
         if req.new_password:
             if not req.current_password:
                 raise HTTPException(status_code=400, detail="Current password required")
@@ -452,6 +460,101 @@ async def logout(current_user: dict = Depends(get_current_user)):
             (current_user["sub"],),
         )
     return {"message": "Logged out"}
+
+
+
+# ─── Delete account ───────────────────────────────────────────────────────────
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+    confirm: str   # must equal "DELETE MY ACCOUNT"
+
+
+@router.delete("/me")
+async def delete_account(
+    req: DeleteAccountRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Permanently delete the user account and ALL associated data:
+    saved words, reviews, chat history, XP, library sources.
+    Requires password confirmation + typed confirmation phrase.
+    """
+    if req.confirm != "DELETE MY ACCOUNT":
+        raise HTTPException(400, "Type DELETE MY ACCOUNT to confirm")
+
+    user_id = current_user["sub"]
+
+    async with db_manager.get_connection() as conn:
+        async with conn.execute(
+            "SELECT password_hash FROM users WHERE id = ?", (user_id,)
+        ) as cur:
+            row = await cur.fetchone()
+        if not row:
+            raise HTTPException(404, "User not found")
+        if not _verify_password(req.password, dict(row)["password_hash"]):
+            raise HTTPException(401, "Incorrect password")
+
+        # Delete all user data (cascade handles word_reviews via FK)
+        for sql in [
+            "DELETE FROM saved_words    WHERE user_id = ?",
+            "DELETE FROM chat_messages  WHERE user_id = ?",
+            "DELETE FROM user_xp        WHERE user_id = ?",
+            "DELETE FROM xp_log         WHERE user_id = ?",
+            "DELETE FROM text_sources   WHERE user_id = ?",
+        ]:
+            await conn.execute(sql, (user_id,))
+
+        # Delete account last
+        await conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+
+    return {"message": "Account deleted"}
+
+
+# ─── Clear vocabulary only ────────────────────────────────────────────────────
+
+@router.delete("/me/vocabulary")
+async def clear_vocabulary(current_user: dict = Depends(get_current_user)):
+    """Delete all saved words and review history for the current user."""
+    user_id = current_user["sub"]
+    async with db_manager.get_connection() as conn:
+        # word_reviews deleted via CASCADE on saved_words
+        await conn.execute(
+            "DELETE FROM saved_words WHERE user_id = ?", (user_id,)
+        )
+        await conn.execute(
+            "DELETE FROM user_xp    WHERE user_id = ?", (user_id,)
+        )
+        await conn.execute(
+            "DELETE FROM xp_log     WHERE user_id = ?", (user_id,)
+        )
+    return {"message": "Vocabulary cleared"}
+
+
+# ─── Clear library sources only ───────────────────────────────────────────────
+
+@router.delete("/me/library")
+async def clear_library(current_user: dict = Depends(get_current_user)):
+    """Delete all library sources (videos + texts) for the current user."""
+    user_id = current_user["sub"]
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            "DELETE FROM text_sources WHERE user_id = ?", (user_id,)
+        )
+    return {"message": "Library cleared"}
+
+
+# ─── Clear chat history only ──────────────────────────────────────────────────
+
+@router.delete("/me/chat")
+async def clear_chat_data(current_user: dict = Depends(get_current_user)):
+    """Delete all chat messages for the current user."""
+    user_id = current_user["sub"]
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            "DELETE FROM chat_messages WHERE user_id = ?", (user_id,)
+        )
+    return {"message": "Chat history cleared"}
 
 
 def init_api(db):
