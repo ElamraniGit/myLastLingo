@@ -192,6 +192,32 @@ export default function LibraryView() {
         </div>
       </div>
 
+      {/* ── Core English 3000 — featured card ──────────────────────── */}
+      <div className="px-4 pt-3 pb-1">
+        <button
+          onClick={() => setPage('core' as any)}
+          className="w-full flex items-center gap-3 bg-gradient-to-r from-blue-600/10 to-violet-600/10
+                     border border-blue-500/25 rounded-2xl p-4 hover:border-blue-500/40
+                     active:scale-[0.98] transition-all text-left group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
+                          flex items-center justify-center shrink-0 shadow-sm">
+            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-heading">Core English 3000</p>
+            <p className="text-xs text-muted mt-0.5">Essential words · A1 → C2 · Built-in curriculum</p>
+          </div>
+          <svg className="w-4 h-4 text-muted group-hover:translate-x-0.5 transition-transform shrink-0"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="px-4 pt-3">
         {loading ? (
