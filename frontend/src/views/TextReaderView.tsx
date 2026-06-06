@@ -352,7 +352,7 @@ export default function TextReaderView() {
         onTouchCancel={onContentTouchEnd}
       >
         <div className="max-w-2xl mx-auto">
-          <p className="leading-8 text-[17px] text-heading">
+          <p className="leading-8 text-lg text-heading">
             {words.map((word, i) => {
               const active   = chunksRef.current[currentChunk];
               const isActive = !!active && i >= active.start && i < active.end;
