@@ -129,6 +129,23 @@ export const authApi = {
   /** Clear only chat history */
   clearChat: () => req<any>('/auth/me/chat', { method: 'DELETE' }),
 
+  /** Upload avatar image (JPEG/PNG/WebP, max 5MB) */
+  uploadAvatar: async (file: File): Promise<{ avatar_url: string }> => {
+    const token = tokenStore.get();
+    const form  = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${API_BASE}/auth/me/avatar`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new ApiError(err?.detail || `HTTP ${res.status}`, res.status);
+    }
+    return res.json();
+  },
+
   refresh: () => req<any>('/auth/refresh', { method: 'POST' }),
 
   logout: () => req<any>('/auth/logout', { method: 'POST' }),

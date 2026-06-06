@@ -45,6 +45,8 @@ export default function App({ Component, pageProps }: AppProps) {
   const theme                   = useStore(s => s.theme);
   const setUser        = useStore(s => s.setUser);
   const setPage        = useStore(s => s.setPage);
+  const goBack         = useStore(s => s.goBack);
+  const pageHistory    = useStore(s => s.pageHistory);
 
   // hydrated = Zustand has rehydrated from localStorage
   const [hydrated, setHydrated] = useState(false);
@@ -110,6 +112,39 @@ export default function App({ Component, pageProps }: AppProps) {
     window.addEventListener('ll:unauthorized', onUnauth);
     return () => window.removeEventListener('ll:unauthorized', onUnauth);
   }, [setPage]);
+
+
+  // ── 5. Android hardware back button ─────────────────────────────
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+
+      const hist = useStore.getState().pageHistory;
+
+      if (hist.length > 0) {
+        // Go back in our internal navigation stack
+        useStore.getState().goBack();
+        // Keep the browser history entry so next back press fires again
+        window.history.pushState(null, '', window.location.href);
+      } else {
+        // No more pages — ask user if they want to exit
+        if (window.confirm('Exit LinguaLearn?')) {
+          // On Termux/Android WebView, close the tab or go to blank
+          window.history.back();
+        } else {
+          // Stay — push a new history entry so back button fires again
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
+    // Push an initial entry so popstate fires on first back press
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []); // eslint-disable-line
 
   // ── Non-root pages (e.g. /404) ───────────────────────────────────
   if (router.pathname !== '/') return <Component {...pageProps} />;

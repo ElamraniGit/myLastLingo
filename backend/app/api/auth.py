@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import aiosqlite
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, UploadFile, File
 from pydantic import BaseModel, field_validator
 
 logger = logging.getLogger(__name__)
@@ -247,6 +247,7 @@ async def create_auth_tables(conn: aiosqlite.Connection):
             display_name TEXT,
             password_hash TEXT NOT NULL,
             avatar_color TEXT DEFAULT '#3b82f6',
+            avatar_url TEXT DEFAULT NULL,
             streak_days INTEGER DEFAULT 0,
             token_version INTEGER DEFAULT 0,
             groq_api_key TEXT DEFAULT '',
@@ -555,6 +556,82 @@ async def clear_chat_data(current_user: dict = Depends(get_current_user)):
             "DELETE FROM chat_messages WHERE user_id = ?", (user_id,)
         )
     return {"message": "Chat history cleared"}
+
+
+# ─── Upload avatar image ──────────────────────────────────────────────────────
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Upload a profile picture.
+    Accepts JPEG/PNG/WebP up to 5 MB.
+    Saves to data/avatars/<user_id>.<ext>
+    Returns the public URL path.
+    """
+    import os, uuid
+    from pathlib import Path
+
+    user_id = current_user["sub"]
+
+    # Validate
+    ALLOWED = {"image/jpeg", "image/png", "image/webp"}
+    ct = (file.content_type or "").lower()
+    if ct not in ALLOWED:
+        raise HTTPException(400, "Only JPEG, PNG, or WebP images are allowed")
+
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(400, "Image too large — max 5 MB")
+    if len(data) < 100:
+        raise HTTPException(400, "Invalid image file")
+
+    ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}.get(ct, "jpg")
+
+    # Save file
+    avatars_dir = Path("data/avatars")
+    avatars_dir.mkdir(parents=True, exist_ok=True)
+
+    # Remove old avatar for this user
+    for old in avatars_dir.glob(f"{user_id}.*"):
+        try: old.unlink()
+        except: pass
+
+    filename  = f"{user_id}.{ext}"
+    file_path = avatars_dir / filename
+    file_path.write_bytes(data)
+
+    # Store URL in DB
+    avatar_url = f"/api/v1/auth/avatars/{filename}"
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            "UPDATE users SET avatar_url = ? WHERE id = ?",
+            (avatar_url, user_id),
+        )
+
+    return {"avatar_url": avatar_url}
+
+
+@router.get("/avatars/{filename}")
+async def get_avatar(filename: str):
+    """Serve avatar images."""
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    import re
+
+    # Security: only allow safe filenames
+    if not re.match(r'^[a-zA-Z0-9_-]+\.(jpg|png|webp)$', filename):
+        raise HTTPException(404, "Not found")
+
+    path = Path("data/avatars") / filename
+    if not path.exists():
+        raise HTTPException(404, "Avatar not found")
+
+    media = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
+    ext   = filename.rsplit(".", 1)[-1]
+    return FileResponse(str(path), media_type=media.get(ext, "image/jpeg"))
 
 
 def init_api(db):

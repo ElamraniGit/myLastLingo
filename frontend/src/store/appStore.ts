@@ -29,7 +29,9 @@ interface AppState {
 
   // ── Navigation ────────────────────────────────────────────────────────────
   currentPage: AppPage;
+  pageHistory: AppPage[];   // stack for hardware back button
   setPage: (page: AppPage) => void;
+  goBack: () => void;
   /** @deprecated use setPage */
   setCurrentPage: (page: AppPage) => void;
 
@@ -163,8 +165,22 @@ export const useStore = create<AppState>()(
 
       // ── Navigation ──────────────────────────────────────────────────────
       currentPage: 'login',
-      setPage: (page) => set({ currentPage: page }),
+      pageHistory: [],
+      setPage: (page) => set(s => ({
+        currentPage: page,
+        // push previous page to history (skip duplicates and auth pages)
+        pageHistory: (s.currentPage !== page && s.currentPage !== 'login' && s.currentPage !== 'register')
+          ? [...s.pageHistory.slice(-9), s.currentPage]
+          : s.pageHistory,
+      })),
+      goBack: () => set(s => {
+        const hist = [...s.pageHistory];
+        const prev = hist.pop();
+        if (!prev) return s;
+        return { currentPage: prev, pageHistory: hist };
+      }),
       setCurrentPage: (page) => set({ currentPage: page }),
+      // setCurrentPage kept for compat — doesn't push history
 
       // ── Theme ────────────────────────────────────────────────────────────
       theme: 'auto',
@@ -258,7 +274,7 @@ export const useStore = create<AppState>()(
       defaultSpeed: 1.0,
       setDefaultSpeed: (s) => set({ defaultSpeed: s }),
 
-      defaultVideoQuality: 'auto',
+      defaultVideoQuality: 'tiny',   // 144p — saves data on mobile
       setDefaultVideoQuality: (q) => set({ defaultVideoQuality: q }),
 
       transcriptFontSize: 'md',

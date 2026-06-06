@@ -165,6 +165,29 @@ export default function VideoPlayer() {
           </div>
         </div>
       </div>
+
+      {/* ── Quality selector bar (below video) ─────────────────── */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-elevated/60 border-t border-default">
+        <span className="text-xs text-muted shrink-0">Quality:</span>
+        <div className="flex gap-1 flex-wrap">
+          {availableQualities.map(q => (
+            <button
+              key={q}
+              onClick={() => { setQuality(q); setDefaultVideoQuality(q); }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                currentQuality === q
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-card border border-default text-muted hover:text-body hover:border-blue-500/30'
+              }`}
+            >
+              {QUALITY_LABELS[q] ?? q}
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-faint ml-auto">
+          {currentQuality === 'tiny' ? 'Data saver' : currentQuality === 'auto' ? 'Auto' : ''}
+        </span>
+      </div>
     </div>
   );
 }

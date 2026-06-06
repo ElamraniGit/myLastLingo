@@ -320,6 +320,7 @@ function SettingsTab() {
   const {
     theme, toggleTheme,
     defaultSpeed, setDefaultSpeed,
+    defaultVideoQuality, setDefaultVideoQuality,
     transcriptFontSize, setTranscriptFontSize,
     autoPauseOnWord, setAutoPauseOnWord,
     user, setUser,
@@ -332,7 +333,10 @@ function SettingsTab() {
   const [savingKey, setSavingKey] = useState(false);
   const [keyMsg, setKeyMsg]   = useState('');
   // Avatar colour
-  const [avatarColor, setAvatarColor] = useState(user?.avatar_color || '#2563eb');
+  const [avatarColor,   setAvatarColor]   = useState(user?.avatar_color || '#2563eb');
+  const [avatarUrl,     setAvatarUrl]     = useState<string | null>(user?.avatar_url || null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError,   setAvatarError]   = useState('');
   const [savingAvatar, setSavingAvatar] = useState(false);
   // Danger zone
   const [delPassword, setDelPassword]   = useState('');
@@ -358,6 +362,21 @@ function SettingsTab() {
       setUser(fresh);
     } catch { /* silently fail */ }
     setSavingAvatar(false);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setAvatarError('Max 5 MB'); return; }
+    setUploadingAvatar(true); setAvatarError('');
+    try {
+      const res = await authApi.uploadAvatar(file);
+      setAvatarUrl(res.avatar_url);
+      const fresh = await authApi.me();
+      setUser(fresh);
+    } catch (e: any) { setAvatarError(e?.message || 'Upload failed'); }
+    setUploadingAvatar(false);
+    e.target.value = '';
   };
 
   const handleDeleteAccount = async () => {
@@ -421,13 +440,34 @@ function SettingsTab() {
           {savingAvatar && <span className="text-xs text-muted animate-pulse">Saving…</span>}
         </div>
         <div className="flex items-center gap-4">
-          {/* Preview */}
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white shadow-lg shrink-0 transition-all"
-            style={{ backgroundColor: avatarColor }}
-          >
-            {(user?.display_name || user?.username || 'U')[0].toUpperCase()}
-          </div>
+          {/* Preview with upload */}
+          <label className="relative cursor-pointer group shrink-0">
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white shadow-lg transition-all overflow-hidden"
+              style={{ backgroundColor: avatarUrl ? 'transparent' : avatarColor }}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                (user?.display_name || user?.username || 'U')[0].toUpperCase()
+              )}
+            </div>
+            {/* Upload overlay */}
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {uploadingAvatar ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              )}
+            </div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
+              onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+          </label>
+          {avatarError && <p className="text-xs text-red-400 mt-1">{avatarError}</p>}
           {/* Colour swatches */}
           <div className="flex flex-wrap gap-2 flex-1">
             {[
@@ -502,6 +542,29 @@ function SettingsTab() {
           </div>
         </div>
 
+
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-body">Default video quality</span>
+            <p className="text-xs text-muted">Lower = less data usage</p>
+          </div>
+          <div className="flex gap-1">
+            {([
+              { q: 'tiny'  as const, label: '144p' },
+              { q: 'small' as const, label: '240p' },
+              { q: 'medium'as const, label: '360p' },
+              { q: 'large' as const, label: '480p' },
+              { q: 'hd720' as const, label: '720p' },
+            ]).map(({ q, label }) => (
+              <button key={q} onClick={() => setDefaultVideoQuality(q)}
+                className={`px-2 py-1 rounded-lg text-xs font-mono transition-all ${
+                  defaultVideoQuality === q ? 'bg-blue-600 text-white' : 'bg-elevated text-body hover:bg-card'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Pause on word click</span>
           <button
