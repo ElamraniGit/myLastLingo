@@ -611,16 +611,21 @@ function QuizTab({
         {choices.map((c, i) => {
           const isCorrect = c.id === current.id, isPicked = picked === c.id;
           const label = (quizType === 'word' || quizType === 'fillblank') ? c.word : (c.meaning_en?.trim() || c.word);
-          const style = !answered
-            ? 'border-default hover:border-blue-500/30 hover:bg-blue-500/5 text-heading active:scale-[0.99]'
-            : isCorrect  ? 'border-green-500/50 bg-green-500/10 text-green-400'
-            : isPicked   ? 'border-red-500/50 bg-red-500/10 text-red-400'
-            : 'border-default opacity-40 text-muted';
+          const borderStyle = !answered
+            ? 'border-default hover:border-blue-500/40 hover:bg-blue-500/5 active:scale-[0.99]'
+            : isCorrect  ? 'border-green-500/50 bg-green-500/10'
+            : isPicked   ? 'border-red-500/50   bg-red-500/10'
+            : 'border-default opacity-40';
+          const numStyle = !answered
+            ? 'bg-elevated text-muted'
+            : isCorrect ? 'bg-green-500/20 text-green-500'
+            : isPicked  ? 'bg-red-500/20   text-red-500'
+            : 'bg-elevated text-faint';
           return (
             <button key={c.id} onClick={() => onPick(c.id)} disabled={answered}
-              className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border text-left transition-all ${style}`}>
-              <span className="w-7 h-7 rounded-xl bg-elevated text-muted text-xs font-bold flex items-center justify-center shrink-0">{i+1}</span>
-              <span className="text-base flex-1 leading-snug">{label}</span>
+              className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border text-left transition-all ${borderStyle}`}>
+              <span className={`w-7 h-7 rounded-xl text-xs font-bold flex items-center justify-center shrink-0 ${numStyle}`}>{i+1}</span>
+              <span className="text-base flex-1 leading-snug text-heading">{label}</span>
               {answered && isCorrect && (
                 <svg className="w-5 h-5 text-green-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
               )}
