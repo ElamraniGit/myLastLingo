@@ -1,133 +1,131 @@
 /**
- * useOffline.ts — Network state monitor + automatic sync on reconnection.
+ * useOffline — Network monitor + automatic sync queue flusher.
  *
- * Features:
- *  - مراقبة online/offline في الوقت الفعلي
- *  - sync تلقائي عند العودة للاتصال
- *  - عرض عدد العمليات المعلقة
- *  - منع sync مزدوج (mutex)
+ * Syncs on reconnection (in order):
+ *   1. Pending deletes
+ *   2. Pending saves
+ *   3. Pending reviews  (SM-2 results)
+ *   4. Pending XP       (reviews + game scores — batch request)
+ *   5. Refresh vocabulary / due words / summary from server
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
-import { vocabularyApi } from '@/lib/api';
+import { vocabularyApi, xpApi } from '@/lib/api';
 import {
-  getPendingReviews,
-  getPendingSaves,
-  getPendingDeletes,
-  markReviewSynced,
-  markSaveSynced,
-  markDeleteSynced,
-  clearSyncedReviews,
-  clearSyncedSaves,
-  clearSyncedDeletes,
-  cacheAllWords,
-  cacheDueWords,
-  cacheSummary,
-  cacheProgress,
-  setLastSyncTime,
-  getPendingCount,
+  getPendingReviews, getPendingSaves, getPendingDeletes, getPendingXP,
+  markReviewSynced,  markSaveSynced,  markDeleteSynced,  markXPSynced,
+  clearSyncedReviews, clearSyncedSaves, clearSyncedDeletes, clearSyncedXP,
+  cacheAllWords, cacheDueWords, cacheSummary, cacheProgress,
+  setLastSyncTime, getPendingCount,
 } from '@/lib/offlineStore';
 
 export interface OfflineState {
-  isOnline: boolean;
-  isSyncing: boolean;
+  isOnline:     boolean;
+  isSyncing:    boolean;
   pendingCount: number;
   lastSyncTime: Date | null;
-  syncNow: () => Promise<void>;
+  syncNow:      () => Promise<void>;
 }
 
-// Global mutex — منع sync متعددة في نفس الوقت
-let syncMutex = false;
+let syncMutex = false;   // prevent concurrent syncs
 
 export function useOffline(): OfflineState {
-  const [isOnline,    setIsOnline]    = useState(true);
-  const [isSyncing,   setIsSyncing]   = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [lastSyncTime, setLastSyncTimeState] = useState<Date | null>(null);
+  const [isOnline,      setIsOnline]      = useState(true);
+  const [isSyncing,     setIsSyncing]     = useState(false);
+  const [pendingCount,  setPendingCount]  = useState(0);
+  const [lastSyncTime,  setLastSyncTimeState] = useState<Date | null>(null);
 
   const { setSavedWords, setDueWords, setProgress } = useStore();
-  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refresh pending count
   const refreshPending = useCallback(async () => {
-    try {
-      const count = await getPendingCount();
-      setPendingCount(count);
-    } catch {}
+    try { setPendingCount(await getPendingCount()); } catch { /* noop */ }
   }, []);
 
-  // ── Core sync function ────────────────────────────────────────────────────
+  // ── Core sync ──────────────────────────────────────────────────────────────
   const syncNow = useCallback(async () => {
     if (syncMutex || !navigator.onLine) return;
     syncMutex = true;
     setIsSyncing(true);
 
     try {
-      // 1. Flush pending deletes first (أولاً — يتجنب conflict مع saves)
-      const pendingDeletes = await getPendingDeletes();
-      for (const d of pendingDeletes) {
+      // 1. Deletes first (avoid save/delete conflicts)
+      for (const d of await getPendingDeletes()) {
         try {
           await vocabularyApi.delete(d.savedWordId);
           await markDeleteSynced(d.id);
         } catch (e: any) {
-          // 404 = already deleted on server → mark as synced
           if (e?.status === 404) await markDeleteSynced(d.id);
         }
       }
       await clearSyncedDeletes();
 
-      // 2. Flush pending saves
-      const pendingSaves = await getPendingSaves();
-      for (const s of pendingSaves) {
+      // 2. Saves
+      for (const s of await getPendingSaves()) {
         try {
           await vocabularyApi.save(s.word, s.videoId, s.sentence, s.context);
           await markSaveSynced(s.id);
         } catch (e: any) {
-          // 400 = word already saved → mark as synced
           if (e?.status === 400 || e?.status === 409) await markSaveSynced(s.id);
         }
       }
       await clearSyncedSaves();
 
-      // 3. Flush pending reviews
-      const pendingReviews = await getPendingReviews();
-      for (const r of pendingReviews) {
+      // 3. Reviews (SM-2)
+      for (const r of await getPendingReviews()) {
         try {
           await vocabularyApi.review(r.savedWordId, r.quality);
           await markReviewSynced(r.id);
         } catch (e: any) {
-          // 404 = word deleted in the meantime → mark as synced
           if (e?.status === 404) await markReviewSynced(r.id);
         }
       }
       await clearSyncedReviews();
 
-      // 4. Refresh vocabulary from server → update local cache + Zustand
-      const [vocabData, dueData, sumData, progData] = await Promise.allSettled([
+      // 4. XP queue — flush as a single batch request
+      const pendingXP = await getPendingXP();
+      if (pendingXP.length > 0) {
+        try {
+          await xpApi.batchXP(
+            pendingXP.map(x => ({
+              action:      x.action,
+              amount:      x.amount,
+              occurred_at: x.occurredAt,
+            }))
+          );
+          // Mark all synced
+          await Promise.all(pendingXP.map(x => markXPSynced(x.id)));
+          // Refresh XP bar from server
+          window.dispatchEvent(new Event('xp-updated'));
+        } catch {
+          // Server error — keep in queue, will retry next sync
+        }
+      }
+      await clearSyncedXP();
+
+      // 5. Refresh data from server
+      const [vocabRes, dueRes, sumRes, progRes] = await Promise.allSettled([
         vocabularyApi.list({ page: 1, limit: 500 }),
         vocabularyApi.due(40),
         vocabularyApi.reviewSummary(),
         vocabularyApi.stats(),
       ]);
 
-      if (vocabData.status === 'fulfilled' && vocabData.value?.words) {
-        setSavedWords(vocabData.value.words);
-        await cacheAllWords(vocabData.value.words);
+      if (vocabRes.status === 'fulfilled' && vocabRes.value?.words) {
+        setSavedWords(vocabRes.value.words);
+        await cacheAllWords(vocabRes.value.words);
       }
-      if (dueData.status === 'fulfilled' && dueData.value?.words) {
-        setDueWords(dueData.value.words);
-        await cacheDueWords(dueData.value.words);
+      if (dueRes.status === 'fulfilled' && dueRes.value?.words) {
+        setDueWords(dueRes.value.words);
+        await cacheDueWords(dueRes.value.words);
       }
-      if (sumData.status === 'fulfilled' && sumData.value) {
-        await cacheSummary(sumData.value);
-      }
-      if (progData.status === 'fulfilled' && progData.value) {
-        setProgress(progData.value);
-        await cacheProgress(progData.value);
+      if (sumRes.status === 'fulfilled'  && sumRes.value)  await cacheSummary(sumRes.value);
+      if (progRes.status === 'fulfilled' && progRes.value) {
+        setProgress(progRes.value);
+        await cacheProgress(progRes.value);
       }
 
-      // 5. Update sync timestamp
       await setLastSyncTime();
       setLastSyncTimeState(new Date());
       await refreshPending();
@@ -140,61 +138,39 @@ export function useOffline(): OfflineState {
     }
   }, [setSavedWords, setDueWords, setProgress, refreshPending]);
 
-  // ── Monitor network state ─────────────────────────────────────────────────
+  // ── Network listeners ──────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    // Initial state
     setIsOnline(navigator.onLine);
 
-    const handleOnline = () => {
+    const onOnline = () => {
       setIsOnline(true);
-      // Debounce sync slightly — wait 1.5s for stable connection
-      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-      syncTimeoutRef.current = setTimeout(syncNow, 1500);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(syncNow, 1500);
     };
-
-    const handleOffline = () => {
+    const onOffline = () => {
       setIsOnline(false);
-      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
 
-    window.addEventListener('online',  handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online',  onOnline);
+    window.addEventListener('offline', onOffline);
 
-    // Initial sync if online
-    if (navigator.onLine) {
-      syncTimeoutRef.current = setTimeout(syncNow, 2000);
-    }
-
-    // Load pending count
+    if (navigator.onLine) timerRef.current = setTimeout(syncNow, 2000);
     refreshPending();
 
     return () => {
-      window.removeEventListener('online',  handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      window.removeEventListener('online',  onOnline);
+      window.removeEventListener('offline', onOffline);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [syncNow, refreshPending]);
 
-  // Refresh pending count every 10s
+  // Refresh badge counter every 10 s
   useEffect(() => {
     const iv = setInterval(refreshPending, 10_000);
     return () => clearInterval(iv);
   }, [refreshPending]);
 
   return { isOnline, isSyncing, pendingCount, lastSyncTime, syncNow };
-}
-
-// Export singleton for non-hook usage (e.g. from useDictionary)
-export async function triggerBackgroundSync(): Promise<void> {
-  if (syncMutex || !navigator.onLine) return;
-  // Fire and forget
-  useOfflineSingleton?.();
-}
-
-// Simple ref to allow external trigger
-let useOfflineSingleton: (() => void) | null = null;
-export function registerSyncTrigger(fn: () => void) {
-  useOfflineSingleton = fn;
 }

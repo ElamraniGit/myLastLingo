@@ -263,6 +263,10 @@ export const xpApi = {
   addXP: (action: string, amount?: number) =>
     req<any>('/xp/add', { method: 'POST', body: { action, amount } }),
 
+  /** Flush offline-queued XP actions in one batch request. */
+  batchXP: (items: { action: string; amount: number; occurred_at: string }[]) =>
+    req<any>('/xp/batch', { method: 'POST', body: { items } }),
+
   getStatus: () => req<any>('/xp/status'),
 };
 
