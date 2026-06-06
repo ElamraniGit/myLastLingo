@@ -324,7 +324,7 @@ export default function ReviewView() {
                 {t.label}
                 {/* Due badge on Cards tab */}
                 {t.id === 'cards' && (summary?.due_now ?? 0) > 0 && (
-                  <span className="ml-0.5 min-w-[18px] h-[18px] text-[11px] font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
+                  <span className="ml-0.5 min-w-[18px] h-[18px] text-xs font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
                     {summary!.due_now}
                   </span>
                 )}

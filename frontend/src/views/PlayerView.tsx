@@ -249,7 +249,7 @@ function HomeDashboard() {
                   <div className="flex items-center gap-2">
                     <span className="text-base font-bold text-heading">{w.word}</span>
                     {w.level && (
-                      <span className="text-[9px] px-1 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold uppercase">{w.level}</span>
+                      <span className="text-2xs px-1 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold uppercase">{w.level}</span>
                     )}
                   </div>
                   {w.meaning_en ? (

@@ -119,8 +119,8 @@ function Donut({ segments, size = 120 }: {
         );
       })}
       {/* Centre total */}
-      <text x={cx} y={cy - 5} textAnchor="middle" fontSize="18" fontWeight="700" fill="rgb(var(--text-primary))">{fmt(total)}</text>
-      <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="rgb(var(--text-muted))">words</text>
+      <text x={cx} y={cy - 5} textAnchor="middle" fontSize="18" fontWeight="700" fill="rgb(var(--tx-heading))">{fmt(total)}</text>
+      <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="rgb(var(--tx-muted))">words</text>
     </svg>
   );
 }
@@ -214,10 +214,10 @@ function UpcomingBar({ data }: { data: Record<string, number> }) {
         const isToday = d.label === 'Today';
         return (
           <div key={d.key} className="flex-1 flex flex-col items-center gap-1">
-            <span className="text-[9px] text-muted font-medium">{d.count || ''}</span>
+            <span className="text-2xs text-muted font-medium">{d.count || ''}</span>
             <div className="w-full rounded-t-lg transition-all duration-700"
                  style={{ height: `${pct}%`, backgroundColor: isToday ? '#3b82f6' : '#64748b44' }}/>
-            <span className={`text-[9px] font-medium ${isToday ? 'text-blue-500' : 'text-faint'}`}>{d.label}</span>
+            <span className={`text-2xs font-medium ${isToday ? 'text-blue-500' : 'text-faint'}`}>{d.label}</span>
           </div>
         );
       })}
@@ -346,7 +346,7 @@ export default function StatsView() {
           <div key={s.label} className="bg-card border border-default rounded-2xl py-3 text-center">
             <div className="text-lg mb-0.5">{s.icon}</div>
             <div className={`text-base font-bold ${s.color}`}>{s.val}</div>
-            <div className="text-[9px] text-faint uppercase tracking-wide">{s.label}</div>
+            <div className="text-2xs text-faint uppercase tracking-wide">{s.label}</div>
           </div>
         ))}
       </div>
@@ -361,7 +361,7 @@ export default function StatsView() {
           <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
             <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
             <div className="text-xs text-muted mt-0.5">{s.label}</div>
-            <div className="text-[9px] text-faint">{s.sub}</div>
+            <div className="text-2xs text-faint">{s.sub}</div>
           </div>
         ))}
       </div>
