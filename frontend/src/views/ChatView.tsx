@@ -586,15 +586,15 @@ export default function ChatView() {
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
             }}
-            placeholder="Ask about your words… (Enter to send, Shift+Enter for newline)"
+            placeholder="Type your question…"
             disabled={streaming}
             maxLength={600}
-            className="flex-1 resize-none bg-card border border-default rounded-2xl
-                       px-4 py-2.5 text-sm text-heading placeholder-muted
-                       focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10
-                       disabled:opacity-50 transition-all min-h-[44px] max-h-[140px]
+            className="flex-1 resize-none bg-card border-2 border-default rounded-2xl
+                       px-4 py-3 text-base text-heading placeholder:text-muted
+                       focus:outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/12
+                       disabled:opacity-50 transition-all min-h-[48px] max-h-[160px]
                        leading-relaxed scrollbar-none"
-            style={{ height: '44px' }}
+            style={{ height: '48px' }}
           />
 
           {streaming ? (

@@ -28,18 +28,12 @@ const base = (strokeWidth = 2) => ({
 export function AppLogo({ size = 32, className = '' }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" className={className}>
-      {/* Gradient background circle */}
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#3b82f6"/>
-          <stop offset="100%" stopColor="#6366f1"/>
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="9" fill="url(#logoGrad)"/>
-      {/* Stylised "L" with book motif */}
-      <path d="M9 8h3v11h7v3H9z" fill="white" opacity="0.95"/>
-      {/* Small accent dot */}
-      <circle cx="22" cy="9" r="2" fill="white" opacity="0.7"/>
+      {/* Solid blue — visible on both light and dark backgrounds */}
+      <rect width="32" height="32" rx="9" fill="#2563eb"/>
+      {/* "L" letterform */}
+      <path d="M9 8h3v11h7v3H9z" fill="white"/>
+      {/* Accent dot */}
+      <circle cx="22" cy="9" r="2.5" fill="#93c5fd"/>
     </svg>
   );
 }

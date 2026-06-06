@@ -137,7 +137,7 @@ export default function WordPopup() {
       <div
         ref={sheetRef}
         className={`fixed z-[70] bg-surface shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out
-          bottom-0 left-0 right-0 max-h-[88vh] rounded-t-3xl border-t border-line/50
+          bottom-0 left-0 right-0 max-h-[92vh] rounded-t-3xl border-t border-line/50
           lg:left-auto lg:right-0 lg:top-0 lg:bottom-0 lg:max-h-full lg:w-[420px] lg:rounded-t-none lg:rounded-l-3xl lg:border-t-0 lg:border-l
           ${visible
             ? 'translate-y-0 lg:translate-y-0 lg:translate-x-0 opacity-100'

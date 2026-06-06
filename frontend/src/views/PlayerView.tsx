@@ -15,13 +15,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
 import { libraryApi, xpApi } from '@/lib/api';
-import VideoInput from '@/components/player/VideoInput';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import TranscriptViewer from '@/components/transcript/TranscriptViewer';
 import WordPopup from '@/components/dictionary/WordPopup';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
-import { LibraryIcon, WordsIcon, ReviewIcon, GamesIcon } from '@/components/ui/Icons';
+
 
 function fmtDuration(s: number) {
   if (!s) return '';
@@ -179,10 +178,6 @@ function HomeDashboard() {
           </button>
         ))}
       </div>
-
-      {/* ── Add video ─────────────────────────────────────────────── */}
-      <VideoInput />
-
       {/* ── Review CTA ────────────────────────────────────────────── */}
       {dueCount > 0 && (
         <button
@@ -206,27 +201,6 @@ function HomeDashboard() {
           </svg>
         </button>
       )}
-
-      {/* ── Quick actions ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-2">
-        {([
-          { Icon: LibraryIcon, label: 'Library',  page: 'library'    },
-          { Icon: WordsIcon,   label: 'Words',    page: 'vocabulary' },
-          { Icon: ReviewIcon,  label: 'Review',   page: 'flashcards' },
-          { Icon: GamesIcon,   label: 'Games',    page: 'games'      },
-        ] as const).map(a => (
-          <button
-            key={a.page}
-            onClick={() => setPage(a.page as any)}
-            className="flex flex-col items-center gap-2 bg-card border border-default rounded-2xl py-3.5
-                       hover:border-blue-500/20 hover:bg-blue-500/5 active:scale-95 transition-all"
-          >
-            <a.Icon className="w-5 h-5 text-muted" />
-            <span className="text-sm font-medium text-body">{a.label}</span>
-          </button>
-        ))}
-      </div>
-
       {/* ── Recent words ──────────────────────────────────────────── */}
       {recentWords.length > 0 && (
         <section>
