@@ -438,6 +438,12 @@ export const coreApi = {
 
   getLevelWords: (level: string, page = 1, limit = 50) =>
     req<any>(`/core/levels?level=${level}&page=${page}&limit=${limit}`),
+
+  /** Get words for practice: smart | new | review | random */
+  getPracticeWords: (mode = 'smart', level?: string, limit = 100) => {
+    const q = buildQuery({ mode, level, limit });
+    return req<any>(`/core/practice${q}`);
+  },
 };
 
 export const healthApi = {

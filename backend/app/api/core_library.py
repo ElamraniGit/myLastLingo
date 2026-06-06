@@ -511,6 +511,154 @@ async def get_words_by_level(
     )
 
 
+
+@router.get("/practice")
+async def get_practice_words(
+    limit: int         = Query(100, ge=10, le=400),
+    level: Optional[str] = Query(None),
+    mode:  str         = Query("smart", description="smart | new | review | random"),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get words for practice sessions (flashcards, quiz, games).
+    Unlike /due, this returns ALL relevant words — not just overdue ones.
+    
+    Modes:
+      smart  — SM-2 priority: due > learning > new (best for study)
+      new    — only words not yet started (expanding vocabulary)
+      review — only words in progress (reviewing existing knowledge)
+      random — random shuffle across all words
+    """
+    user_id = current_user["sub"]
+
+    level_filter = ""
+    level_params: list = []
+    if level:
+        levels = [l.strip().upper() for l in level.split(",")]
+        ph     = ",".join("?" * len(levels))
+        level_filter = f"AND cw.level IN ({ph})"
+        level_params = levels
+
+    async with db_manager.get_connection() as conn:
+        if mode == "new":
+            # Words with no progress yet
+            sql = f"""
+                SELECT cw.*,
+                       NULL as status, 2.5 as ease_factor, 0 as interval_,
+                       0 as repetitions, 0 as lapses, 0 as reviewed_count,
+                       NULL as last_reviewed, NULL as next_review
+                FROM core_words cw
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM user_core_progress ucp
+                    WHERE ucp.core_word_id=cw.id AND ucp.user_id=?
+                )
+                {level_filter}
+                ORDER BY cw.freq_rank ASC
+                LIMIT ?
+            """
+            params = [user_id] + level_params + [limit]
+
+        elif mode == "review":
+            # Words already started
+            sql = f"""
+                SELECT cw.*,
+                       ucp.status, ucp.ease_factor, ucp.interval as interval_,
+                       ucp.repetitions, ucp.lapses, ucp.reviewed_count,
+                       ucp.last_reviewed, ucp.next_review
+                FROM core_words cw
+                INNER JOIN user_core_progress ucp
+                  ON ucp.core_word_id=cw.id AND ucp.user_id=?
+                WHERE 1=1 {level_filter}
+                ORDER BY
+                  CASE ucp.status WHEN 'learning' THEN 0 WHEN 'reviewing' THEN 1 ELSE 2 END,
+                  ucp.lapses DESC, ucp.next_review ASC
+                LIMIT ?
+            """
+            params = [user_id] + level_params + [limit]
+
+        elif mode == "random":
+            sql = f"""
+                SELECT cw.*,
+                       ucp.status, ucp.ease_factor, ucp.interval as interval_,
+                       ucp.repetitions, ucp.lapses, ucp.reviewed_count,
+                       ucp.last_reviewed, ucp.next_review
+                FROM core_words cw
+                LEFT JOIN user_core_progress ucp
+                  ON ucp.core_word_id=cw.id AND ucp.user_id=?
+                WHERE 1=1 {level_filter}
+                ORDER BY RANDOM()
+                LIMIT ?
+            """
+            params = [user_id] + level_params + [limit]
+
+        else:  # smart — due first, then learning, then new
+            sql = f"""
+                SELECT cw.*,
+                       ucp.status, ucp.ease_factor, ucp.interval as interval_,
+                       ucp.repetitions, ucp.lapses, ucp.reviewed_count,
+                       ucp.last_reviewed, ucp.next_review
+                FROM core_words cw
+                LEFT JOIN user_core_progress ucp
+                  ON ucp.core_word_id=cw.id AND ucp.user_id=?
+                WHERE 1=1 {level_filter}
+                ORDER BY
+                  -- Due first
+                  CASE WHEN ucp.next_review IS NULL OR ucp.next_review <= datetime('now')
+                            AND (ucp.status IS NULL OR ucp.status != 'learned')
+                       THEN 0 ELSE 1 END,
+                  -- Then by status: learning > reviewing > new > learned
+                  CASE COALESCE(ucp.status,'new')
+                       WHEN 'learning'  THEN 0
+                       WHEN 'reviewing' THEN 1
+                       WHEN 'new'       THEN 2
+                       ELSE 3
+                  END,
+                  -- Then by difficulty (most lapses first)
+                  COALESCE(ucp.lapses, 0) DESC,
+                  -- Then by frequency rank
+                  cw.freq_rank ASC
+                LIMIT ?
+            """
+            params = [user_id] + level_params + [limit]
+
+        async with conn.execute(sql, params) as cur:
+            rows = await cur.fetchall()
+
+    words = []
+    for row in rows:
+        d = dict(row)
+        # rename interval_ back to interval if needed
+        if "interval_" in d:
+            d["interval"] = d.pop("interval_")
+        for f in ("synonyms", "antonyms", "collocations"):
+            v = d.get(f)
+            if isinstance(v, str):
+                try: d[f] = json.loads(v)
+                except: d[f] = []
+        d["progress"] = {
+            "status":         d.pop("status", None) or "new",
+            "ease_factor":    d.pop("ease_factor", 2.5) or 2.5,
+            "interval":       d.pop("interval", 0) or 0,
+            "repetitions":    d.pop("repetitions", 0) or 0,
+            "lapses":         d.pop("lapses", 0) or 0,
+            "reviewed_count": d.pop("reviewed_count", 0) or 0,
+            "last_reviewed":  d.pop("last_reviewed", None),
+            "next_review":    d.pop("next_review", None),
+        }
+        # Flatten for frontend compatibility
+        d["status"]         = d["progress"]["status"]
+        d["ease_factor"]    = d["progress"]["ease_factor"]
+        d["interval"]       = d["progress"]["interval"]
+        d["repetitions"]    = d["progress"]["repetitions"]
+        d["lapses"]         = d["progress"]["lapses"]
+        d["reviewed_count"] = d["progress"]["reviewed_count"]
+        d["next_review"]    = d["progress"]["next_review"]
+        d["examples"]       = [d.get("example", "")] if d.get("example") else []
+        d["is_core"]        = True
+        words.append(d)
+
+    return {"words": words, "count": len(words), "mode": mode}
+
 def init_api(db):
     global db_manager
     db_manager = db
