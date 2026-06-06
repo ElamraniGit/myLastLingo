@@ -8,15 +8,14 @@ import { BACKEND_ORIGIN } from '@/lib/api';
 import type { AppPage } from '@/types';
 import XPBar from './XPBar';
 import { getPendingCount } from '@/lib/offlineStore';
-import { AppLogo, HomeIcon, LibraryIcon, WordsIcon, ReviewIcon, GamesIcon, AIIcon } from '@/components/ui/Icons';
+import { AppLogo, HomeIcon, LibraryIcon, WordsIcon, ReviewIcon, AIIcon } from '@/components/ui/Icons';
 import { isMuted, toggleMuted } from '@/lib/sfx';
 
 const NAV: { id: AppPage; label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'player',     label: 'Home',    Icon: HomeIcon    },
   { id: 'library',    label: 'Library', Icon: LibraryIcon },
   { id: 'vocabulary', label: 'Words',   Icon: WordsIcon   },
-  { id: 'flashcards', label: 'Review',  Icon: ReviewIcon  },
-  { id: 'games',      label: 'Games',   Icon: GamesIcon   },
+  { id: 'flashcards', label: 'Practice',Icon: ReviewIcon  },
   { id: 'chat',       label: 'AI',      Icon: AIIcon      },
 ];
 
@@ -44,7 +43,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
           {NAV.map(item => {
             const active = currentPage === item.id ||
-              (item.id === 'player' && currentPage === 'home');
+              (item.id === 'player' && currentPage === 'home') ||
+              (item.id === 'flashcards' && currentPage === 'games');
             return (
               <button
                 key={item.id}
@@ -114,7 +114,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav className="lg:hidden nav-bar flex shrink-0 pb-safe">
           {NAV.map(item => {
             const active = currentPage === item.id ||
-              (item.id === 'player' && currentPage === 'home');
+              (item.id === 'player' && currentPage === 'home') ||
+              (item.id === 'flashcards' && currentPage === 'games');
             return (
               <button
                 key={item.id}

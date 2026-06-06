@@ -20,14 +20,13 @@ import LoginPage from '@/components/auth/LoginPage';
 import RegisterPage from '@/components/auth/RegisterPage';
 import PlayerView from '@/views/PlayerView';
 import VocabularyView from '@/views/VocabularyView';
-import FlashcardsView from '@/views/FlashcardsView';
+import ReviewView from '@/views/ReviewView';
 import ProfileView from '@/views/ProfileView';
 import LibraryView from '@/views/LibraryView';
 import ChatView from '@/views/ChatView';
 import TextReaderView from '@/views/TextReaderView';
 import StatsView from '@/views/StatsView';
 import OnboardingView from '@/views/OnboardingView';
-import GamesView from '@/views/GamesView';
 import WordDetailView from '@/views/WordDetailView';
 
 function NotificationsBootstrap() {
@@ -153,11 +152,11 @@ export default function App({ Component, pageProps }: AppProps) {
       case 'home':       return <PlayerView />;
       case 'library':    return <LibraryView />;
       case 'vocabulary': return <VocabularyView />;
-      case 'flashcards': return <FlashcardsView />;
+      case 'flashcards': return <ReviewView />;
       case 'chat':       return <ChatView />;
       case 'textreader': return <TextReaderView />;
       case 'stats':      return <StatsView />;
-      case 'games':      return <GamesView />;
+      case 'games':      return <ReviewView />;
       case 'worddetail': return <WordDetailView />;
       case 'profile':
       case 'settings':   return <ProfileView tab="profile" />;
