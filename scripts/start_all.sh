@@ -3,7 +3,7 @@
 # LinguaLearn — Start Everything
 # =================================================================
 # Usage:
-#   ./scripts/start_all.sh          → dev mode (default; works on Termux/ARM)
+#   ./scripts/start_all.sh          → dev mode
 #   ./scripts/start_all.sh --prod   → production mode
 #   ./scripts/start_all.sh --prod --rebuild  → force rebuild
 # =================================================================
@@ -80,22 +80,18 @@ echo ""
 [ "$READY" -eq 1 ] && echo -e "${GREEN}   ✅ Backend ready${NC}" || echo -e "${YELLOW}   ⚠️  Backend starting...${NC}"
 echo ""
 
-# ── Build check helpers ───────────────────────────────────────────
+# ── Build check helpers ──────────────────────────────────────────
 
-# Returns the git commit hash of the last frontend source change
 current_frontend_hash() {
   git log -1 --format="%H" -- frontend/ 2>/dev/null || echo "unknown"
 }
 
-# Returns the hash stored in the last build (empty if not built yet)
 built_frontend_hash() {
   cat "frontend/.next/.git_hash" 2>/dev/null || echo ""
 }
 
 is_build_valid() {
-  # A valid production build needs ALL these files
   [ -f "frontend/.next/BUILD_ID" ] &&
-  [ -f "frontend/.next/prerender-manifest.json" ] &&
   [ -f "frontend/.next/routes-manifest.json" ] &&
   [ -f "frontend/.next/build-manifest.json" ] &&
   [ -d "frontend/.next/server" ] &&
@@ -103,8 +99,28 @@ is_build_valid() {
 }
 
 is_build_fresh() {
-  # Build is fresh only if it was built from the current git commit
   is_build_valid && [ "$(current_frontend_hash)" = "$(built_frontend_hash)" ]
+}
+
+# ── Single build function — tries one approach, fixes manifest ───
+do_build() {
+  export NEXT_TELEMETRY_DISABLED=1
+  export NODE_CHANNEL_SERIALIZATION=json
+  export NODE_OPTIONS="--max-old-space-size=1024"
+  export NEXT_PRIVATE_SKIP_SIZE_LIMITING=1
+
+  # Clean old build
+  rm -rf .next 2>/dev/null || true
+
+  # Run build (the only reliable way on Termux ARM64)
+  npx next build 2>&1
+
+  # Fix missing prerender-manifest (common on ARM64 after SWC fallback)
+  if [ -f ".next/BUILD_ID" ] && [ ! -f ".next/prerender-manifest.json" ]; then
+    echo -e "${YELLOW}   🔧 Fixing prerender-manifest...${NC}"
+    echo '{"version":4,"routes":{},"dynamicRoutes":{},"preview":{"previewModeId":"termux-arm64","previewModeSigningKey":"termux","previewModeEncryptionKey":"termux"},"notFoundRoutes":[]}' \
+      > .next/prerender-manifest.json
+  fi
 }
 
 # ── Build frontend (production only) ─────────────────────────────
@@ -127,56 +143,20 @@ if [ -z "$DEV_FLAG" ]; then
   fi
 
   if [ "$NEED_BUILD" = true ]; then
-    echo -e "${YELLOW}   (first build takes 2-4 min on Termux)${NC}"
+    echo -e "${YELLOW}   (takes 2-4 min on Termux — please wait)${NC}"
     echo ""
 
-    # Clean incomplete build artifacts
-    rm -rf .next 2>/dev/null || true
-
-    export NEXT_TELEMETRY_DISABLED=1
-    export NODE_OPTIONS="--max-old-space-size=1024"
-    export NODE_CHANNEL_SERIALIZATION=json
-    export NEXT_PRIVATE_SKIP_SIZE_LIMITING=1
-
-    # Build attempt 1
-    npx next build 2>&1 || true
-
-    # Retry if failed
-    if ! is_build_valid; then
-      echo -e "${YELLOW}   ↩️  Retrying build...${NC}"
-      node --no-experimental-fetch node_modules/.bin/next build 2>&1 || true
-    fi
-
-    # Fix missing prerender-manifest (common on ARM64)
-    if [ -f ".next/BUILD_ID" ] && [ ! -f ".next/prerender-manifest.json" ]; then
-      echo -e "${YELLOW}   🔧 Fixing missing prerender-manifest...${NC}"
-      echo '{"version":4,"routes":{},"dynamicRoutes":{},"preview":{"previewModeId":"termux-arm64","previewModeSigningKey":"termux","previewModeEncryptionKey":"termux"},"notFoundRoutes":[]}' \
-        > .next/prerender-manifest.json
-    fi
+    do_build
 
     if is_build_valid; then
-      # Save git hash so next run knows this build is fresh
       current_frontend_hash > .next/.git_hash
       echo ""
       echo -e "${GREEN}   ✅ Build complete! ($(current_frontend_hash | cut -c1-8))${NC}"
     else
       echo ""
-      echo -e "${RED}   ❌ Build incomplete — trying alternative method${NC}"
-
+      echo -e "${YELLOW}   ↩️  Falling back to development mode...${NC}"
       rm -rf .next 2>/dev/null || true
-      NODE_CHANNEL_SERIALIZATION=json \
-      NEXT_TELEMETRY_DISABLED=1 \
-      node --max-old-space-size=1024 \
-        node_modules/next/dist/bin/next build 2>&1 || true
-
-      if is_build_valid; then
-        current_frontend_hash > .next/.git_hash
-        echo -e "${GREEN}   ✅ Alternative build succeeded!${NC}"
-      else
-        echo -e "${YELLOW}   ↩️  Falling back to dev mode (same features, slightly slower)${NC}"
-        rm -rf .next 2>/dev/null || true
-        DEV_FLAG="--dev"
-      fi
+      DEV_FLAG="--dev"
     fi
   fi
 
