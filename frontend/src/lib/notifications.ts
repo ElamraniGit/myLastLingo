@@ -99,9 +99,9 @@ export async function scheduleDailyReviewNotification(
     type: 'SCHEDULE_NOTIFICATION',
     payload: {
       delayMs:  msUntil,
-      title:    dueCount > 0 ? `📚 ${dueCount} words due for review` : '📚 Time to study!',
+      title:    dueCount > 0 ? `${dueCount} words due for review` : 'Time to study!',
       body:     dueCount > 0
-        ? `You have ${dueCount} word${dueCount === 1 ? '' : 's'} waiting. Keep your streak alive! 🔥`
+        ? `You have ${dueCount} word${dueCount === 1 ? '' : 's'} waiting. Keep your streak alive!`
         : 'Open LinguaLearn and do a quick review session.',
       icon:  '/icons/icon-192x192.svg',
       badge: '/icons/icon-192x192.svg',
@@ -123,7 +123,7 @@ export async function sendStreakWarningNotification(streakDays: number): Promise
     type: 'SCHEDULE_NOTIFICATION',
     payload: {
       delayMs: 0,  // immediate
-      title:   `⚠️ Streak at risk — ${streakDays} days`,
+      title:   `Streak at risk — ${streakDays} days`,
       body:    "Don't break your streak! Do a quick review now.",
       icon:    '/icons/icon-192x192.svg',
       tag:     'll-streak-warn',
@@ -159,9 +159,9 @@ export function onInApp(handler: (n: InAppNotif) => void): () => void {
 export function notifyReviewReady(dueCount: number): void {
   emitInApp({
     type:   'review_reminder',
-    title:  `🃏 ${dueCount} words due`,
+    title:  `${dueCount} words due`,
     body:   `Tap to start your review session`,
-    icon:   '🃏',
+    icon:   '📖',
     action: { label: 'Review now', page: 'flashcards' },
     duration: 8000,
   });
@@ -170,9 +170,9 @@ export function notifyReviewReady(dueCount: number): void {
 export function notifyStreakWarning(streakDays: number): void {
   emitInApp({
     type:   'streak_warning',
-    title:  `⚠️ Streak at risk!`,
+    title:  'Streak at risk!',
     body:   `You have a ${streakDays}-day streak. Don't lose it — review something!`,
-    icon:   '🔥',
+    icon:   '🔔',
     action: { label: 'Review now', page: 'flashcards' },
     duration: 10000,
   });
@@ -181,9 +181,9 @@ export function notifyStreakWarning(streakDays: number): void {
 export function notifyStreakAchieved(streakDays: number): void {
   emitInApp({
     type:   'streak_achieved',
-    title:  `🔥 ${streakDays}-day streak!`,
+    title:  `${streakDays}-day streak!`,
     body:   `Amazing! You've studied ${streakDays} days in a row.`,
-    icon:   '🔥',
+    icon:   '🔔',
     duration: 6000,
   });
 }
@@ -201,9 +201,9 @@ export function notifyDailyGoal(xp: number, goal: number): void {
 export function notifyMilestone(label: string): void {
   emitInApp({
     type:   'milestone',
-    title:  `🎉 Milestone: ${label}`,
+    title:  `Milestone: ${label}`,
     body:   `Keep up the great work!`,
-    icon:   '🎉',
+    icon:   '🌟',
     duration: 7000,
   });
 }
@@ -211,9 +211,9 @@ export function notifyMilestone(label: string): void {
 export function notifyOfflineSynced(count: number): void {
   emitInApp({
     type:   'offline_synced',
-    title:  `✅ Synced ${count} offline change${count === 1 ? '' : 's'}`,
+    title:  `Synced ${count} offline change${count === 1 ? '' : 's'}`,
     body:   `Your data is up to date.`,
-    icon:   '✅',
+    icon:   '✓',
     duration: 4000,
   });
 }

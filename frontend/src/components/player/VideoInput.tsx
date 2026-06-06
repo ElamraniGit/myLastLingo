@@ -43,7 +43,7 @@ export default function VideoInput() {
   return (
     <div className="bg-card border border-default rounded-2xl p-4">
       <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-lg shrink-0">🎬</div>
+        <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 text-red-500"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg></div>
         <div>
           <div className="text-sm font-semibold text-heading">Add YouTube Video</div>
           <div className="text-xs text-muted">Paste a URL to learn with subtitles</div>
@@ -65,13 +65,13 @@ export default function VideoInput() {
         >
           {status === 'loading'
             ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" />
-            : '▶'}
+            : (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='currentColor'><polygon points='5 3 19 12 5 21 5 3'/></svg>)}
         </button>
       </form>
 
       {error && (
         <p className="text-xs text-red-400 mt-2 flex items-center gap-1.5">
-          <span>⚠️</span> {error}
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> {error}
         </p>
       )}
     </div>

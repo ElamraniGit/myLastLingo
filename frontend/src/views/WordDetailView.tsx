@@ -72,7 +72,7 @@ const STATUS_COLOR: Record<string, string> = {
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
 function Section({ title, icon, children, className = '' }: {
-  title: string; icon: string; children: React.ReactNode; className?: string;
+  title: string; icon: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
   return (
     <div className={`mt-5 ${className}`}>
@@ -214,7 +214,7 @@ export default function WordDetailView() {
 
   if (!word) return (
     <div className="flex flex-col items-center justify-center h-full py-20 text-center px-4">
-      <div className="text-4xl mb-4">❓</div>
+      <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/10 flex items-center justify-center"><svg className="w-7 h-7 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg></div>
       <div className="text-base font-semibold text-heading mb-2">Word not found</div>
       <button onClick={goBack} className="text-sm text-blue-500 font-medium">← Back to vocabulary</button>
     </div>
@@ -250,12 +250,12 @@ export default function WordDetailView() {
         <button onClick={toggleFavorite}
           className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-all active:scale-90 ${favorite ? 'text-yellow-400 bg-yellow-400/10' : 'text-faint hover:text-yellow-400 hover:bg-yellow-400/10'}`}
           title={favorite ? 'Remove from favorites' : 'Add to favorites'}>
-          {favorite ? '★' : '☆'}
+          {favorite ? (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='currentColor' stroke='none'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>) : (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>)}
         </button>
         <button onClick={handleDelete}
           className="w-9 h-9 rounded-xl flex items-center justify-center text-sm text-faint hover:text-red-400 hover:bg-red-400/10 transition-all"
           title="Delete word">
-          🗑
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         </button>
       </div>
 
@@ -291,10 +291,10 @@ export default function WordDetailView() {
           <div className="flex flex-col gap-2 shrink-0">
             <button onClick={() => ttsSpeak(word.word, { rate: 0.85 })}
               className="w-10 h-10 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center text-lg transition-all active:scale-90"
-              title="Pronounce">🔊</button>
+              title="Pronounce"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
             <button onClick={() => setShowPronunciation(true)}
               className="w-10 h-10 rounded-2xl bg-green-500/10 hover:bg-green-500/20 text-green-500 flex items-center justify-center text-lg transition-all active:scale-90"
-              title="Practice pronunciation">🎤</button>
+              title="Practice pronunciation"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg></button>
           </div>
         </div>
 
@@ -320,11 +320,11 @@ export default function WordDetailView() {
 
       {/* ── How to use ───────────────────────────────────────────────────────── */}
       {howToUse.length > 0 && (
-        <Section title="How to Use" icon="💡">
+        <Section title="How to Use" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>}>
           <div className="space-y-2">
             {howToUse.map((tip: string, i: number) => (
               <div key={i} className="flex items-start gap-2.5 bg-card border border-default rounded-xl px-3.5 py-3">
-                <span className="text-amber-400 shrink-0 mt-0.5">💡</span>
+                <svg className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>
                 <p className="text-sm text-body leading-relaxed">{tip}</p>
               </div>
             ))}
@@ -334,7 +334,7 @@ export default function WordDetailView() {
 
       {/* ── Other definitions ────────────────────────────────────────────────── */}
       {definitions.length > 0 && (
-        <Section title="All Meanings" icon="📚">
+        <Section title="All Meanings" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg>}>
           <div className="space-y-2">
             {definitions.slice(0, 5).map((d: any, i: number) => (
               <div key={i} className="bg-card border border-default rounded-xl px-3.5 py-3">
@@ -355,7 +355,7 @@ export default function WordDetailView() {
 
       {/* ── Context sentence ─────────────────────────────────────────────────── */}
       {word.sentence && (
-        <Section title="Saved Context" icon="🎬">
+        <Section title="Saved Context" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg>}>
           <div className="bg-card border border-default rounded-xl px-4 py-3">
             <p className="text-sm text-body leading-relaxed italic">"{word.sentence}"</p>
             {word.source_video_title && (
@@ -367,7 +367,7 @@ export default function WordDetailView() {
 
       {/* ── Examples ─────────────────────────────────────────────────────────── */}
       {examples.length > 0 && (
-        <Section title="Examples" icon="✏️">
+        <Section title="Examples" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>}>
           <div className="space-y-2">
             {examples.slice(0, 4).map((ex: string, i: number) => (
               <div key={i} className="flex items-start gap-2.5 group">
@@ -375,7 +375,7 @@ export default function WordDetailView() {
                 <p className="text-sm text-body leading-relaxed flex-1">{ex}</p>
                 <button onClick={() => ttsSpeak(ex, { rate: 0.95 })}
                   className="shrink-0 w-7 h-7 rounded-lg text-faint hover:text-blue-500 hover:bg-card flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all text-sm">
-                  🔊
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 </button>
               </div>
             ))}
@@ -389,7 +389,7 @@ export default function WordDetailView() {
           {synonyms.length > 0 && (
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-sm">🔗</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 <span className="text-xs font-semibold text-muted uppercase tracking-wider">Synonyms</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -404,7 +404,7 @@ export default function WordDetailView() {
           {antonyms.length > 0 && (
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-sm">↔️</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                 <span className="text-xs font-semibold text-muted uppercase tracking-wider">Antonyms</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -421,7 +421,7 @@ export default function WordDetailView() {
 
       {/* ── Collocations / Related words ─────────────────────────────────────── */}
       {relatedWords.length > 0 && (
-        <Section title="Common Phrases" icon="💬">
+        <Section title="Common Phrases" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>}>
           <div className="flex flex-wrap gap-2">
             {relatedWords.slice(0, 6).map((r: string) => (
               <span key={r} className="text-xs px-3 py-1.5 bg-blue-500/8 text-blue-500 rounded-full border border-blue-500/15 font-medium">
@@ -434,7 +434,7 @@ export default function WordDetailView() {
 
       {/* ── Conjugations ─────────────────────────────────────────────────────── */}
       {Object.keys(conjugations).length > 0 && (
-        <Section title="Conjugations" icon="🔄">
+        <Section title="Conjugations" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>}>
           <div className="grid grid-cols-2 gap-1.5">
             {Object.entries(conjugations).map(([k, v]) => (
               <div key={k} className="flex justify-between items-center px-3 py-2 bg-card border border-default rounded-xl">
@@ -447,7 +447,7 @@ export default function WordDetailView() {
       )}
 
       {/* ── SM-2 Learning Stats ───────────────────────────────────────────────── */}
-      <Section title="Learning Stats" icon="📊">
+      <Section title="Learning Stats" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>}>
         <div className="bg-card border border-default rounded-2xl p-4 space-y-4">
 
           {/* Progress bar */}
@@ -493,7 +493,7 @@ export default function WordDetailView() {
 
       {/* ── Review history chart ──────────────────────────────────────────────── */}
       {history.length > 0 && (
-        <Section title="Review History" icon="📅">
+        <Section title="Review History" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}>
           <div className="bg-card border border-default rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-muted">Last {Math.min(history.length, 10)} reviews</span>
@@ -520,7 +520,7 @@ export default function WordDetailView() {
       )}
 
       {/* ── Tags ─────────────────────────────────────────────────────────────── */}
-      <Section title="Tags" icon="🏷️">
+      <Section title="Tags" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="3"/></svg>}>
         <div className="bg-card border border-default rounded-2xl p-4">
           {!editingTags ? (
             <div className="flex items-center gap-2 flex-wrap">
@@ -556,7 +556,7 @@ export default function WordDetailView() {
       </Section>
 
       {/* ── Notes ────────────────────────────────────────────────────────────── */}
-      <Section title="Personal Notes" icon="📝">
+      <Section title="Personal Notes" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>}>
         <div className="bg-card border border-default rounded-2xl p-4">
           {!editingNotes ? (
             <div>

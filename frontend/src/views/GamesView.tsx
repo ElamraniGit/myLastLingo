@@ -87,7 +87,7 @@ export default function GamesView() {
           </svg>
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-heading">Word Games 🎮</h1>
+          <h1 className="text-2xl font-bold text-heading flex items-center gap-2">Word Games <svg className="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg></h1>
           <p className="text-xs text-muted mt-0.5">
             {playable.length} words · {hard > 0 ? `${hard} need practice` : 'all going well!'}
           </p>
@@ -101,7 +101,7 @@ export default function GamesView() {
 
       ) : playable.length < 4 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-5xl mb-4">📚</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg></div>
           <div className="text-base font-semibold text-heading mb-2">Not enough words yet</div>
           <p className="text-sm text-muted mb-6 max-w-xs">
             You need at least 4 saved words with English definitions to play.
@@ -151,7 +151,7 @@ export default function GamesView() {
           />
 
           <p className="text-center text-xs text-faint pt-1">
-            🧠 All games use YOUR saved words · ⭐ XP counts toward your level
+            All games use YOUR saved words · XP counts toward your level
           </p>
         </div>
       )}
@@ -230,12 +230,12 @@ function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void
   }, [idx, total]);
 
   if (done) return <GameComplete score={score} total={total} skipped={skipped}
-    game="Spelling Bee 🔤" onBack={onBack}
+    game="Spelling Bee" onBack={onBack}
     onReplay={() => { setIdx(0); setScore(0); setDone(false); setSkipped(0); setInput(''); setResult(null); }} />;
 
   return (
     <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
-      <GameHeader title="Spelling Bee 🔤" onBack={onBack} score={score} idx={idx} total={total} />
+      <GameHeader title="Spelling Bee" onBack={onBack} score={score} idx={idx} total={total} />
 
       <div className="bg-card border border-default rounded-3xl p-6 mt-4 text-center space-y-4">
 
@@ -250,7 +250,7 @@ function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void
         <button onClick={playWord}
           className="w-20 h-20 rounded-full bg-blue-600/15 hover:bg-blue-600/25 text-blue-500
                      flex items-center justify-center text-4xl mx-auto transition-all active:scale-95">
-          🔊
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </button>
         <p className="text-xs text-faint">Tap to hear the word</p>
 
@@ -293,7 +293,7 @@ function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void
             result === 'correct' ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
           }`}>
             <p className={`font-semibold text-sm ${result === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
-              {result === 'correct' ? '✅ Correct! +5 XP' : `❌ The word was: "${current.word}"`}
+              {result === 'correct' ? '✓ Correct! +5 XP' : `✗ The word was: "${current.word}"`}
             </p>
           </div>
         )}
@@ -310,7 +310,7 @@ function SpellingBee({ words, onBack }: { words: SavedWord[]; onBack: () => void
           </div>
         ) : (
           <button onClick={() => next()} className="btn-primary w-full py-3 rounded-2xl text-sm">
-            {idx + 1 >= total ? '🎉 See Results' : 'Next →'}
+            {idx + 1 >= total ? 'See Results' : 'Next →'}
           </button>
         )}
       </div>
@@ -380,14 +380,14 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
   }, [idx, total]);
 
   if (done) return <GameComplete score={score} total={total} skipped={skipped}
-    game="Word Scramble 🔀" onBack={onBack}
+    game="Word Scramble" onBack={onBack}
     onReplay={() => { setIdx(0); setScore(0); setDone(false); setSkipped(0); initLetters(pool[0]?.word || 'test'); }} />;
 
   const formed = selected.map(i => letters[i]).join('');
 
   return (
     <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
-      <GameHeader title="Word Scramble 🔀" onBack={onBack} score={score} idx={idx} total={total} />
+      <GameHeader title="Word Scramble" onBack={onBack} score={score} idx={idx} total={total} />
 
       <div className="bg-card border border-default rounded-3xl p-6 mt-4 space-y-4">
 
@@ -429,7 +429,7 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
             result === 'correct' ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'
           }`}>
             <p className={`font-semibold text-sm ${result === 'correct' ? 'text-green-400' : 'text-red-400'}`}>
-              {result === 'correct' ? `✅ "${current.word}" — Correct! +4 XP` : `❌ The answer was: "${current.word}"`}
+              {result === 'correct' ? `✓ "${current.word}" — Correct! +4 XP` : `✗ The answer was: "${current.word}"`}
             </p>
           </div>
         )}
@@ -462,7 +462,7 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
             </button>
             <button onClick={() => initLetters(current.word)}
               className="flex-1 py-2.5 rounded-2xl border border-default text-sm text-body hover:bg-card transition-colors">
-              🔄 Shuffle
+              <span className="flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Shuffle</span>
             </button>
             <button onClick={() => next(true)}
               className="py-2.5 px-3 rounded-2xl border border-default text-sm text-muted hover:bg-card transition-colors">
@@ -471,7 +471,7 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
           </div>
         ) : (
           <button onClick={() => next()} className="btn-primary w-full py-3 rounded-2xl text-sm">
-            {idx + 1 >= total ? '🎉 See Results' : 'Next →'}
+            {idx + 1 >= total ? 'See Results' : 'Next →'}
           </button>
         )}
       </div>
@@ -542,7 +542,7 @@ function MatchingPairs({ words, onBack }: { words: SavedWord[]; onBack: () => vo
 
   if (done) return (
     <GameComplete score={score} total={roundWords.length}
-      game="Matching Pairs 🎴" subtitle={`${moves} move${moves !== 1 ? 's' : ''}`}
+      game="Matching Pairs" subtitle={`${moves} move${moves !== 1 ? 's' : ''}`}
       onBack={onBack} onReplay={() => init(words)} />
   );
 
@@ -550,7 +550,7 @@ function MatchingPairs({ words, onBack }: { words: SavedWord[]; onBack: () => vo
 
   return (
     <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
-      <GameHeader title="Matching Pairs 🎴" onBack={onBack} score={score} idx={matched.length / 2} total={roundWords.length} />
+      <GameHeader title="Matching Pairs" onBack={onBack} score={score} idx={matched.length / 2} total={roundWords.length} />
 
       {/* Status row */}
       <div className="flex items-center justify-between mt-2 mb-4 text-xs text-muted px-1">
@@ -638,7 +638,7 @@ function GameComplete({ score, total, game, subtitle, skipped = 0, onBack, onRep
 }) {
   const attempted = total - skipped;
   const pct = attempted > 0 ? Math.round((score / attempted) * 100) : 0;
-  const emoji  = pct === 100 ? '🏆' : pct >= 80 ? '🎉' : pct >= 60 ? '👍' : pct >= 40 ? '💪' : '📚';
+  const emoji  = pct === 100 ? '★' : pct >= 80 ? '✓' : pct >= 60 ? '↑' : pct >= 40 ? '+' : '→';
   const msg    = pct === 100 ? 'Perfect score!' : pct >= 80 ? 'Great job!' : pct >= 60 ? 'Well done!' : pct >= 40 ? 'Keep it up!' : 'Keep practising!';
   const xpEarned = score * 4;
   const ringColor = pct === 100 ? '#facc15' : pct >= 70 ? '#22c55e' : pct >= 40 ? '#3b82f6' : '#ef4444';
@@ -703,7 +703,7 @@ function GameComplete({ score, total, game, subtitle, skipped = 0, onBack, onRep
         </button>
         <button onClick={onReplay}
           className="flex-1 btn-primary py-3.5 rounded-2xl text-sm">
-          🔄 Play Again
+          <span className="flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Play Again</span>
         </button>
       </div>
     </div>

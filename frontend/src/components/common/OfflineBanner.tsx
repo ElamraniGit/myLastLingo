@@ -32,7 +32,7 @@ export default function OfflineBanner() {
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5
                       bg-amber-500 text-white text-xs font-semibold shadow-lg animate-fade-in">
         <div className="flex items-center gap-2">
-          <span className="text-sm">📵</span>
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>
           <span>Offline mode — changes saved locally</span>
         </div>
         {pendingCount > 0 && (
@@ -66,7 +66,7 @@ export default function OfflineBanner() {
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5
                       bg-blue-600 text-white text-xs font-semibold shadow-lg animate-fade-in">
         <div className="flex items-center gap-2">
-          <span>🔄</span>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           <span>Back online — {pendingCount} changes to sync</span>
         </div>
         <button
@@ -84,7 +84,7 @@ export default function OfflineBanner() {
     return (
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center px-4 py-2.5
                       bg-green-600 text-white text-xs font-semibold shadow-lg animate-fade-in">
-        <span className="mr-1.5">✅</span>
+        <svg className="w-4 h-4 shrink-0 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
         <span>
           All synced
           {lastSyncTime && ` · ${lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}

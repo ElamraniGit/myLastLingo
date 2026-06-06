@@ -149,7 +149,17 @@ function MuteButton() {
       title={muted ? 'Unmute sounds' : 'Mute sounds'}
       className="w-7 h-7 rounded-lg flex items-center justify-center text-sm text-muted hover:text-body hover:bg-card transition-colors"
     >
-      {muted ? '🔇' : '🔔'}
+      {muted ? (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.6"/>
+        <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+    ) : (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    )}
     </button>
   );
 }
@@ -211,7 +221,7 @@ function BackendStatus() {
   }, []);
 
   const label = !netOnline
-    ? '📵 Offline'
+    ? 'Offline'
     : ok === null ? 'Connecting…'
     : ok ? 'Backend online'
     : 'Backend offline';

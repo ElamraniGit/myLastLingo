@@ -72,7 +72,7 @@ function StatusBanner() {
   const { extractTranscript } = useVideoPlayer();
   if (transcriptStatus === 'idle') return (
     <div className="flex flex-col items-center justify-center h-full py-16 px-6 text-center">
-      <div className="text-4xl mb-4">📝</div>
+      <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-7 h-7 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
       <p className="text-base font-semibold text-heading mb-2">No subtitles yet</p>
       <p className="text-sm text-muted mb-5 max-w-xs">Extract from YouTube captions or transcribe with Whisper AI.</p>
       <Button onClick={extractTranscript} variant="primary">Extract Subtitles</Button>
@@ -92,7 +92,7 @@ function StatusBanner() {
   );
   if (transcriptStatus === 'error') return (
     <div className="flex flex-col items-center justify-center h-full py-16 px-6 text-center">
-      <div className="text-4xl mb-4">⚠️</div>
+      <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center"><svg className="w-7 h-7 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg></div>
       <p className="text-sm font-semibold text-heading mb-2">Extraction failed</p>
       <Button onClick={extractTranscript} variant="outline" size="sm">Try Again</Button>
     </div>
@@ -268,14 +268,14 @@ export default function TranscriptViewer() {
     <div className="flex flex-col h-full" dir="ltr">
       <div className="flex items-center justify-between px-4 py-3 border-b border-line-s shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm shrink-0">📝</span>
+          <svg className="w-4 h-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
           <span className="text-sm font-semibold text-heading shrink-0">Subtitles</span>
           <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full shrink-0">{transcript.segments.length}</span>
           <span className="text-[10px] text-faint truncate hidden sm:block">tap · hold &amp; drag</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${transcript.source === 'youtube' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}`}>
-            {transcript.source === 'youtube' ? '▶ YT' : '🤖 AI'}
+            {transcript.source === 'youtube' ? 'YT' : 'AI'}
           </span>
         </div>
       </div>

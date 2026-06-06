@@ -338,9 +338,9 @@ export default function StatsView() {
       {/* ── Hero metric row ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          { icon: '📚', label: 'Total',   val: fmt(totalWords),   color: 'text-heading' },
-          { icon: '✅', label: 'Learned', val: fmt(learned),      color: 'text-green-400' },
-          { icon: '🔥', label: 'Streak',  val: `${streak}d`,      color: 'text-orange-400' },
+          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='3' width='5' height='18' rx='1'/><rect x='10' y='3' width='5' height='18' rx='1'/><path d='M17 3l4 2v14l-4 2V3z'/></svg>), label: 'Total',   val: fmt(totalWords),   color: 'text-heading' },
+          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), label: 'Learned', val: fmt(learned),      color: 'text-green-400' },
+          { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>, label: 'Streak',  val: `${streak}d`,      color: 'text-orange-400' },
           { icon: '⭐', label: 'Level',   val: String(level),     color: 'text-yellow-400' },
         ].map(s => (
           <div key={s.label} className="bg-card border border-default rounded-2xl py-3 text-center">
@@ -403,7 +403,7 @@ export default function StatsView() {
                 />
               </div>
               <div className="flex gap-3 text-xs text-muted">
-                <span>🏆 Level <b className="text-heading">{level}</b></span>
+                <span className="flex items-center gap-1"><svg className="w-4 h-4 text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/><path d="M4 5h16v4a8 8 0 0 1-16 0z"/><path d="M12 17v4M8 21h8"/></svg>Level <b className="text-heading">{level}</b></span>
                 <span>⭐ <b className="text-heading">{(level*100) - totalXP}</b> XP to next</span>
               </div>
             </div>
@@ -529,7 +529,7 @@ export default function StatsView() {
       {/* ── Hardest Words ────────────────────────────────────────────────────── */}
       {hardestWords.length > 0 && (
         <div className="bg-card border border-default rounded-2xl p-4">
-          <h2 className="text-sm font-semibold text-heading mb-3">⚡ Hardest Words</h2>
+          <h2 className="text-sm font-semibold text-heading mb-3 flex items-center gap-1.5"><svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Hardest Words</h2>
           <div className="space-y-2">
             {hardestWords.slice(0,5).map((w:any, i:number) => (
               <div key={i} className="flex items-center gap-3 py-1.5 border-b border-subtle last:border-0">
@@ -555,7 +555,7 @@ export default function StatsView() {
       {/* ── Top Tags ─────────────────────────────────────────────────────────── */}
       {topTags.length > 0 && (
         <div className="bg-card border border-default rounded-2xl p-4">
-          <h2 className="text-sm font-semibold text-heading mb-3">🏷️ Top Tags</h2>
+          <h2 className="text-sm font-semibold text-heading mb-3 flex items-center gap-1.5"><svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="3"/></svg>Top Tags</h2>
           <div className="flex flex-wrap gap-2">
             {topTags.slice(0,10).map((t:any) => (
               <div key={t.tag}
@@ -571,7 +571,7 @@ export default function StatsView() {
       {/* ── Empty state ───────────────────────────────────────────────────────── */}
       {totalWords === 0 && !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-5xl mb-4">📊</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>
           <div className="text-base font-semibold text-heading mb-1">No data yet</div>
           <div className="text-sm text-muted">Save some words and do reviews to see your stats</div>
         </div>

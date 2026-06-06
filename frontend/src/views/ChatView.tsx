@@ -28,7 +28,7 @@ interface Message {
 const SUGGESTION_GROUPS = [
   {
     label: 'My Vocabulary',
-    icon: '📚',
+    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='3' width='5' height='18' rx='1'/><rect x='10' y='3' width='5' height='18' rx='1'/><path d='M17 3l4 2v14l-4 2V3z'/></svg>),
     items: [
       "What are my weakest words?",
       "Quiz me on 5 random words",
@@ -37,7 +37,7 @@ const SUGGESTION_GROUPS = [
   },
   {
     label: 'Today',
-    icon: '📅',
+    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>),
     items: [
       "Which words should I review today?",
       "How many words have I learned this week?",
@@ -45,7 +45,7 @@ const SUGGESTION_GROUPS = [
   },
   {
     label: 'Grammar & Usage',
-    icon: '✍️',
+    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z'/></svg>),
     items: [
       "Explain the difference between my similar words",
       "Give me example sentences for my newest words",
@@ -174,7 +174,7 @@ export default function ChatView() {
       if (res.conversation_id) setConvId(res.conversation_id);
     } catch (e) {
       const errMsg = e instanceof ApiError ? e.message : 'Failed to send message';
-      setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${errMsg}`, ts: Date.now() }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `${errMsg}`, ts: Date.now() }]);
     }
     setSending(false);
     inputRef.current?.focus();
@@ -227,9 +227,9 @@ export default function ChatView() {
         {/* Feature cards */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { icon: '🎯', label: 'Personalised', sub: 'Uses your words' },
-            { icon: '🧠', label: 'Smart Quizzes', sub: 'Test your memory' },
-            { icon: '⚡', label: 'Instant', sub: 'Powered by Groq' },
+            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='currentColor' stroke='none'/></svg>), label: 'Personalised', sub: 'Uses your words' },
+            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z'/><path d='M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z'/></svg>), label: 'Smart Quizzes', sub: 'Test your memory' },
+            { icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='currentColor'><polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/></svg>), label: 'Instant', sub: 'Powered by Groq' },
           ].map(f => (
             <div key={f.label} className="bg-card border border-default rounded-2xl p-3 text-center">
               <div className="text-xl mb-1">{f.icon}</div>
@@ -301,7 +301,7 @@ export default function ChatView() {
             onClick={clearChat}
             className="text-xs text-muted hover:text-red-400 px-2.5 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
           >
-            🗑 Clear
+            Clear
           </button>
         )}
       </div>
@@ -366,7 +366,7 @@ export default function ChatView() {
                   className="text-[10px] text-faint hover:text-muted opacity-0 group-hover:opacity-100 transition-all"
                   aria-label="Copy"
                 >
-                  {copied === i ? '✅' : '📋'}
+                  {copied === i ? (<svg className='w-3.5 h-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>) : (<svg className='w-3.5 h-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><rect x='8' y='2' width='8' height='4' rx='1'/></svg>)}
                 </button>
               </div>
             </div>

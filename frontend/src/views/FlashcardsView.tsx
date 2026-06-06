@@ -108,11 +108,11 @@ type SessionMode = 'quick' | 'standard' | 'deep' | 'cefr';
 type CEFRFilter  = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | null;
 
 // Session configs
-const SESSION_CONFIGS: Record<SessionMode, { label: string; icon: string; count: number; desc: string }> = {
-  quick:    { label: 'Quick',    icon: '⚡', count: 5,   desc: '5 words · ~2 min' },
-  standard: { label: 'Standard', icon: '📚', count: 20,  desc: '20 words · ~8 min' },
-  deep:     { label: 'Deep',     icon: '🧠', count: 40,  desc: '40 words · ~15 min' },
-  cefr:     { label: 'By Level', icon: '🎯', count: 20,  desc: 'Filter by CEFR level' },
+const SESSION_CONFIGS: Record<SessionMode, { label: string; icon: React.ReactNode; count: number; desc: string }> = {
+  quick:    { label: 'Quick',    icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='currentColor'><polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/></svg>), count: 5,   desc: '5 words · ~2 min' },
+  standard: { label: 'Standard', icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='3' width='5' height='18' rx='1'/><rect x='10' y='3' width='5' height='18' rx='1'/><path d='M17 3l4 2v14l-4 2V3z'/></svg>), count: 20,  desc: '20 words · ~8 min' },
+  deep:     { label: 'Deep',     icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 2z'/><path d='M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 2z'/></svg>), count: 40,  desc: '40 words · ~15 min' },
+  cefr:     { label: 'By Level', icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='currentColor' stroke='none'/></svg>), count: 20,  desc: 'Filter by CEFR level' },
 };
 
 // Sort queue: hardest first (most lapses, lowest ease), then by due date
@@ -271,9 +271,9 @@ export default function FlashcardsView() {
       setAnswered(false);
 
       // Streak milestone alerts
-      if (newDone === 5)  { sfx.streak(); setStreakAlert('🔥 5 cards done! Keep going!'); setTimeout(() => setStreakAlert(null), 2500); }
-      if (newDone === 10) { sfx.streak(); setStreakAlert('💪 10 cards! You\'re on fire!'); setTimeout(() => setStreakAlert(null), 2500); }
-      if (newDone === 20) { sfx.streak(); setStreakAlert('🏆 20 cards! Amazing session!'); setTimeout(() => setStreakAlert(null), 2500); }
+      if (newDone === 5)  { sfx.streak(); setStreakAlert('5 cards done! Keep going!'); setTimeout(() => setStreakAlert(null), 2500); }
+      if (newDone === 10) { sfx.streak(); setStreakAlert('10 cards! You\'re on fire!'); setTimeout(() => setStreakAlert(null), 2500); }
+      if (newDone === 20) { sfx.streak(); setStreakAlert('20 cards! Amazing session!'); setTimeout(() => setStreakAlert(null), 2500); }
     } finally {
       setBusy(false);
     }
@@ -292,7 +292,7 @@ export default function FlashcardsView() {
   /* ── Empty / Done ────────────────────────────────────────────── */
   if (!current) return (
     <div className="flex flex-col items-center justify-center min-h-full px-6 text-center py-12 animate-fade-in">
-      <div className="text-6xl mb-4">{completed ? '🎉' : '✅'}</div>
+      <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">{completed ? <svg className="w-7 h-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5.8 11.3L2 22l10.7-3.79"/><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01M22 2l-2.24 2.24"/><path d="M22 13l-2 2M14 8l-2 2"/><path d="M4 14l2 2"/></svg> : <svg className="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><polyline points="20 6 9 17 4 12"/></svg>}</div>
       <h2 className="text-2xl font-bold text-heading mb-2">
         {completed ? 'Session Complete!' : 'All Caught Up!'}
       </h2>
@@ -305,7 +305,7 @@ export default function FlashcardsView() {
       {/* Streak display */}
       {streakData && streakData.streak_days > 0 && (
         <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-6">
-          <span>🔥</span>
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>
           <span className="text-sm font-bold text-orange-500">{streakData.streak_days}-day streak!</span>
         </div>
       )}
@@ -330,7 +330,7 @@ export default function FlashcardsView() {
       {/* Action buttons */}
       <div className="flex flex-col gap-2 w-full max-w-xs">
         <button onClick={() => reload()} className="btn-primary py-3 rounded-2xl text-sm">
-          🔄 {completed ? 'New Session' : 'Check Again'}
+          {completed ? 'New Session' : 'Check Again'}
         </button>
         {/* Quick practice even when nothing is due */}
         {!completed && (
@@ -341,7 +341,7 @@ export default function FlashcardsView() {
             }}
             className="py-3 rounded-2xl border border-default text-sm text-body hover:bg-card transition-colors"
           >
-            ⚡ Quick Practice (5 words)
+            Quick Practice (5 words)
           </button>
         )}
       </div>
@@ -390,7 +390,7 @@ export default function FlashcardsView() {
                   mode === m ? 'bg-blue-600 text-white shadow-sm' : 'text-muted hover:text-heading'
                 }`}
               >
-                {m === 'flashcards' ? '🃏 Cards' : '❓ Quiz'}
+                {m === 'flashcards' ? (<><svg className='w-3.5 h-3.5 inline mr-1' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><rect x='2' y='4' width='20' height='16' rx='3'/></svg>Cards</>) : (<><svg className='w-3.5 h-3.5 inline mr-1' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><circle cx='12' cy='12' r='10'/><path d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/><line x1='12' y1='17' x2='12.01' y2='17' strokeWidth='2.5'/></svg>Quiz</>)}
               </button>
             ))}
           </div>
@@ -447,7 +447,7 @@ export default function FlashcardsView() {
             }`}>
               <span className="text-muted text-xs">Current streak</span>
               <div className="flex items-center gap-1">
-                <span>🔥</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>
                 <span className={`font-bold text-sm ${streakData.streak_days > 0 ? 'text-orange-500' : 'text-faint'}`}>
                   {streakData.streak_days} day{streakData.streak_days !== 1 ? 's' : ''}
                 </span>
@@ -519,7 +519,7 @@ export default function FlashcardsView() {
                   onClick={e => { e.stopPropagation(); speak(current.word); }}
                   className="w-11 h-11 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-500
                              flex items-center justify-center text-xl transition-colors mt-1"
-                >🔊</button>
+                ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
 
                 <p className="text-xs text-faint mt-2">Tap card to reveal answer</p>
               </div>
@@ -541,7 +541,7 @@ export default function FlashcardsView() {
                     onClick={e => { e.stopPropagation(); speak(current.word); }}
                     className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500
                                flex items-center justify-center shrink-0 text-lg"
-                  >🔊</button>
+                  ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
                 </div>
 
                 {/* English definition — PRIMARY */}
@@ -613,7 +613,7 @@ export default function FlashcardsView() {
                 onClick={() => speak(current.word)}
                 className="w-12 h-12 rounded-2xl bg-card border border-default text-lg
                            flex items-center justify-center hover:bg-elevated transition-colors"
-              >🔊</button>
+              ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
             </div>
           ) : (
             <div>
@@ -711,8 +711,8 @@ export default function FlashcardsView() {
                     {i + 1}
                   </span>
                   <span className="text-sm flex-1">{label}</span>
-                  {answered && isCorrect && <span className="text-green-400 shrink-0">✓</span>}
-                  {answered && isPicked && !isCorrect && <span className="text-red-400 shrink-0">✗</span>}
+                  {answered && isCorrect && <svg className="w-4 h-4 text-green-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  {answered && isPicked && !isCorrect && <svg className="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>}
                 </button>
               );
             })}
@@ -730,7 +730,7 @@ export default function FlashcardsView() {
                 <p className={`text-sm font-bold mb-1 ${
                   picked === current.id ? 'text-green-400' : 'text-red-400'
                 }`}>
-                  {picked === current.id ? '✅ Correct!' : '❌ Wrong'}
+                  {picked === current.id ? 'Correct!' : 'Wrong'}
                 </p>
                 {picked !== current.id && (
                   <p className="text-xs text-muted">
@@ -771,7 +771,7 @@ export default function FlashcardsView() {
                       : 'bg-red-500/10 border-red-500/30 text-red-400'
                   }`}
                 >
-                  {picked === current.id ? '🚀 Easy — Next' : '🔁 Again — Next'}
+                  {picked === current.id ? 'Easy — Next →' : 'Again — Next →'}
                 </button>
                 <button
                   onClick={() => handleRate(picked === current.id ? 3 : 2)}
@@ -779,7 +779,7 @@ export default function FlashcardsView() {
                   className="py-3.5 rounded-2xl text-sm font-semibold border border-default
                              text-body hover:bg-card transition-all active:scale-95 disabled:opacity-40"
                 >
-                  {picked === current.id ? '🙂 Good' : '😓 Hard'}
+                  {picked === current.id ? 'Good' : 'Hard'}
                 </button>
               </div>
             </>
@@ -789,7 +789,7 @@ export default function FlashcardsView() {
               className="w-full py-3 rounded-2xl border border-default text-sm text-muted
                          hover:bg-card transition-colors"
             >
-              🔊 Hear the word
+              <span className="flex items-center justify-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>Hear the word</span>
             </button>
           )}
         </>

@@ -42,7 +42,7 @@ function speak(text: string) {
 
 /* ── Section wrapper ─────────────────────────────────────────── */
 function Section({ title, icon, children, className = '' }: {
-  title: string; icon: string; children: React.ReactNode; className?: string;
+  title: string; icon: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
   return (
     <div className={`mt-5 ${className}`}>
@@ -159,7 +159,7 @@ export default function WordPopup() {
                 <LevelBadge level={(w.level || 'B1') as CEFRLevel} />
                 {w.ai_enriched && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">
-                    ✨ AI
+                    AI
                   </span>
                 )}
               </div>
@@ -213,14 +213,14 @@ export default function WordPopup() {
 
           {/* ── Main Definition ──────────────────────────────── */}
           {w.meaning_en && (
-            <Section title="Definition" icon="📖">
+            <Section title="Definition" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}>
               <p className="text-[15px] text-heading leading-relaxed">{w.meaning_en}</p>
             </Section>
           )}
 
           {/* ── Multiple Meanings ────────────────────────────── */}
           {definitions.length > 1 && (
-            <Section title="Other Meanings" icon="📚">
+            <Section title="Other Meanings" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg>}>
               <div className="space-y-2.5">
                 {definitions.slice(1, 5).map((d, i) => (
                   <div key={i} className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
@@ -241,7 +241,7 @@ export default function WordPopup() {
 
           {/* ── How to Use ───────────────────────────────────── */}
           {howToUse.length > 0 && (
-            <Section title="How to Use" icon="💡">
+            <Section title="How to Use" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>}>
               <div className="space-y-1.5">
                 {howToUse.map((tip, i) => (
                   <p key={i} className="text-sm text-body leading-relaxed">{tip}</p>
@@ -252,7 +252,7 @@ export default function WordPopup() {
 
           {/* ── Context Sentence ─────────────────────────────── */}
           {wordPopupSentence && (
-            <Section title="In Context" icon="🎬">
+            <Section title="In Context" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg>}>
               <div className="bg-card/40 rounded-xl px-4 py-3 border border-line/30">
                 <p className="text-sm text-body leading-relaxed">
                   {/* FIX BUG-11: Safe regex — escapes special chars (c++, it's, etc.) */}
@@ -276,7 +276,7 @@ export default function WordPopup() {
 
           {/* ── Examples ─────────────────────────────────────── */}
           {examples.length > 0 && (
-            <Section title="Examples" icon="✏️">
+            <Section title="Examples" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>}>
               <div className="space-y-2">
                 {examples.slice(0, 3).map((ex, i) => (
                   <div key={i} className="flex items-start gap-2.5 group">
@@ -296,7 +296,7 @@ export default function WordPopup() {
 
           {/* ── Synonyms ─────────────────────────────────────── */}
           {synonyms.length > 0 && (
-            <Section title="Synonyms" icon="🔗">
+            <Section title="Synonyms" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>}>
               <div className="flex flex-wrap gap-1.5">
                 {synonyms.slice(0, 8).map((s) => (
                   <span key={s} className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/15 hover:bg-green-500/20 transition-colors cursor-default">
@@ -309,7 +309,7 @@ export default function WordPopup() {
 
           {/* ── Antonyms ─────────────────────────────────────── */}
           {antonyms.length > 0 && (
-            <Section title="Antonyms" icon="↔️">
+            <Section title="Antonyms" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>}>
               <div className="flex flex-wrap gap-1.5">
                 {antonyms.slice(0, 6).map((a) => (
                   <span key={a} className="text-xs px-2.5 py-1 bg-red-500/10 text-red-400 rounded-lg border border-red-500/15">
@@ -322,7 +322,7 @@ export default function WordPopup() {
 
           {/* ── Conjugations (verbs only) ────────────────────── */}
           {hasConjugations && (
-            <Section title="Conjugations" icon="🔄">
+            <Section title="Conjugations" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>}>
               <div className="grid grid-cols-2 gap-1.5">
                 {Object.entries(conjugations).map(([k, v]) => (
                   <div key={k} className="flex justify-between items-center px-3 py-2 bg-card/50 rounded-xl border border-line/30">
@@ -351,7 +351,7 @@ export default function WordPopup() {
                     Enriching with AI…
                   </>
                 ) : (
-                  <>✨ Enhance with AI</>
+                  <><svg className="w-3.5 h-3.5 mr-1 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Enhance with AI</>
                 )}
               </button>
             </div>

@@ -41,10 +41,10 @@ export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
   const [tab, setTab] = useState<Tab>(startTab);
   if (!user) return null;
 
-  const TABS: { id: Tab; label: string; emoji: string }[] = [
-    { id: 'profile',  label: 'Profile',  emoji: '👤' },
-    { id: 'progress', label: 'Progress', emoji: '📊' },
-    { id: 'settings', label: 'Settings', emoji: '⚙️' },
+  const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'profile',  label: 'Profile',  icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>) },
+    { id: 'progress', label: 'Progress', icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/><line x1='2' y1='20' x2='22' y2='20'/></svg>) },
+    { id: 'settings', label: 'Settings', icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg>) },
   ];
 
   // Quick link to full Stats page
@@ -76,7 +76,7 @@ export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
                   : 'text-muted hover:text-body'
               }`}
             >
-              <span>{t.emoji}</span>
+              <span>{t.icon}</span>
               <span className="hidden sm:inline">{t.label}</span>
             </button>
           ))}
@@ -91,7 +91,7 @@ export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
             className="w-full flex items-center justify-between bg-blue-600/10 border border-blue-500/20 rounded-2xl px-4 py-3 hover:border-blue-500/40 active:scale-[0.98] transition-all"
           >
             <div className="flex items-center gap-2.5">
-              <span className="text-lg">📈</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
               <div className="text-left">
                 <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">Full Statistics</div>
                 <div className="text-xs text-muted">Charts, heatmap, quality analysis</div>
@@ -151,7 +151,7 @@ function ProfileTab() {
         {/* Streak */}
         {streak > 0 && (
           <div className="flex items-center gap-1.5 mt-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1">
-            <span>🔥</span>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>
             <span className="text-xs font-semibold text-orange-500">{streak} day streak</span>
           </div>
         )}
@@ -177,9 +177,9 @@ function ProfileTab() {
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: 'Saved',   value: progress?.total   ?? 0, icon: '📝', color: 'text-blue-400' },
-          { label: 'Learned', value: progress?.learned ?? 0, icon: '✅', color: 'text-green-400' },
-          { label: 'Videos',  value: recentVideos.length,    icon: '🎬', color: 'text-purple-400' },
+          { label: 'Saved',   value: progress?.total   ?? 0, icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/></svg>), color: 'text-blue-400' },
+          { label: 'Learned', value: progress?.learned ?? 0, icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), color: 'text-green-400' },
+          { label: 'Videos',  value: recentVideos.length,    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='1' y='4' width='15' height='16' rx='2'/><polygon points='16 9 23 4 23 20 16 15 16 9'/></svg>), color: 'text-purple-400' },
         ].map(s => (
           <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
             <div className="text-lg mb-1">{s.icon}</div>
@@ -223,12 +223,12 @@ function ProgressTab() {
   ];
 
   const statCards = [
-    { label: 'Videos',   value: recentVideos.length,          icon: '🎬', color: 'text-blue-400' },
-    { label: 'Saved',    value: progress?.total ?? 0,          icon: '📝', color: 'text-purple-400' },
-    { label: 'Learned',  value: progress?.learned ?? 0,        icon: '✅', color: 'text-green-400' },
-    { label: 'Reviews',  value: progress?.total_reviews ?? 0,  icon: '🔄', color: 'text-cyan-400' },
-    { label: 'Today',    value: progress?.reviewed_today ?? 0, icon: '📅', color: 'text-yellow-400' },
-    { label: 'Due',      value: summary?.due_now ?? 0,         icon: '⏰', color: 'text-red-400' },
+    { label: 'Videos',   value: recentVideos.length,          icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='1' y='4' width='15' height='16' rx='2'/><polygon points='16 9 23 4 23 20 16 15 16 9'/></svg>), color: 'text-blue-400' },
+    { label: 'Saved',    value: progress?.total ?? 0,          icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/></svg>), color: 'text-purple-400' },
+    { label: 'Learned',  value: progress?.learned ?? 0,        icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), color: 'text-green-400' },
+    { label: 'Reviews',  value: progress?.total_reviews ?? 0,  icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round'><polyline points='23 4 23 10 17 10'/><polyline points='1 20 1 14 7 14'/><path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15'/></svg>), color: 'text-cyan-400' },
+    { label: 'Today',    value: progress?.reviewed_today ?? 0, icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>), color: 'text-yellow-400' },
+    { label: 'Due',      value: summary?.due_now ?? 0,         icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>), color: 'text-red-400' },
   ];
 
   return (
@@ -293,7 +293,7 @@ function ProgressTab() {
       {/* Hardest words */}
       {(progress?.hardest_words ?? []).length > 0 && (
         <div className="bg-card border border-default rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-heading mb-3">⚡ Hardest Words</h3>
+          <h3 className="text-sm font-semibold text-heading mb-3 flex items-center gap-1.5"><svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Hardest Words</h3>
           <div className="space-y-2">
             {(progress!.hardest_words ?? []).slice(0, 5).map((w: any, i: number) => (
               <div key={i} className="flex items-center justify-between py-1 border-b border-subtle last:border-0">
@@ -348,9 +348,9 @@ function SettingsTab() {
       });
       const fresh = await authApi.me();
       setUser(fresh);
-      setMsg('✅ Saved!');
+      setMsg('Saved!');
       setForm(f => ({ ...f, current_password: '', new_password: '' }));
-    } catch (e: any) { setMsg(`❌ ${e.message || 'Failed'}`); }
+    } catch (e: any) { setMsg(`Error: ${e.message || 'Failed'}`); }
     setSaving(false);
   };
 
@@ -359,9 +359,9 @@ function SettingsTab() {
     setSavingKey(true); setKeyMsg('');
     try {
       await chatApi.setKey(groqKey.trim());
-      setKeyMsg('✅ Key saved');
+      setKeyMsg('Key saved');
       setGroqKey('');
-    } catch { setKeyMsg('❌ Failed'); }
+    } catch { setKeyMsg('Save failed'); }
     setSavingKey(false);
   };
 
@@ -373,7 +373,7 @@ function SettingsTab() {
         <h3 className="text-sm font-semibold text-heading mb-3">Appearance</h3>
         <div className="flex gap-2">
           {(['auto', 'dark', 'light'] as const).map(t => {
-            const labels = { auto: '🌗 Auto', dark: '🌙 Dark', light: '☀️ Light' };
+            const labels = { auto: 'Auto', dark: 'Dark', light: 'Light' };
             return (
               <button
                 key={t}
@@ -469,7 +469,7 @@ function SettingsTab() {
           />
           <Button onClick={saveGroqKey} loading={savingKey} variant="primary" size="sm">Save</Button>
         </div>
-        {keyMsg && <p className={`text-xs ${keyMsg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{keyMsg}</p>}
+        {keyMsg && <p className={`text-xs ${keyMsg === 'Key saved' ? 'text-green-400' : 'text-red-400'}`}>{keyMsg}</p>}
       </div>
 
       {/* Edit profile */}
@@ -479,7 +479,7 @@ function SettingsTab() {
         <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
         <Input label="Current Password" type="password" value={form.current_password} onChange={e => setForm(f => ({ ...f, current_password: e.target.value }))} placeholder="Only if changing password" />
         <Input label="New Password" type="password" value={form.new_password} onChange={e => setForm(f => ({ ...f, new_password: e.target.value }))} />
-        {msg && <p className={`text-xs ${msg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>}
+        {msg && <p className={`text-xs ${msg === 'Saved!' ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>}
         <Button onClick={saveProfile} loading={saving} variant="primary" size="sm">Save Changes</Button>
       </div>
 
@@ -570,7 +570,7 @@ function NotificationSettings() {
 
   return (
     <div className="bg-card border border-default rounded-2xl p-4 space-y-4">
-      <h3 className="text-sm font-semibold text-heading">🔔 Notifications</h3>
+      <h3 className="text-sm font-semibold text-heading flex items-center gap-1.5"><svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</h3>
 
       {isUnsupported && (
         <p className="text-xs text-muted bg-elevated rounded-xl p-3">
@@ -580,7 +580,7 @@ function NotificationSettings() {
 
       {isDenied && (
         <p className="text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-          ⚠️ Notifications blocked. Enable them in your device settings.
+          Notifications blocked. Enable them in your device settings.
         </p>
       )}
 
@@ -654,7 +654,7 @@ function VoiceSettings() {
   return (
     <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
       <div>
-        <h3 className="text-sm font-semibold text-heading">🔊 Voice</h3>
+        <h3 className="text-sm font-semibold text-heading flex items-center gap-1.5"><svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>Voice</h3>
         <p className="text-xs text-muted mt-0.5">
           Neural voices via Microsoft Edge TTS (free, requires internet)
         </p>
@@ -694,7 +694,7 @@ function VoiceSettings() {
               } disabled:opacity-50`}
               title="Test this voice"
             >
-              {testing === v.id ? '⏳' : '▶'}
+              {testing === v.id ? (<svg className='w-3.5 h-3.5 animate-spin' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><path d='M21 12a9 9 0 1 1-6.219-8.56'/></svg>) : (<svg className='w-3.5 h-3.5' viewBox='0 0 24 24' fill='currentColor'><polygon points='5 3 19 12 5 21 5 3'/></svg>)}
             </button>
           </div>
         ))}

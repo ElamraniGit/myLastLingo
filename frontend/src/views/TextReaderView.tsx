@@ -273,7 +273,7 @@ export default function TextReaderView() {
   if (!source) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-center px-4">
-        <div className="text-5xl mb-4">📄</div>
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
         <div className="text-base font-semibold text-heading mb-1">Text not found</div>
         <button onClick={goBack} className="mt-4 text-sm text-blue-500 hover:text-blue-400 font-medium">
           ← Back to Library
@@ -335,7 +335,7 @@ export default function TextReaderView() {
                 : 'bg-blue-600/10 text-blue-500 border border-blue-500/20'
             }`}
           >
-            {reading ? <>⏹ Stop</> : <>▶ Read</>}
+            {reading ? (<><svg className="w-3.5 h-3.5 mr-1 inline" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Stop</>) : (<><svg className="w-3.5 h-3.5 mr-1 inline" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>Read</>)}
           </button>
         </div>
       </div>

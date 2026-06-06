@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/store/appStore';
 
+
 export default function LoginPage() {
   const { login, authLoading, authError, clearAuthError } = useAuth();
   const { setPage } = useStore();
@@ -38,7 +39,7 @@ export default function LoginPage() {
         {/* Error */}
         {authError && (
           <div className="mb-4 flex items-start gap-3 bg-red-500/8 border border-red-500/20 text-red-400 text-sm rounded-2xl px-4 py-3.5">
-            <span className="text-base mt-0.5">⚠️</span>
+            <svg className="w-4 h-4 mt-0.5 shrink-0 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg>
             <span className="flex-1">{authError}</span>
             <button onClick={clearAuthError} className="text-red-400/60 hover:text-red-400 text-lg leading-none">×</button>
           </div>
@@ -76,7 +77,7 @@ export default function LoginPage() {
                 onClick={() => setShowPass(v => !v)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-body transition-colors text-sm"
               >
-                {showPass ? '🙈' : '👁️'}
+                {showPass ? (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>) : (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>)}
               </button>
             </div>
           </div>
@@ -126,7 +127,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-faint mt-8">
-          🔒 100% local · No cloud · Works offline
+          <span className="flex items-center justify-center gap-1.5"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>100% local · No cloud · Works offline</span>
         </p>
       </div>
     </div>

@@ -130,7 +130,7 @@ function HomeDashboard() {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold text-heading tracking-tight">
-            {greeting()}{user?.display_name ? `, ${user.display_name.split(' ')[0]}` : '!'} 👋
+            {greeting()}{user?.display_name ? `, ${user.display_name.split(' ')[0]}` : '!'}
           </h2>
           <p className="text-sm text-muted mt-0.5">
             {dueCount > 0
@@ -163,9 +163,9 @@ function HomeDashboard() {
       {/* ── Stat pills ────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-2.5">
         {[
-          { icon: '🃏', label: 'Due',     val: dueCount,              color: dueCount > 0 ? 'text-blue-500' : 'text-muted', onClick: () => dueCount > 0 && setPage('flashcards') },
-          { icon: '✅', label: 'Learned', val: summary?.learned ?? 0, color: 'text-green-500', onClick: () => setPage('vocabulary') },
-          { icon: '🔥', label: 'Streak',  val: streak,                color: streak > 0 ? 'text-orange-400' : 'text-muted', onClick: undefined },
+          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='2' y='4' width='20' height='16' rx='3'/><path d='M8 10h8M8 14h5'/><circle cx='18' cy='14' r='2' fill='currentColor' stroke='none'/></svg>), label: 'Due',     val: dueCount,              color: dueCount > 0 ? 'text-blue-500' : 'text-muted', onClick: () => dueCount > 0 && setPage('flashcards') },
+          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), label: 'Learned', val: summary?.learned ?? 0, color: 'text-green-500', onClick: () => setPage('vocabulary') },
+          { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>, label: 'Streak',  val: streak,                color: streak > 0 ? 'text-orange-400' : 'text-muted', onClick: undefined },
         ].map(s => (
           <button
             key={s.label}
@@ -192,7 +192,7 @@ function HomeDashboard() {
                      transition-all text-left group"
         >
           <div className="w-11 h-11 rounded-xl bg-blue-600/15 group-hover:bg-blue-600/20 flex items-center justify-center text-xl shrink-0 transition-colors">
-            🃏
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg>
           </div>
           <div className="flex-1">
             <div className="text-sm font-semibold text-heading">
@@ -262,7 +262,7 @@ function HomeDashboard() {
                   onClick={e => { e.stopPropagation(); speak(w.word); }}
                   className="w-7 h-7 rounded-lg hover:bg-blue-500/10 text-faint hover:text-blue-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"
                   aria-label={`Pronounce ${w.word}`}
-                >🔊</button>
+                ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
               </button>
             ))}
           </div>
@@ -292,7 +292,7 @@ function HomeDashboard() {
                   <img src={s.thumbnail_url} alt="" className="w-12 h-8 rounded-lg object-cover shrink-0 bg-elevated"/>
                 ) : (
                   <div className="w-12 h-8 rounded-lg bg-elevated flex items-center justify-center text-lg shrink-0">
-                    {s.source_type === 'youtube' ? '🎬' : '📄'}
+                    {s.source_type === 'youtube' ? (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='1' y='4' width='15' height='16' rx='2'/><polygon points='16 9 23 4 23 20 16 15 16 9'/></svg>) : (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/></svg>)}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -322,7 +322,7 @@ function HomeDashboard() {
       {/* ── Empty state ───────────────────────────────────────────── */}
       {!loading && recentWords.length === 0 && sources.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="text-5xl mb-4">📚</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg></div>
           <div className="text-base font-semibold text-heading mb-1">Start learning!</div>
           <div className="text-sm text-muted">Paste a YouTube URL above to begin</div>
         </div>

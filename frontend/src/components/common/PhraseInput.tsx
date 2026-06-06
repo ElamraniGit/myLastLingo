@@ -80,7 +80,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
                    bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 rounded-xl
                    px-3 py-1.5 transition-all active:scale-95"
       >
-        ✏️ {label}
+        {label}
       </button>
 
       {/* Modal */}
@@ -117,7 +117,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
                   onClick={handleClose}
                   className="w-8 h-8 rounded-full bg-elevated text-muted hover:text-heading
                              flex items-center justify-center text-sm transition-colors"
-                >✕</button>
+                ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
               </div>
 
               {/* Input */}
@@ -138,7 +138,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
                     onClick={handleSpeak}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-blue-500 transition-colors"
                     title="Listen"
-                  >🔊</button>
+                  ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
                 )}
               </div>
 
@@ -168,7 +168,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
                       : 'btn-primary'
                   }`}
                 >
-                  {saved ? '✅ Saved!' : saving ? 'Saving…' : 'Save'}
+                  {saved ? 'Saved!' : saving ? 'Saving…' : 'Save'}
                 </button>
               </div>
 

@@ -156,7 +156,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             </div>
             <button onClick={handleClose}
               className="w-8 h-8 rounded-full bg-elevated text-muted flex items-center justify-center text-sm ml-2 shrink-0">
-              ✕
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
               className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                          bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20
                          text-blue-500 transition-all active:scale-95">
-              <span className="text-xl">🔍</span>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               <span className="text-[11px] font-semibold">Look up</span>
             </button>
           )}
@@ -227,7 +227,15 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
               saved ? 'bg-green-500/10 border-green-500/20 text-green-500'
                     : 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20 text-green-500'
             }`}>
-            <span className="text-xl">{saved ? '✅' : saving ? '⏳' : '➕'}</span>
+            <span className="flex items-center justify-center w-5 h-5">
+              {saved ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              ) : saving ? (
+                <svg className="animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              )}
+            </span>
             <span className="text-[11px] font-semibold">{saved ? 'Saved!' : 'Save'}</span>
           </button>
 
@@ -236,7 +244,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                        bg-card border border-default text-muted hover:text-body
                        hover:bg-elevated transition-all active:scale-95">
-            <span className="text-xl">🔊</span>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             <span className="text-[11px] font-semibold">Hear</span>
           </button>
 

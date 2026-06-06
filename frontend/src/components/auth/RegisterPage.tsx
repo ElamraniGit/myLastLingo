@@ -17,21 +17,21 @@ type Step = 1 | 2 | 3;
 const LEVELS = [
   {
     id: 'beginner',
-    emoji: '🌱',
+    icon: (<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22V12"/><path d="M12 12C12 7 16 3 21 3c0 5-4 9-9 9z"/><path d="M12 12C12 7 8 3 3 3c0 5 4 9 9 9z"/></svg>),
     label: 'Beginner',
     sub: 'I know basic words and phrases',
     color: 'border-green-500/40 bg-green-500/8 text-green-400',
   },
   {
     id: 'intermediate',
-    emoji: '📈',
+    icon: (<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>),
     label: 'Intermediate',
     sub: 'I can hold simple conversations',
     color: 'border-blue-500/40 bg-blue-500/8 text-blue-400',
   },
   {
     id: 'advanced',
-    emoji: '🎯',
+    icon: (<svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>),
     label: 'Advanced',
     sub: 'I want to refine and expand',
     color: 'border-purple-500/40 bg-purple-500/8 text-purple-400',
@@ -169,7 +169,7 @@ export default function RegisterPage() {
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="text-5xl mb-4">👋</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></div>
                 <h1 className="text-2xl font-bold text-heading">What should we call you?</h1>
                 <p className="text-sm text-muted mt-2">Choose a name — you can change it later</p>
               </div>
@@ -208,7 +208,7 @@ export default function RegisterPage() {
           {step === 2 && (
             <div className="space-y-5">
               <div className="text-center">
-                <div className="text-5xl mb-4">🔐</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/></svg></div>
                 <h1 className="text-2xl font-bold text-heading">Create your account</h1>
                 <p className="text-sm text-muted mt-2">
                   {displayName ? `Hi ${displayName.split(' ')[0]}!` : 'Almost there!'} Set up your login.
@@ -217,7 +217,7 @@ export default function RegisterPage() {
 
               {authError && (
                 <div className="bg-red-500/8 border border-red-500/20 text-red-400 text-sm rounded-2xl px-4 py-3 flex items-start gap-2">
-                  <span>⚠️</span>
+                  <svg className="w-4 h-4 shrink-0 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg>
                   <span className="flex-1">{authError}</span>
                   <button onClick={clearAuthError} className="text-red-400/60 hover:text-red-400 text-lg leading-none">×</button>
                 </div>
@@ -258,7 +258,7 @@ export default function RegisterPage() {
                       onClick={() => setShowPass(v => !v)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-body text-sm"
                     >
-                      {showPass ? '🙈' : '👁️'}
+                      {showPass ? (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>) : (<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>)}
                     </button>
                   </div>
                   {errors.password && <p className="text-xs text-red-400 mt-1 ml-1">{errors.password}</p>}
@@ -291,7 +291,7 @@ export default function RegisterPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="text-5xl mb-4">🎯</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-green-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg></div>
                 <h1 className="text-2xl font-bold text-heading">What's your English level?</h1>
                 <p className="text-sm text-muted mt-2">This helps us personalise your experience</p>
               </div>
@@ -307,7 +307,7 @@ export default function RegisterPage() {
                         : 'border-default bg-card hover:border-blue-500/30 hover:bg-blue-500/5 text-body'
                     }`}
                   >
-                    <span className="text-2xl shrink-0">{l.emoji}</span>
+                    <span className="w-7 h-7 shrink-0 flex items-center justify-center">{l.icon}</span>
                     <div className="flex-1">
                       <div className={`font-semibold text-sm ${level === l.id ? '' : 'text-heading'}`}>
                         {l.label}
@@ -343,12 +343,12 @@ export default function RegisterPage() {
                     Creating account…
                   </>
                 ) : (
-                  '🚀 Start Learning!'
+                  <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4z"/></svg>Start Learning!</>
                 )}
               </button>
 
               <p className="text-center text-xs text-faint">
-                🔒 All your data stays on your device
+                <svg className="w-3 h-3 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>All your data stays on your device
               </p>
             </div>
           )}

@@ -48,7 +48,12 @@ function fmtDuration(s?: number) {
   return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-const TYPE_ICON: Record<string, string>  = { youtube: '🎬', text: '📄', paste: '📋', file: '📁' };
+const TYPE_ICON: Record<string, React.ReactNode> = {
+  youtube: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg>,
+  text:    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  paste:   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>,
+  file:    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>,
+};
 const TYPE_LABEL: Record<string, string> = { youtube: 'Video', text: 'Text', paste: 'Text', file: 'File' };
 
 /* ════════════════════════════════════════════════════════════════ */
@@ -206,13 +211,13 @@ export default function LibraryView() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             {search ? (
               <>
-                <div className="text-4xl mb-4">🔍</div>
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/10 flex items-center justify-center"><svg className="w-7 h-7 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
                 <div className="text-base font-semibold text-heading mb-1">No results for "{search}"</div>
                 <button onClick={() => setSearch('')} className="mt-3 text-sm text-blue-500">Clear search</button>
               </>
             ) : sources.length === 0 ? (
               <>
-                <div className="text-5xl mb-4">📖</div>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
                 <div className="text-base font-semibold text-heading mb-1">Library is empty</div>
                 <div className="text-sm text-muted mb-6">Add YouTube videos or text to start learning</div>
                 <button onClick={() => setAddMode('choose')} className="btn-primary px-6 py-2.5 text-sm rounded-xl">
@@ -221,7 +226,7 @@ export default function LibraryView() {
               </>
             ) : (
               <>
-                <div className="text-4xl mb-4">{tab === 'youtube' ? '🎬' : '📄'}</div>
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/10 flex items-center justify-center">{tab === 'youtube' ? (<svg className="w-7 h-7 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg>) : (<svg className="w-7 h-7 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>)}</div>
                 <div className="text-base font-semibold text-heading mb-1">
                   No {tab === 'youtube' ? 'videos' : 'texts'} yet
                 </div>
@@ -249,7 +254,7 @@ export default function LibraryView() {
                   />
                 ) : (
                   <div className="w-16 h-11 rounded-xl bg-elevated flex items-center justify-center text-2xl shrink-0">
-                    {TYPE_ICON[s.source_type] || '📄'}
+                    {TYPE_ICON[s.source_type] || <svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/></svg>}
                   </div>
                 )}
 
@@ -296,7 +301,7 @@ export default function LibraryView() {
                   className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-faint hover:text-red-500
                              flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shrink-0 text-sm"
                   aria-label="Delete"
-                >🗑</button>
+                ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
               </button>
             ))}
           </div>
@@ -365,9 +370,9 @@ function AddModal({
 
   const MODAL_TITLE: Record<string, string> = {
     choose: 'Add to Library',
-    youtube: '🎬 YouTube Video',
-    text: '📄 Text Content',
-    word: '🔤 Add a Word',
+    youtube: 'YouTube Video',
+    text: 'Text Content',
+    word: 'Add a Word',
   };
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -392,13 +397,13 @@ function AddModal({
               onClick={close}
               className="w-8 h-8 rounded-full bg-elevated text-muted hover:text-heading
                          flex items-center justify-center text-sm transition-colors"
-            >✕</button>
+            ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
           </div>
 
           {/* Error */}
           {error && (
             <div className="mb-4 bg-red-500/8 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3 flex items-start gap-2">
-              <span>⚠️</span>
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg>
               <span>{error}</span>
             </div>
           )}
@@ -407,10 +412,10 @@ function AddModal({
           {mode === 'choose' && (
             <div className="space-y-2">
               {[
-                { m: 'youtube', icon: '🎬', title: 'YouTube Video',    sub: 'Paste a URL to extract subtitles',        color: 'hover:border-red-500/30 hover:bg-red-500/5' },
-                { m: 'text',    icon: '📋', title: 'Paste Text',       sub: 'Any English text, article or story',      color: 'hover:border-blue-500/30 hover:bg-blue-500/5' },
-                { m: null,      icon: '📁', title: 'Upload .txt File', sub: 'Read a text file from your device',       color: 'hover:border-green-500/30 hover:bg-green-500/5', file: true },
-                { m: 'word',    icon: '🔤', title: 'Look Up a Word',   sub: 'Search and save any English word',        color: 'hover:border-purple-500/30 hover:bg-purple-500/5' },
+                { m: 'youtube', icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='1' y='4' width='15' height='16' rx='2'/><polygon points='16 9 23 4 23 20 16 15 16 9'/></svg>), title: 'YouTube Video',    sub: 'Paste a URL to extract subtitles',        color: 'hover:border-red-500/30 hover:bg-red-500/5' },
+                { m: 'text',    icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/><rect x='8' y='2' width='8' height='4' rx='1'/></svg>), title: 'Paste Text',       sub: 'Any English text, article or story',      color: 'hover:border-blue-500/30 hover:bg-blue-500/5' },
+                { m: null,      icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg>), title: 'Upload .txt File', sub: 'Read a text file from your device',       color: 'hover:border-green-500/30 hover:bg-green-500/5', file: true },
+                { m: 'word',    icon: (<svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z'/></svg>), title: 'Look Up a Word',   sub: 'Search and save any English word',        color: 'hover:border-purple-500/30 hover:bg-purple-500/5' },
               ].map(item => (
                 <button
                   key={item.title}
@@ -543,8 +548,8 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
           className="input-field text-sm"
         />
       </div>
-      {error  && <p className="text-xs text-red-400 flex items-center gap-1.5">⚠️ {error}</p>}
-      {result && <p className="text-xs text-green-400 flex items-center gap-1.5">✅ Word popup opened — save it from there!</p>}
+      {error  && <p className="text-xs text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>{error}</p>}
+      {result && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>{result}</p>}
       <div className="flex gap-2">
         <button onClick={onBack} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
         <button onClick={search} disabled={busy || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">

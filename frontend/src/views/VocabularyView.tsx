@@ -212,7 +212,7 @@ export default function VocabularyView() {
                 onClick={() => setPage('flashcards')}
                 className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm shadow-blue-600/30 hover:bg-blue-700 active:scale-95 transition-all"
               >
-                🃏 Review {summary!.due_now}
+                Review {summary!.due_now}
               </button>
             )}
           </div>
@@ -285,7 +285,7 @@ export default function VocabularyView() {
           </div>
         ) : savedWords.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-5xl mb-4">📚</div>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg></div>
             <div className="text-base font-semibold text-heading mb-1">No words yet</div>
             <div className="text-sm text-muted">Start learning from a video in the Library</div>
           </div>
@@ -334,11 +334,11 @@ export default function VocabularyView() {
                   <button
                     onClick={e => { e.stopPropagation(); speak(w.word); }}
                     className="w-8 h-8 rounded-xl hover:bg-blue-500/10 text-faint hover:text-blue-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"
-                  >🔊</button>
+                  ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></button>
                   <button
                     onClick={e => { e.stopPropagation(); if (confirm(`Delete "${w.word}"?`)) { sfx.deleteSfx(); deleteWord(w.id); } }}
                     className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-faint hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"
-                  >🗑</button>
+                  ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
                 </div>
               </div>
             ))}
