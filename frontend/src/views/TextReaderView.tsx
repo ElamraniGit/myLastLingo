@@ -54,7 +54,7 @@ export default function TextReaderView() {
   const [loading,      setLoading]      = useState(true);
   const [reading,      setReading]      = useState(false);
   const [currentChunk, setCurrentChunk] = useState(-1);
-  const [speed,        setSpeed]        = useState(1.0);
+  const defaultSpeed = useStore(s => s.defaultSpeed);
   const [lookedUp,     setLookedUp]     = useState<Set<string>>(new Set());
   const [scrollPct,    setScrollPct]    = useState(0);
 
@@ -70,7 +70,7 @@ export default function TextReaderView() {
   const speedRef   = useRef(1.0);
   const activeRef  = useRef<HTMLSpanElement | null>(null);
 
-  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => { speedRef.current = defaultSpeed; }, [defaultSpeed]);
 
   // Auto-scroll highlighted chunk into view
   useEffect(() => {
@@ -284,7 +284,7 @@ export default function TextReaderView() {
 
   const words      = wordsRef.current;
   const wordCount  = words.length;
-  const readTime   = estimateReadTime(wordCount, speed);
+  const readTime   = estimateReadTime(wordCount, defaultSpeed);
 
   return (
     <div className="flex flex-col h-full bg-base">

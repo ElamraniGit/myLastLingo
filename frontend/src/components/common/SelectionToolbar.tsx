@@ -26,7 +26,10 @@ interface Props {
 async function fetchTranslation(text: string): Promise<string> {
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ar`;
-    const res  = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const ctrl1 = new AbortController();
+    const t1 = setTimeout(() => ctrl1.abort(), 6000);
+    const res  = await fetch(url, { signal: ctrl1.signal });
+    clearTimeout(t1);
     if (!res.ok) return '';
     const data = await res.json();
     const tr   = data?.responseData?.translatedText || '';
@@ -45,7 +48,11 @@ async function fetchDefinition(text: string): Promise<string> {
     const query = words.join('%20');
     const res   = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${query}`,
-      { signal: AbortSignal.timeout(6000) }
+      (() => {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 6000);
+        return { signal: ctrl.signal };
+      })()
     );
     if (!res.ok) return '';
     const data = await res.json();

@@ -135,7 +135,14 @@ export default function App({ Component, pageProps }: AppProps) {
   }
 
   // New user — show onboarding tour before the main app
-  if (!hasCompletedOnboarding || currentPage === ('onboarding' as any)) {
+  // Note: existing users who already have words/videos skip onboarding
+  const storeState = useStore.getState();
+  const isExistingUser = storeState.recentVideos.length > 0 || storeState.savedWords.length > 0;
+  if (isExistingUser && !hasCompletedOnboarding) {
+    // Auto-complete onboarding for existing users
+    storeState.setHasCompletedOnboarding(true);
+  }
+  if (!hasCompletedOnboarding && !isExistingUser || currentPage === ('onboarding' as any)) {
     return <OnboardingView />;
   }
 

@@ -170,8 +170,8 @@ export default function WordDetailView() {
   }, [currentSavedWordId, loadReviewHistory]);
 
   useEffect(() => {
-    if (currentPage === 'worddetail') load();
-  }, [currentPage]); // eslint-disable-line
+    if (currentPage === 'worddetail' && currentSavedWordId) load();
+  }, [currentPage, currentSavedWordId]); // eslint-disable-line
 
   const goBack = () => {
     setCurrentSavedWordId(null);
