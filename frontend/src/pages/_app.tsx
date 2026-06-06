@@ -28,6 +28,7 @@ import TextReaderView from '@/views/TextReaderView';
 import StatsView from '@/views/StatsView';
 import OnboardingView from '@/views/OnboardingView';
 import WordDetailView from '@/views/WordDetailView';
+import WordPopup from '@/components/dictionary/WordPopup';
 
 function NotificationsBootstrap() {
   useNotifications();
@@ -178,6 +179,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <InstallPrompt />
         <Page />
       </Layout>
+      {/* WordPopup renders outside Layout to escape overflow:hidden constraints */}
+      <WordPopup />
     </>
   );
 }

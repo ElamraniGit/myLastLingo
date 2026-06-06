@@ -17,7 +17,6 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { libraryApi, xpApi } from '@/lib/api';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import TranscriptViewer from '@/components/transcript/TranscriptViewer';
-import WordPopup from '@/components/dictionary/WordPopup';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
 
@@ -90,8 +89,6 @@ export default function PlayerView() {
 
       {/* Transcript */}
       <div className="flex-1 overflow-hidden"><TranscriptViewer /></div>
-
-      <WordPopup />
     </div>
   );
 }
@@ -301,8 +298,6 @@ function HomeDashboard() {
           <div className="text-sm text-muted">Paste a YouTube URL above to begin</div>
         </div>
       )}
-
-      <WordPopup />
     </div>
   );
 }

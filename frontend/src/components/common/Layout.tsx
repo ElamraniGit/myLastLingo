@@ -32,7 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { currentPage, setPage, user } = useStore();
 
   return (
-    <div className="flex h-screen bg-base overflow-hidden">
+    <div className="flex h-screen bg-base overflow-clip">
 
       {/* ── Desktop sidebar ─────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-56 bg-surface border-r border-default shrink-0">
@@ -87,7 +87,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main area ───────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* NOTE: no overflow-hidden here — would create a containing block
+          that breaks fixed-position children (WordPopup, modals) */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-clip">
 
         {/* Mobile top bar */}
         <header className="lg:hidden flex items-center justify-between
