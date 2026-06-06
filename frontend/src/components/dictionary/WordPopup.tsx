@@ -59,7 +59,7 @@ function Section({ title, icon, children, className = '' }: {
    MAIN COMPONENT
    ════════════════════════════════════════════════════════════════ */
 export default function WordPopup() {
-  const { wordPopupOpen, selectedWord, wordPopupSentence, currentVideo, setSelectedWord } = useStore();
+  const { wordPopupOpen, selectedWord, wordPopupSentence, currentVideo, setSelectedWord, savedWords } = useStore();
   const { closeWordPopup, saveWord } = useDictionary();
   const [saved,    setSaved]    = useState(false);
   const [saving,   setSaving]   = useState(false);
@@ -77,8 +77,15 @@ export default function WordPopup() {
     }
   }, [wordPopupOpen, selectedWord]);
 
-  // Reset saved state on new word
-  useEffect(() => { setSaved(false); setShowPronunciation(false); }, [selectedWord?.word]);
+  // Reset saved state on new word — check if already in vocabulary
+  useEffect(() => {
+    if (!selectedWord?.word) return;
+    const alreadySaved = savedWords.some(
+      w => w.word?.toLowerCase() === selectedWord.word.toLowerCase()
+    );
+    setSaved(alreadySaved);
+    setShowPronunciation(false);
+  }, [selectedWord?.word, savedWords]);
 
   const handleClose = useCallback(() => {
     setVisible(false);
@@ -334,24 +341,29 @@ export default function WordPopup() {
             </Section>
           )}
 
-          {/* ── AI Enrich button (for non-enriched words) ────── */}
+          {/* ── AI Enrich button — only shown when word not yet AI-enriched ── */}
           {!w.ai_enriched && (
             <div className="mt-4">
               <button
                 onClick={handleEnrich}
                 disabled={enriching}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl
-                           border border-purple-500/30 bg-purple-500/8 text-purple-400
-                           hover:bg-purple-500/15 active:scale-[0.98] transition-all
-                           text-sm font-medium disabled:opacity-50"
+                           border border-default bg-elevated text-muted
+                           hover:border-purple-500/30 hover:bg-purple-500/8 hover:text-purple-400
+                           active:scale-[0.98] transition-all text-sm font-medium disabled:opacity-50"
               >
                 {enriching ? (
                   <>
-                    <span className="w-3.5 h-3.5 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"/>
-                    Enriching with AI…
+                    <span className="w-3.5 h-3.5 border-2 border-muted/30 border-t-muted rounded-full animate-spin"/>
+                    Getting better data…
                   </>
                 ) : (
-                  <><svg className="w-3.5 h-3.5 mr-1 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Enhance with AI</>
+                  <>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    Improve definition with AI
+                  </>
                 )}
               </button>
             </div>
@@ -359,14 +371,24 @@ export default function WordPopup() {
 
           {/* ── Save Button ──────────────────────────────────── */}
           <div className="mt-3">
-            <Button
-              onClick={handleSave}
-              loading={saving}
-              variant={saved ? 'secondary' : 'primary'}
-              className="w-full py-3"
-            >
-              {saved ? '✓ Saved to vocabulary' : '+ Save word'}
-            </Button>
+            {saved ? (
+              <div className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl
+                             bg-green-500/10 border border-green-500/25 text-green-500 text-sm font-medium">
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Already in your vocabulary
+              </div>
+            ) : (
+              <Button
+                onClick={handleSave}
+                loading={saving}
+                variant="primary"
+                className="w-full py-3"
+              >
+                + Save word
+              </Button>
+            )}
           </div>
         </div>
       </div>
