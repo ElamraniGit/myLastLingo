@@ -91,7 +91,7 @@ export default function VideoPlayer() {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       )}
           </button>
-          <span className="text-heading/60 text-xs tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
+          <span className="text-heading/60 text-sm tabular-nums ml-1">{fmtTime(currentTime)} / {fmtTime(duration)}</span>
           <div className="flex-1" />
           <button onClick={() => toggleLoop()} className={`p-2 rounded-lg text-sm transition-all ${loopEnabled ? 'text-blue-400 bg-blue-500/20' : 'text-heading/50 hover:text-heading hover:bg-white/10'}`}><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>
 

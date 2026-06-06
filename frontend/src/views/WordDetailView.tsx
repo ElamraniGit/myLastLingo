@@ -95,7 +95,7 @@ function SM2Bar({ ef }: { ef?: number }) {
       <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-500 ${col}`} style={{ width: `${v}%` }}/>
       </div>
-      <span className="text-[10px] text-faint tabular-nums">{Math.round(v)}%</span>
+      <span className="text-xs text-faint tabular-nums">{Math.round(v)}%</span>
     </div>
   );
 }
@@ -243,7 +243,7 @@ export default function WordDetailView() {
           </svg>
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-muted">Word Detail</div>
+          <div className="text-sm text-muted">Word Detail</div>
           <div className="text-base font-semibold text-heading truncate">{word.word}</div>
         </div>
         {/* Favorite + Delete */}
@@ -269,7 +269,7 @@ export default function WordDetailView() {
               <h1 className="text-4xl font-black text-heading tracking-tight">{word.word}</h1>
               {word.level && <LevelBadge level={word.level as CEFRLevel}/>}
               {w.ai_enriched && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">✨ AI</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">✨ AI</span>
               )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -281,7 +281,7 @@ export default function WordDetailView() {
               {word.pronunciation && (
                 <span className="text-sm text-body font-mono">{word.pronunciation}</span>
               )}
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[word.status] || 'text-muted'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[word.status] || 'text-muted'}`}>
                 {word.status}
               </span>
             </div>
@@ -301,7 +301,7 @@ export default function WordDetailView() {
         {/* Arabic */}
         {word.meaning_ar && (
           <div className="mt-4 bg-blue-500/6 border border-blue-500/15 rounded-2xl px-4 py-3">
-            <p className="text-[10px] text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
+            <p className="text-xs text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
             <p className="text-xl font-bold text-heading"
                style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Segoe UI', 'Noto Sans Arabic', sans-serif" }}>
               {word.meaning_ar}
@@ -312,7 +312,7 @@ export default function WordDetailView() {
         {/* Main definition */}
         {word.meaning_en && (
           <div className="mt-4">
-            <p className="text-[10px] text-muted uppercase tracking-wider mb-1.5">Definition</p>
+            <p className="text-xs text-muted uppercase tracking-wider mb-1.5">Definition</p>
             <p className="text-base text-heading leading-relaxed">{word.meaning_en}</p>
           </div>
         )}
@@ -325,7 +325,7 @@ export default function WordDetailView() {
             {howToUse.map((tip: string, i: number) => (
               <div key={i} className="flex items-start gap-2.5 bg-card border border-default rounded-xl px-3.5 py-3">
                 <svg className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>
-                <p className="text-sm text-body leading-relaxed">{tip}</p>
+                <p className="text-base text-body leading-relaxed">{tip}</p>
               </div>
             ))}
           </div>
@@ -339,7 +339,7 @@ export default function WordDetailView() {
             {definitions.slice(0, 5).map((d: any, i: number) => (
               <div key={i} className="bg-card border border-default rounded-xl px-3.5 py-3">
                 {d.part_of_speech && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-elevated text-muted font-semibold uppercase mr-2">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-elevated text-muted font-semibold uppercase mr-2">
                     {d.part_of_speech}
                   </span>
                 )}
@@ -438,7 +438,7 @@ export default function WordDetailView() {
           <div className="grid grid-cols-2 gap-1.5">
             {Object.entries(conjugations).map(([k, v]) => (
               <div key={k} className="flex justify-between items-center px-3 py-2 bg-card border border-default rounded-xl">
-                <span className="text-[11px] text-muted capitalize">{k}</span>
+                <span className="text-xs text-muted capitalize">{k}</span>
                 <span className="text-xs text-heading font-semibold">{String(v)}</span>
               </div>
             ))}
@@ -468,7 +468,7 @@ export default function WordDetailView() {
             ].map(s => (
               <div key={s.label} className="text-center bg-elevated rounded-xl py-2">
                 <div className={`text-lg font-bold ${s.color}`}>{String(s.val)}</div>
-                <div className="text-[10px] text-faint">{s.label}</div>
+                <div className="text-xs text-faint">{s.label}</div>
               </div>
             ))}
           </div>
@@ -496,8 +496,8 @@ export default function WordDetailView() {
         <Section title="Review History" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}>
           <div className="bg-card border border-default rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-muted">Last {Math.min(history.length, 10)} reviews</span>
-              <div className="flex items-center gap-3 text-[10px] text-faint">
+              <span className="text-sm text-muted">Last {Math.min(history.length, 10)} reviews</span>
+              <div className="flex items-center gap-3 text-xs text-faint">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Again</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block"/>Good</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Easy</span>
@@ -580,7 +580,7 @@ export default function WordDetailView() {
                 maxLength={2000}
               />
               <div className="flex justify-between items-center">
-                <span className="text-[10px] text-faint">{notes.length}/2000</span>
+                <span className="text-xs text-faint">{notes.length}/2000</span>
                 <div className="flex gap-2">
                   <button onClick={() => setEditingNotes(false)} className="px-3 py-1.5 rounded-xl border border-default text-xs text-muted hover:bg-elevated transition-colors">Cancel</button>
                   <button onClick={saveMeta} disabled={savingMeta} className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-medium disabled:opacity-50">

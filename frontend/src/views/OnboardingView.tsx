@@ -187,7 +187,7 @@ export default function OnboardingView() {
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <span className="text-xl shrink-0">{f.icon}</span>
-                <span className="text-sm text-body">{f.text}</span>
+                <span className="text-base text-body">{f.text}</span>
               </div>
             ))}
           </div>
@@ -249,7 +249,7 @@ export default function OnboardingView() {
         </div>
 
         {/* Slide counter */}
-        <p className="text-center text-[11px] text-faint">
+        <p className="text-center text-xs text-faint">
           {current + 1} of {SLIDES.length}
           {user?.display_name && current === 0 && (
             <span className="ml-1">· Hi, {user.display_name.split(' ')[0]}!</span>

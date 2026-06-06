@@ -128,8 +128,8 @@ export default function LibraryView() {
       <div className="sticky top-0 z-20 bg-base/90 backdrop-blur-xl border-b border-default">
         <div className="flex items-center justify-between px-4 pt-5 pb-3">
           <div>
-            <h2 className="text-xl font-bold text-heading">Library</h2>
-            <p className="text-xs text-muted mt-0.5">
+            <h2 className="text-2xl font-bold text-heading tracking-tight">Library</h2>
+            <p className="text-sm text-muted mt-0.5">
               {sources.length} source{sources.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function LibraryView() {
               }`}
             >
               {t.label}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                 tab === t.id ? 'bg-blue-500/20' : 'bg-elevated'
               }`}>{t.count}</span>
             </button>
@@ -265,7 +265,7 @@ export default function LibraryView() {
                   </div>
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     {/* Type badge */}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-elevated text-muted font-medium shrink-0">
+                    <span className="text-xs px-1.5 py-0.5 rounded-md bg-elevated text-muted font-medium shrink-0">
                       {TYPE_LABEL[s.source_type] || s.source_type}
                     </span>
                     {/* Channel */}
@@ -274,11 +274,11 @@ export default function LibraryView() {
                     )}
                     {/* Duration */}
                     {s.duration ? (
-                      <span className="text-[11px] text-faint shrink-0">{fmtDuration(s.duration)}</span>
+                      <span className="text-xs text-faint shrink-0">{fmtDuration(s.duration)}</span>
                     ) : null}
                     {/* Word count */}
                     {(s.word_count ?? 0) > 0 && (
-                      <span className="text-[10px] bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded font-medium shrink-0">
+                      <span className="text-xs bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded font-medium shrink-0">
                         {s.word_count} words
                       </span>
                     )}
@@ -291,7 +291,7 @@ export default function LibraryView() {
                   )}
                   {/* Date */}
                   {s.created_at && (
-                    <div className="text-[10px] text-faint mt-0.5">{fmtDate(s.created_at)}</div>
+                    <div className="text-xs text-faint mt-0.5">{fmtDate(s.created_at)}</div>
                   )}
                 </div>
 
@@ -425,8 +425,8 @@ function AddModal({
                 >
                   <span className="text-2xl w-9 text-center shrink-0">{item.icon}</span>
                   <div>
-                    <div className="text-sm font-semibold text-heading">{item.title}</div>
-                    <div className="text-xs text-muted mt-0.5">{item.sub}</div>
+                    <div className="text-base font-semibold text-heading">{item.title}</div>
+                    <div className="text-sm text-muted mt-0.5">{item.sub}</div>
                   </div>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                        strokeLinecap="round" className="w-4 h-4 text-faint ml-auto shrink-0">

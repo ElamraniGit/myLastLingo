@@ -36,7 +36,7 @@ export default function OfflineBanner() {
           <span>Offline mode — changes saved locally</span>
         </div>
         {pendingCount > 0 && (
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">
+          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
             {pendingCount} pending
           </span>
         )}
@@ -71,7 +71,7 @@ export default function OfflineBanner() {
         </div>
         <button
           onClick={() => syncNow()}
-          className="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-[11px] transition-colors"
+          className="bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg text-xs transition-colors"
         >
           Sync now
         </button>

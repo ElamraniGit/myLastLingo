@@ -172,7 +172,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
                 </button>
               </div>
 
-              <p className="text-center text-[10px] text-faint">
+              <p className="text-center text-xs text-faint">
                 Tip: paste any text from other apps here
               </p>
             </div>

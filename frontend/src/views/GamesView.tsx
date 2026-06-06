@@ -179,9 +179,9 @@ function GameCard({ EmojiComponent, title, desc, xp, skill, color, wordCount, on
         <div className="text-base font-bold text-heading">{title}</div>
         <div className="text-sm text-muted mt-0.5">{desc}</div>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${colors.badge}`}>{xp} correct</span>
-          <span className="text-[10px] text-faint">{skill}</span>
-          <span className="text-[10px] text-faint ml-auto">{wordCount} words</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors.badge}`}>{xp} correct</span>
+          <span className="text-xs text-faint">{skill}</span>
+          <span className="text-xs text-faint ml-auto">{wordCount} words</span>
         </div>
       </div>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
@@ -394,7 +394,7 @@ function WordScramble({ words, onBack }: { words: SavedWord[]; onBack: () => voi
         {/* Definition */}
         {current.meaning_en && (
           <div className="text-center">
-            <p className="text-[10px] text-muted uppercase tracking-wider mb-1.5">What word means…</p>
+            <p className="text-xs text-muted uppercase tracking-wider mb-1.5">What word means…</p>
             <p className="text-sm text-heading font-medium leading-relaxed">"{current.meaning_en}"</p>
             {current.meaning_ar && (
               <p className="text-xs text-muted mt-1" style={{ direction: 'rtl', fontFamily: "'Segoe UI','Noto Sans Arabic',sans-serif" }}>
@@ -617,7 +617,7 @@ function GameHeader({ title, onBack, score, idx, total }: {
         </button>
         <div className="flex-1">
           <div className="text-base font-bold text-heading">{title}</div>
-          <div className="text-xs text-muted">{idx} / {total} words</div>
+          <div className="text-sm text-muted">{idx} / {total} words</div>
         </div>
         <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-1.5">
           <span className="text-sm">⭐</span>
@@ -669,7 +669,7 @@ function GameComplete({ score, total, game, subtitle, skipped = 0, onBack, onRep
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-black text-heading">{pct}%</span>
-              <span className="text-[10px] text-faint">accuracy</span>
+              <span className="text-xs text-faint">accuracy</span>
             </div>
           </div>
         </div>
@@ -683,7 +683,7 @@ function GameComplete({ score, total, game, subtitle, skipped = 0, onBack, onRep
           ].map(s => (
             <div key={s.label} className="bg-elevated rounded-2xl py-3 text-center">
               <div className={`text-xl font-black ${s.color}`}>{s.val}</div>
-              <div className="text-[10px] text-faint">{s.label}</div>
+              <div className="text-xs text-faint">{s.label}</div>
             </div>
           ))}
         </div>

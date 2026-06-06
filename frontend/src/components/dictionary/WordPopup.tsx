@@ -158,7 +158,7 @@ export default function WordPopup() {
                 <h2 className="text-3xl font-extrabold text-heading tracking-tight">{w.word}</h2>
                 <LevelBadge level={(w.level || 'B1') as CEFRLevel} />
                 {w.ai_enriched && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/20 font-semibold">
                     AI
                   </span>
                 )}
@@ -202,7 +202,7 @@ export default function WordPopup() {
           {/* ── Arabic Translation ───────────────────────────── */}
           {w.meaning_ar && (
             <div className="mt-4 bg-gradient-to-r from-blue-500/8 to-purple-500/8 border border-blue-500/15 rounded-2xl px-4 py-3.5">
-              <p className="text-[11px] text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
+              <p className="text-xs text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
               <p className="text-xl font-bold text-heading"
                  style={{ direction: 'rtl', textAlign: 'right', unicodeBidi: 'isolate',
                           fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
@@ -214,7 +214,7 @@ export default function WordPopup() {
           {/* ── Main Definition ──────────────────────────────── */}
           {w.meaning_en && (
             <Section title="Definition" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>}>
-              <p className="text-[15px] text-heading leading-relaxed">{w.meaning_en}</p>
+              <p className="text-sm text-heading leading-relaxed">{w.meaning_en}</p>
             </Section>
           )}
 
@@ -225,11 +225,11 @@ export default function WordPopup() {
                 {definitions.slice(1, 5).map((d, i) => (
                   <div key={i} className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
                     {d.part_of_speech && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-semibold border mb-1.5 inline-block ${posStyle(d.part_of_speech).color}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded font-semibold border mb-1.5 inline-block ${posStyle(d.part_of_speech).color}`}>
                         {d.part_of_speech}
                       </span>
                     )}
-                    <p className="text-sm text-body leading-relaxed">{d.definition}</p>
+                    <p className="text-base text-body leading-relaxed">{d.definition}</p>
                     {d.example && (
                       <p className="text-xs text-muted mt-1.5 italic">"{d.example}"</p>
                     )}
@@ -244,7 +244,7 @@ export default function WordPopup() {
             <Section title="How to Use" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>}>
               <div className="space-y-1.5">
                 {howToUse.map((tip, i) => (
-                  <p key={i} className="text-sm text-body leading-relaxed">{tip}</p>
+                  <p key={i} className="text-base text-body leading-relaxed">{tip}</p>
                 ))}
               </div>
             </Section>
@@ -254,7 +254,7 @@ export default function WordPopup() {
           {wordPopupSentence && (
             <Section title="In Context" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg>}>
               <div className="bg-card/40 rounded-xl px-4 py-3 border border-line/30">
-                <p className="text-sm text-body leading-relaxed">
+                <p className="text-base text-body leading-relaxed">
                   {/* FIX BUG-11: Safe regex — escapes special chars (c++, it's, etc.) */}
                   {(() => {
                     try {
@@ -326,7 +326,7 @@ export default function WordPopup() {
               <div className="grid grid-cols-2 gap-1.5">
                 {Object.entries(conjugations).map(([k, v]) => (
                   <div key={k} className="flex justify-between items-center px-3 py-2 bg-card/50 rounded-xl border border-line/30">
-                    <span className="text-[11px] text-muted capitalize">{k}</span>
+                    <span className="text-xs text-muted capitalize">{k}</span>
                     <span className="text-xs text-heading font-medium">{v}</span>
                   </div>
                 ))}

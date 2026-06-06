@@ -75,10 +75,10 @@ export default function PlayerView() {
             />
           )}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-heading truncate leading-tight">
+            <div className="text-base font-bold text-heading truncate leading-tight">
               {currentVideo.title}
             </div>
-            <div className="text-[11px] text-muted truncate">
+            <div className="text-xs text-muted truncate">
               {currentVideo.channel}
               {currentVideo.duration > 0 && <> · {fmtDuration(currentVideo.duration)}</>}
             </div>
@@ -153,7 +153,7 @@ function HomeDashboard() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[10px] font-bold text-heading">{goalPct}%</span>
+              <span className="text-xs font-bold text-heading">{goalPct}%</span>
               <span className="text-[8px] text-faint">daily</span>
             </div>
           </div>
@@ -175,7 +175,7 @@ function HomeDashboard() {
           >
             <span className="text-xl">{s.icon}</span>
             <span className={`text-lg font-bold ${s.color}`}>{loading ? '—' : s.val}</span>
-            <span className="text-[10px] text-faint font-medium uppercase tracking-wide">{s.label}</span>
+            <span className="text-xs text-faint font-medium uppercase tracking-wide">{s.label}</span>
           </button>
         ))}
       </div>
@@ -195,7 +195,7 @@ function HomeDashboard() {
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg>
           </div>
           <div className="flex-1">
-            <div className="text-sm font-semibold text-heading">
+            <div className="text-base font-bold text-heading">
               {dueCount} word{dueCount === 1 ? '' : 's'} ready to review
             </div>
             <div className="text-xs text-muted mt-0.5">Tap to start your session</div>
@@ -222,7 +222,7 @@ function HomeDashboard() {
                        hover:border-blue-500/20 hover:bg-blue-500/5 active:scale-95 transition-all"
           >
             <a.Icon className="w-5 h-5 text-muted" />
-            <span className="text-[11px] font-medium text-body">{a.label}</span>
+            <span className="text-sm font-medium text-body">{a.label}</span>
           </button>
         ))}
       </div>
@@ -231,7 +231,7 @@ function HomeDashboard() {
       {recentWords.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <span className="section-title">Recent Words</span>
+            <span className="section-title mb-3">Recent Words</span>
             <button onClick={() => setPage('vocabulary')} className="text-xs text-blue-500 font-medium hover:text-blue-400 transition-colors">
               See all →
             </button>
@@ -247,7 +247,7 @@ function HomeDashboard() {
                 <div className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[w.status] ?? 'bg-muted'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-heading">{w.word}</span>
+                    <span className="text-base font-bold text-heading">{w.word}</span>
                     {w.level && (
                       <span className="text-[9px] px-1 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold uppercase">{w.level}</span>
                     )}
@@ -273,7 +273,7 @@ function HomeDashboard() {
       {sources.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <span className="section-title">Recent Sources</span>
+            <span className="section-title mb-3">Recent Sources</span>
             <button onClick={() => setPage('library')} className="text-xs text-blue-500 font-medium hover:text-blue-400 transition-colors">
               See all →
             </button>
@@ -298,11 +298,11 @@ function HomeDashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-heading truncate">{s.title}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[11px] text-muted truncate">
+                    <span className="text-xs text-muted truncate">
                       {s.channel || s.source_type}
                     </span>
                     {s.word_count > 0 && (
-                      <span className="text-[10px] bg-elevated px-1.5 py-0.5 rounded text-faint font-medium shrink-0">
+                      <span className="text-xs bg-elevated px-1.5 py-0.5 rounded text-faint font-medium shrink-0">
                         {s.word_count} words
                       </span>
                     )}

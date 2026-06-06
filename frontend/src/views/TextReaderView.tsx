@@ -314,7 +314,7 @@ export default function TextReaderView() {
           {/* Title + stats */}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-heading truncate">{source.title}</div>
-            <div className="flex items-center gap-2 text-[11px] text-muted">
+            <div className="flex items-center gap-2 text-xs text-muted">
               <span>{wordCount} words</span>
               <span>·</span>
               <span>{readTime}</span>

@@ -1,17 +1,6 @@
 /**
- * FIX BUG-13: Corrected CSS variable syntax for Tailwind v3 opacity modifiers.
- *
- * PROBLEM:
- *   'rgb(var(--bg-primary) / )' — the <alpha-value> placeholder must NOT
- *   be wrapped in rgb() by Tailwind config. Tailwind v3 expects the format:
- *   'rgb(var(--bg-primary) / <alpha-value>)' — but ONLY when the CSS variable
- *   contains space-separated R G B values (which this project does correctly).
- *
- * The original code had 'rgb(var(--bg-primary) / )' with an HTML entity
- * instead of the literal '<alpha-value>' string. This caused opacity modifiers
- * like bg-base/50 to silently fail.
- *
- * @type {import('tailwindcss').Config}
+ * Tailwind config — LinguaLearn Design System
+ * Typography scale bumped: xs=13px, sm=15px, base=17px for better readability.
  */
 module.exports = {
   content: [
@@ -24,9 +13,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // FIX BUG-13: Correct Tailwind v3 CSS variable + opacity modifier syntax.
-        // The <alpha-value> token is replaced by Tailwind when using /opacity modifiers.
-        // e.g.  bg-base/50  →  background: rgb(var(--bg-primary) / 0.5)
         base:      'rgb(var(--bg-primary) / <alpha-value>)',
         surface:   'rgb(var(--bg-secondary) / <alpha-value>)',
         card:      'rgb(var(--bg-card) / <alpha-value>)',
@@ -40,7 +26,53 @@ module.exports = {
         'line-s':  'rgb(var(--border-subtle) / <alpha-value>)',
         accent:    'rgb(var(--accent) / <alpha-value>)',
       },
+      fontSize: {
+        /* Bumped scale for comfortable mobile reading */
+        'xs':   ['0.8125rem', { lineHeight: '1.4' }],   /* 13px */
+        'sm':   ['0.9375rem', { lineHeight: '1.5' }],   /* 15px */
+        'base': ['1.0625rem', { lineHeight: '1.6' }],   /* 17px */
+        'lg':   ['1.1875rem', { lineHeight: '1.55' }],  /* 19px */
+        'xl':   ['1.375rem',  { lineHeight: '1.4' }],   /* 22px */
+        '2xl':  ['1.625rem',  { lineHeight: '1.3' }],   /* 26px */
+        '3xl':  ['2rem',      { lineHeight: '1.2' }],   /* 32px */
+        '4xl':  ['2.5rem',    { lineHeight: '1.15' }],  /* 40px */
+        '5xl':  ['3rem',      { lineHeight: '1.1' }],   /* 48px */
+        '6xl':  ['3.75rem',   { lineHeight: '1' }],     /* 60px */
+      },
+      borderRadius: {
+        'sm':  '10px',
+        'md':  '14px',
+        'lg':  '18px',
+        'xl':  '22px',
+        '2xl': '28px',
+        '3xl': '36px',
+      },
+      spacing: {
+        '4.5': '1.125rem',
+        '5.5': '1.375rem',
+        '13':  '3.25rem',
+        '15':  '3.75rem',
+        '18':  '4.5rem',
+      },
       screens: { xs: '375px' },
+      fontFamily: {
+        sans: [
+          '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text',
+          'Inter', 'Segoe UI Variable', 'Segoe UI', 'Roboto',
+          'Helvetica Neue', 'Arial', 'sans-serif',
+        ],
+      },
+      boxShadow: {
+        'card':    '0 2px 12px rgb(0 0 0 / 0.06)',
+        'card-md': '0 4px 20px rgb(0 0 0 / 0.10)',
+        'card-lg': '0 8px 32px rgb(0 0 0 / 0.14)',
+        'accent':  '0 4px 16px rgb(37 99 235 / 0.30)',
+        'inner':   'inset 0 1px 3px rgb(0 0 0 / 0.08)',
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
     },
   },
   plugins: [],

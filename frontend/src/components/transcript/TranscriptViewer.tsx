@@ -25,7 +25,7 @@ const FS: Record<TranscriptFontSize, string> = {
   sm: 'text-sm', md: 'text-base', lg: 'text-lg', xl: 'text-xl',
 };
 const FM: Record<TranscriptFontSize, string> = {
-  sm: 'text-[11px]', md: 'text-xs', lg: 'text-xs', xl: 'text-sm',
+  sm: 'text-xs', md: 'text-xs', lg: 'text-xs', xl: 'text-sm',
 };
 
 function fmtTime(s: number): string {
@@ -271,7 +271,7 @@ export default function TranscriptViewer() {
           <svg className="w-4 h-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
           <span className="text-sm font-semibold text-heading shrink-0">Subtitles</span>
           <span className="text-xs text-faint bg-card px-2 py-0.5 rounded-full shrink-0">{transcript.segments.length}</span>
-          <span className="text-[10px] text-faint truncate hidden sm:block">tap · hold &amp; drag</span>
+          <span className="text-xs text-faint truncate hidden sm:block">tap · hold &amp; drag</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${transcript.source === 'youtube' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}`}>
@@ -331,7 +331,7 @@ export default function TranscriptViewer() {
                 })}
               </p>
               <div className="mt-1 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className={`${fm} text-faint tabular-nums`}>{fmtTime(seg.start)} → {fmtTime(seg.end)}</span>
+                <span className={`${fm} text-faint tabular-nums text-sm`}>{fmtTime(seg.start)} → {fmtTime(seg.end)}</span>
                 <span className={`${fm} text-faint`}>{(seg.end - seg.start).toFixed(1)}s</span>
                 {segSel && segSel.hi > segSel.lo && (
                   <span className={`${fm} text-blue-400 ml-1`}>{segSel.hi - segSel.lo + 1} words</span>

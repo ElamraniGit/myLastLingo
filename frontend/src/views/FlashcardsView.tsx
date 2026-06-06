@@ -293,7 +293,7 @@ export default function FlashcardsView() {
   if (!current) return (
     <div className="flex flex-col items-center justify-center min-h-full px-6 text-center py-12 animate-fade-in">
       <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">{completed ? <svg className="w-7 h-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5.8 11.3L2 22l10.7-3.79"/><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01M22 2l-2.24 2.24"/><path d="M22 13l-2 2M14 8l-2 2"/><path d="M4 14l2 2"/></svg> : <svg className="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><polyline points="20 6 9 17 4 12"/></svg>}</div>
-      <h2 className="text-2xl font-bold text-heading mb-2">
+      <h2 className="text-3xl font-bold text-heading tracking-tight mb-2">
         {completed ? 'Session Complete!' : 'All Caught Up!'}
       </h2>
       <p className="text-sm text-muted mb-2 max-w-xs">
@@ -321,7 +321,7 @@ export default function FlashcardsView() {
           ].map(s => (
             <div key={s.label} className="bg-card border border-default rounded-2xl py-3 text-center">
               <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
-              <div className="text-[10px] text-muted mt-0.5">{s.label}</div>
+              <div className="text-xs text-muted mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
@@ -413,7 +413,7 @@ export default function FlashcardsView() {
                 <span className="text-lg shrink-0">{cfg.icon}</span>
                 <div>
                   <div className="text-sm font-semibold">{cfg.label}</div>
-                  <div className="text-[10px] text-muted">{cfg.desc}</div>
+                  <div className="text-sm text-muted">{cfg.desc}</div>
                 </div>
               </button>
             ))}
@@ -486,12 +486,12 @@ export default function FlashcardsView() {
                 {/* Status + Level */}
                 <div className="flex items-center gap-2">
                   {current.level && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-bold uppercase">
+                    <span className="text-xs px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500 font-bold uppercase">
                       {current.level}
                     </span>
                   )}
                   {current.status && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-lg font-medium uppercase ${
+                    <span className={`text-xs px-2 py-0.5 rounded-lg font-medium uppercase ${
                       current.status === 'learning'  ? 'bg-amber-500/10 text-amber-500' :
                       current.status === 'reviewing' ? 'bg-blue-500/10 text-blue-400'  :
                                                         'bg-green-500/10 text-green-500'
@@ -532,7 +532,7 @@ export default function FlashcardsView() {
                 {/* Word + pronunciation header */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl font-bold text-heading">{current.word}</h3>
+                    <h3 className="text-3xl font-bold text-heading tracking-tight">{current.word}</h3>
                     {current.pronunciation && (
                       <p className="text-xs text-muted font-mono">{current.pronunciation}</p>
                     )}
@@ -547,7 +547,7 @@ export default function FlashcardsView() {
                 {/* English definition — PRIMARY */}
                 {current.meaning_en && (
                   <div className="bg-elevated/50 rounded-2xl px-4 py-3">
-                    <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-xs text-muted uppercase tracking-wider font-semibold mb-1">
                       Definition
                     </p>
                     <p className="text-sm text-heading leading-relaxed">{current.meaning_en}</p>
@@ -557,7 +557,7 @@ export default function FlashcardsView() {
                 {/* Example sentence */}
                 {(current.examples?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-xs text-muted uppercase tracking-wider font-semibold mb-1">
                       Example
                     </p>
                     <p className="text-sm text-body italic leading-relaxed">
@@ -569,7 +569,7 @@ export default function FlashcardsView() {
                 {/* Context sentence (from video/text) */}
                 {current.sentence && !(current.examples?.length) && (
                   <div>
-                    <p className="text-[10px] text-muted uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-xs text-muted uppercase tracking-wider font-semibold mb-1">
                       Context
                     </p>
                     <p className="text-sm text-body italic leading-relaxed">
@@ -581,8 +581,8 @@ export default function FlashcardsView() {
                 {/* Arabic translation — small hint, not dominant */}
                 {current.meaning_ar && (
                   <div className="flex items-center gap-2 pt-1 border-t border-default">
-                    <span className="text-[10px] text-faint uppercase tracking-wider shrink-0">AR</span>
-                    <p className="text-xs text-muted" style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
+                    <span className="text-xs text-faint uppercase tracking-wider shrink-0">AR</span>
+                    <p className="text-sm text-muted" style={{ direction: 'rtl', fontFamily: "'Segoe UI', 'Noto Sans Arabic', Arial, sans-serif" }}>
                       {current.meaning_ar}
                     </p>
                   </div>
@@ -631,8 +631,8 @@ export default function FlashcardsView() {
                                 transition-all active:scale-95 disabled:opacity-40 ${r.cls}`}
                   >
                     <span className="text-sm font-bold">{r.label}</span>
-                    <span className="text-[10px] opacity-70">{r.hint}</span>
-                    <span className="text-[10px] text-faint">[{i + 1}]</span>
+                    <span className="text-xs opacity-70">{r.hint}</span>
+                    <span className="text-xs text-faint">[{i + 1}]</span>
                   </button>
                 ))}
               </div>
@@ -733,7 +733,7 @@ export default function FlashcardsView() {
                   {picked === current.id ? 'Correct!' : 'Wrong'}
                 </p>
                 {picked !== current.id && (
-                  <p className="text-xs text-muted">
+                  <p className="text-sm text-muted">
                     Correct answer: <span className="font-semibold text-heading">{primaryMeaning(current)}</span>
                   </p>
                 )}

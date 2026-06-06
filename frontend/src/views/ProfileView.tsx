@@ -94,7 +94,7 @@ export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
               <div className="text-left">
                 <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">Full Statistics</div>
-                <div className="text-xs text-muted">Charts, heatmap, quality analysis</div>
+                <div className="text-sm text-muted">Charts, heatmap, quality analysis</div>
               </div>
             </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-muted">
@@ -170,7 +170,7 @@ function ProfileTab() {
               style={{ width: `${lvPct}%` }}
             />
           </div>
-          <p className="text-[10px] text-faint mt-1.5">{nextLvXP - totalXP} XP to level {level + 1}</p>
+          <p className="text-xs text-faint mt-1.5">{nextLvXP - totalXP} XP to level {level + 1}</p>
         </div>
       )}
 
@@ -184,7 +184,7 @@ function ProfileTab() {
           <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
             <div className="text-lg mb-1">{s.icon}</div>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-muted mt-0.5">{s.label}</p>
+            <p className="text-sm text-muted mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -240,14 +240,14 @@ function ProgressTab() {
           <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
             <div className="text-lg mb-0.5">{s.icon}</div>
             <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-muted">{s.label}</p>
+            <p className="text-sm text-muted">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Pipeline bars */}
       <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-heading">Learning Pipeline</h3>
+        <h3 className="text-base font-semibold text-heading">Learning Pipeline</h3>
         {pipeline.map(r => (
           <div key={r.l}>
             <div className="flex justify-between text-xs mb-1.5">
@@ -267,7 +267,7 @@ function ProgressTab() {
       {/* CEFR level distribution */}
       {progress?.level_distribution && Object.keys(progress.level_distribution).length > 0 && (
         <div className="bg-card border border-default rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-heading mb-3">CEFR Levels</h3>
+          <h3 className="text-base font-semibold text-heading mb-3">CEFR Levels</h3>
           {Object.entries(progress.level_distribution)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([level, count]) => {
@@ -283,7 +283,7 @@ function ProgressTab() {
                   <div className="flex-1 h-2 bg-elevated rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${colors[level] ?? 'bg-blue-400'} transition-all duration-700`} style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="text-[10px] text-muted w-5 text-right shrink-0">{count}</span>
+                  <span className="text-xs text-muted w-5 text-right shrink-0">{count}</span>
                 </div>
               );
             })}
@@ -298,10 +298,10 @@ function ProgressTab() {
             {(progress!.hardest_words ?? []).slice(0, 5).map((w: any, i: number) => (
               <div key={i} className="flex items-center justify-between py-1 border-b border-subtle last:border-0">
                 <div>
-                  <span className="text-sm font-semibold text-heading">{w.word}</span>
-                  <span className="ml-2 text-[10px] text-muted">{w.lapses} lapses</span>
+                  <span className="text-base font-semibold text-heading">{w.word}</span>
+                  <span className="ml-2 text-xs text-muted">{w.lapses} lapses</span>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   w.status === 'learning'  ? 'bg-amber-500/10 text-amber-500' :
                   w.status === 'reviewing' ? 'bg-blue-500/10 text-blue-500'  :
                                              'bg-green-500/10 text-green-500'
@@ -370,7 +370,7 @@ function SettingsTab() {
 
       {/* Appearance */}
       <div className="bg-card border border-default rounded-2xl p-4">
-        <h3 className="text-sm font-semibold text-heading mb-3">Appearance</h3>
+        <h3 className="text-base font-semibold text-heading mb-3">Appearance</h3>
         <div className="flex gap-2">
           {(['auto', 'dark', 'light'] as const).map(t => {
             const labels = { auto: 'Auto', dark: 'Dark', light: 'Light' };
@@ -393,7 +393,7 @@ function SettingsTab() {
 
       {/* Playback */}
       <div className="bg-card border border-default rounded-2xl p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-heading">Playback</h3>
+        <h3 className="text-base font-semibold text-heading">Playback</h3>
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-body">Default speed</span>
@@ -426,7 +426,7 @@ function SettingsTab() {
         <div className="flex items-center justify-between">
           <div>
             <span className="text-sm text-body">Sound effects</span>
-            <p className="text-[10px] text-muted">Flip, correct, wrong, save…</p>
+            <p className="text-sm text-muted">Flip, correct, wrong, save…</p>
           </div>
           <SfxToggle />
         </div>
@@ -451,7 +451,7 @@ function SettingsTab() {
 
       {/* AI */}
       <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-heading">AI Assistant</h3>
+        <h3 className="text-base font-semibold text-heading">AI Assistant</h3>
         <p className="text-xs text-muted leading-relaxed">
           Groq API key for the AI chat. Free at{' '}
           <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
@@ -474,7 +474,7 @@ function SettingsTab() {
 
       {/* Edit profile */}
       <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-heading">Edit Profile</h3>
+        <h3 className="text-base font-semibold text-heading">Edit Profile</h3>
         <Input label="Display Name" value={form.display_name} onChange={e => setForm(f => ({ ...f, display_name: e.target.value }))} />
         <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
         <Input label="Current Password" type="password" value={form.current_password} onChange={e => setForm(f => ({ ...f, current_password: e.target.value }))} placeholder="Only if changing password" />
@@ -589,7 +589,7 @@ function NotificationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm text-body">Daily review reminder</span>
-              <p className="text-[10px] text-muted">Push notification when words are due</p>
+              <p className="text-sm text-muted">Push notification when words are due</p>
             </div>
             <button
               onClick={handleToggle}
@@ -616,7 +616,7 @@ function NotificationSettings() {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm text-body">Streak warning</span>
-              <p className="text-[10px] text-muted">Alert if you haven't reviewed today</p>
+              <p className="text-sm text-muted">Alert if you haven't reviewed today</p>
             </div>
             <button
               onClick={handleStreakToggle}
@@ -655,7 +655,7 @@ function VoiceSettings() {
     <div className="bg-card border border-default rounded-2xl p-4 space-y-3">
       <div>
         <h3 className="text-sm font-semibold text-heading flex items-center gap-1.5"><svg className="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>Voice</h3>
-        <p className="text-xs text-muted mt-0.5">
+        <p className="text-sm text-muted mt-0.5">
           Neural voices via Microsoft Edge TTS (free, requires internet)
         </p>
       </div>
@@ -681,7 +681,7 @@ function VoiceSettings() {
                 )}
               </div>
               <div>
-                <div className="text-sm font-medium text-heading">{v.label}</div>
+                <div className="text-base font-medium text-heading">{v.label}</div>
               </div>
             </button>
             <button
@@ -699,7 +699,7 @@ function VoiceSettings() {
           </div>
         ))}
       </div>
-      <p className="text-[10px] text-faint leading-relaxed">
+      <p className="text-xs text-faint leading-relaxed">
         If neural voice is unavailable (offline), the app falls back to your device's built-in voice automatically.
       </p>
     </div>

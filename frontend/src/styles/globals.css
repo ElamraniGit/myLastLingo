@@ -6,46 +6,61 @@
   /* ── Light theme ─────────────────────────────────────────────── */
   :root {
     --bg-primary:    255 255 255;
-    --bg-secondary:  249 250 251;
-    --bg-card:       244 244 246;
-    --bg-elevated:   232 232 236;
-    --bg-input:      244 244 246;
+    --bg-secondary:  248 249 251;
+    --bg-card:       242 243 247;
+    --bg-elevated:   228 229 235;
+    --bg-input:      242 243 247;
 
-    --text-primary:  10 10 15;
-    --text-secondary:99 99 110;
-    --text-muted:    161 161 170;
-    --text-faint:    212 212 216;
+    --text-primary:  9 9 14;
+    --text-secondary:88 88 100;
+    --text-muted:    148 148 160;
+    --text-faint:    205 205 212;
 
-    --border:        228 228 231;
-    --border-subtle: 240 240 242;
+    --border:        220 221 228;
+    --border-subtle: 236 237 242;
 
     --accent:        37 99 235;
     --accent-soft:   147 197 253;
 
     --glass-bg:      255 255 255;
     --shadow:        0 0 0;
+
+    /* Typography scale */
+    --font-xs:   0.8125rem;   /* 13px */
+    --font-sm:   0.9375rem;   /* 15px */
+    --font-base: 1.0625rem;   /* 17px — was 15/16px */
+    --font-lg:   1.1875rem;   /* 19px */
+    --font-xl:   1.375rem;    /* 22px */
+    --font-2xl:  1.625rem;    /* 26px */
+    --font-3xl:  2rem;        /* 32px */
+
+    /* Spacing rhythm */
+    --radius-sm:  10px;
+    --radius-md:  14px;
+    --radius-lg:  18px;
+    --radius-xl:  24px;
   }
 
   /* ── Dark theme ──────────────────────────────────────────────── */
   .dark {
     --bg-primary:    0 0 0;
-    --bg-secondary:  10 10 12;
-    --bg-card:       21 21 25;
-    --bg-elevated:   33 33 39;
-    --bg-input:      21 21 25;
+    --bg-secondary:  9 9 12;
+    --bg-card:       18 18 23;
+    --bg-elevated:   30 30 37;
+    --bg-input:      18 18 23;
 
-    --text-primary:  250 250 252;
-    --text-secondary:161 161 170;
-    --text-muted:    113 113 122;
-    --text-faint:    63 63 70;
+    --text-primary:  252 252 254;
+    --text-secondary:158 158 170;
+    --text-muted:    108 108 120;
+    --text-faint:    58 58 68;
 
-    --border:        39 39 42;
-    --border-subtle: 27 27 30;
+    --border:        36 36 42;
+    --border-subtle: 24 24 30;
 
     --accent:        96 165 250;
     --accent-soft:   30 58 138;
 
-    --glass-bg:      18 18 22;
+    --glass-bg:      16 16 22;
     --shadow:        0 0 0;
   }
 
@@ -53,19 +68,19 @@
   @media (prefers-color-scheme: dark) {
     :root:not(.light) {
       --bg-primary:    0 0 0;
-      --bg-secondary:  10 10 12;
-      --bg-card:       21 21 25;
-      --bg-elevated:   33 33 39;
-      --bg-input:      21 21 25;
-      --text-primary:  250 250 252;
-      --text-secondary:161 161 170;
-      --text-muted:    113 113 122;
-      --text-faint:    63 63 70;
-      --border:        39 39 42;
-      --border-subtle: 27 27 30;
+      --bg-secondary:  9 9 12;
+      --bg-card:       18 18 23;
+      --bg-elevated:   30 30 37;
+      --bg-input:      18 18 23;
+      --text-primary:  252 252 254;
+      --text-secondary:158 158 170;
+      --text-muted:    108 108 120;
+      --text-faint:    58 58 68;
+      --border:        36 36 42;
+      --border-subtle: 24 24 30;
       --accent:        96 165 250;
       --accent-soft:   30 58 138;
-      --glass-bg:      18 18 22;
+      --glass-bg:      16 16 22;
       --shadow:        0 0 0;
     }
   }
@@ -80,16 +95,29 @@
     scroll-behavior: smooth;
     direction: ltr;
     text-align: left;
+    /* Base font bump: 16px → 17px for better readability */
+    font-size: 17px;
   }
 
   body {
     background-color: rgb(var(--bg-primary));
     color: rgb(var(--text-primary));
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-      'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+      'Inter', 'Segoe UI Variable', 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
+    font-size: var(--font-base);
+    line-height: 1.6;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    font-optical-sizing: auto;
+  }
+
+  /* Headings — tighter tracking for Display-style feel */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25;
+    letter-spacing: -0.015em;
   }
 
   ::-webkit-scrollbar { width: 3px; height: 3px; }
@@ -117,6 +145,42 @@
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
   .pl-safe { padding-left: env(safe-area-inset-left, 0px); }
   .pr-safe { padding-right: env(safe-area-inset-right, 0px); }
+
+  /* ── Typography helpers ──────────────────────────────────────── */
+  .text-display {
+    font-size: var(--font-3xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .text-title {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    line-height: 1.2;
+  }
+  .text-headline {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.3;
+  }
+  .text-body-lg {
+    font-size: var(--font-lg);
+    line-height: 1.6;
+  }
+  .text-body-base {
+    font-size: var(--font-base);
+    line-height: 1.6;
+  }
+  .text-body-sm {
+    font-size: var(--font-sm);
+    line-height: 1.5;
+  }
+  .text-caption {
+    font-size: var(--font-xs);
+    line-height: 1.4;
+  }
 
   /* ── 3D card flip ────────────────────────────────────────────── */
   .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
@@ -146,20 +210,24 @@
 
   .border-default { border-color: rgb(var(--border)); }
   .border-subtle  { border-color: rgb(var(--border-subtle)); }
+
+  /* ── Interactive press states ────────────────────────────────── */
+  .press-scale { transition: transform 0.12s ease; }
+  .press-scale:active { transform: scale(0.96); }
 }
 
 @layer components {
   /* ── Apple-style glass card ──────────────────────────────────── */
   .glass {
-    background-color: rgb(var(--glass-bg) / 0.72);
-    backdrop-filter: saturate(180%) blur(24px);
-    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    background-color: rgb(var(--glass-bg) / 0.76);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
     border: 0.5px solid rgb(var(--border) / 0.6);
   }
 
   /* ── Frosted nav bar (iOS style) ────────────────────────────── */
   .nav-bar {
-    background-color: rgb(var(--bg-primary) / 0.85);
+    background-color: rgb(var(--bg-primary) / 0.88);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-top: 0.5px solid rgb(var(--border) / 0.5);
@@ -168,8 +236,8 @@
   /* ── Fluid card ──────────────────────────────────────────────── */
   .card {
     background-color: rgb(var(--bg-card));
-    border: 0.5px solid rgb(var(--border) / 0.8);
-    border-radius: 16px;
+    border: 1px solid rgb(var(--border) / 0.7);
+    border-radius: var(--radius-lg);
   }
 
   .card-hover {
@@ -177,7 +245,7 @@
   }
   .card-hover:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgb(var(--shadow) / 0.08);
+    box-shadow: 0 6px 20px rgb(var(--shadow) / 0.07);
     border-color: rgb(var(--border));
   }
   .card-hover:active {
@@ -206,64 +274,107 @@
     -webkit-transform: rotateY(180deg);
     z-index: 1;
   }
-  /* FIX-CRIT-flip: opacity crossfade ensures the inactive face is never
-     visible on browsers where backface-visibility fails (Android WebKit). */
   .flashcard-face  { transition: opacity 0.28s ease; opacity: 1; }
   .flashcard-back  { transition: opacity 0.28s ease; opacity: 0; }
   .flashcard-inner.flipped .flashcard-face  { opacity: 0; pointer-events: none; }
   .flashcard-inner.flipped .flashcard-back   { opacity: 1; pointer-events: auto;  }
 
-  /* ── Input field ─────────────────────────────────────────────── */
+  /* ── Input field — larger, more readable ─────────────────────── */
   .input-field {
     width: 100%;
     background-color: rgb(var(--bg-input));
-    border: 1px solid rgb(var(--border));
-    border-radius: 12px;
-    padding: 12px 16px;
+    border: 1.5px solid rgb(var(--border));
+    border-radius: var(--radius-md);
+    padding: 13px 16px;
     color: rgb(var(--text-primary));
-    font-size: 15px;
+    font-size: var(--font-base);   /* 17px */
+    line-height: 1.5;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: none;
   }
-  .input-field::placeholder { color: rgb(var(--text-muted)); }
+  .input-field::placeholder {
+    color: rgb(var(--text-muted));
+    font-size: var(--font-sm);
+  }
   .input-field:focus {
-    border-color: rgb(var(--accent) / 0.6);
-    box-shadow: 0 0 0 3px rgb(var(--accent) / 0.12);
+    border-color: rgb(var(--accent) / 0.7);
+    box-shadow: 0 0 0 4px rgb(var(--accent) / 0.10);
   }
 
-  /* ── Primary button ──────────────────────────────────────────── */
+  /* ── Primary button — solid, confident ───────────────────────── */
   .btn-primary {
     background-color: rgb(var(--accent));
     color: #fff;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 15px;
+    border-radius: var(--radius-md);
+    padding: 13px 22px;
+    font-size: var(--font-base);
     font-weight: 600;
-    transition: opacity 0.15s ease, transform 0.1s ease;
+    letter-spacing: -0.01em;
+    transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
     border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    box-shadow: 0 2px 12px rgb(var(--accent) / 0.28);
   }
-  .btn-primary:hover  { opacity: 0.88; }
+  .btn-primary:hover  {
+    opacity: 0.90;
+    box-shadow: 0 4px 16px rgb(var(--accent) / 0.36);
+  }
   .btn-primary:active { transform: scale(0.97); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
+
+  /* ── Secondary button ────────────────────────────────────────── */
+  .btn-secondary {
+    background-color: rgb(var(--bg-card));
+    color: rgb(var(--text-primary));
+    border: 1.5px solid rgb(var(--border));
+    border-radius: var(--radius-md);
+    padding: 12px 20px;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover  { background-color: rgb(var(--bg-elevated)); }
+  .btn-secondary:active { transform: scale(0.97); }
 
   /* ── Section header ──────────────────────────────────────────── */
   .section-title {
-    font-size: 13px;
+    font-size: var(--font-xs);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: rgb(var(--text-muted));
+  }
+
+  /* ── Chip / badge ────────────────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: var(--font-xs);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── Divider ─────────────────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background-color: rgb(var(--border-subtle));
+    margin: 0;
   }
 }
 
 /* ── Custom word selection system ───────────────────────────────── */
-/* Disable ALL native browser selection in transcript areas.        */
-/* We implement our own word-by-word selection instead.             */
 .transcript-words {
   -webkit-user-select: none !important;
   user-select: none !important;
@@ -276,27 +387,28 @@
 
 /* Word selected state */
 .word-token.word-selected {
-  background-color: rgb(59 130 246 / 0.3);
+  background-color: rgb(59 130 246 / 0.28);
   color: rgb(147 197 253);
   border-radius: 3px;
 }
 
 /* Long-press visual feedback */
 .word-token.word-pressing {
-  background-color: rgb(59 130 246 / 0.15);
+  background-color: rgb(59 130 246 / 0.14);
   border-radius: 3px;
 }
 
+/* ── Animations ──────────────────────────────────────────────────── */
 @keyframes slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
 @keyframes shimmer {
@@ -305,7 +417,7 @@
 }
 @keyframes pop-in {
   0%   { opacity: 0; transform: scale(0.8); }
-  70%  { transform: scale(1.05); }
+  70%  { transform: scale(1.06); }
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes slide-down {
@@ -314,16 +426,22 @@
 }
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
+  50%       { opacity: 0.55; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
 }
 
-.animate-slide-up   { animation: slide-up   0.4s cubic-bezier(0.16, 1, 0.3, 1)          forwards; }
-.animate-fade-in    { animation: fade-in    0.3s ease                                    forwards; }
-.animate-scale-in   { animation: scale-in   0.25s cubic-bezier(0.34, 1.56, 0.64, 1)     forwards; }
-.animate-pop-in     { animation: pop-in     0.35s cubic-bezier(0.34, 1.56, 0.64, 1)     forwards; }
-.animate-slide-down { animation: slide-down 0.35s cubic-bezier(0.16, 1, 0.3, 1)          forwards; }
+.animate-slide-up   { animation: slide-up   0.4s cubic-bezier(0.16, 1, 0.3, 1)      forwards; }
+.animate-fade-in    { animation: fade-in    0.3s ease                                forwards; }
+.animate-scale-in   { animation: scale-in   0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-pop-in     { animation: pop-in     0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-slide-down { animation: slide-down 0.35s cubic-bezier(0.16, 1, 0.3, 1)     forwards; }
 .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+.animate-float      { animation: float 3s ease-in-out infinite; }
 
+/* ── Skeleton loader ─────────────────────────────────────────────── */
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -332,14 +450,24 @@
     rgb(var(--bg-card)) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.6s infinite;
   border-radius: 8px;
 }
 
 /* ── Staggered children fade-in ──────────────────────────────────── */
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
-.stagger > *:nth-child(2) { animation-delay: 50ms; }
-.stagger > *:nth-child(3) { animation-delay: 100ms; }
-.stagger > *:nth-child(4) { animation-delay: 150ms; }
-.stagger > *:nth-child(5) { animation-delay: 200ms; }
-.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(2) { animation-delay: 55ms; }
+.stagger > *:nth-child(3) { animation-delay: 110ms; }
+.stagger > *:nth-child(4) { animation-delay: 165ms; }
+.stagger > *:nth-child(5) { animation-delay: 220ms; }
+.stagger > *:nth-child(6) { animation-delay: 275ms; }
+
+/* ── Page transition ─────────────────────────────────────────────── */
+.page-enter {
+  animation: fade-in 0.28s ease forwards;
+}
+
+/* ── Global text size overrides for Tailwind classes ─────────────── */
+/* Tailwind's text-sm = 14px → override to 15px for readability       */
+/* Tailwind's text-xs = 12px → override to 13px                       */
+/* Tailwind's text-base = 16px → already bumped via html font-size     */

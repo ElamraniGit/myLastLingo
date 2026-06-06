@@ -186,7 +186,7 @@ function HBar({ label, value, max, color, suffix = '' }: {
           style={{ width: `${pct}%`, backgroundColor: color }}
         >
           {value > 0 && (
-            <span className="text-[10px] font-bold text-white">{value}{suffix}</span>
+            <span className="text-xs font-bold text-white">{value}{suffix}</span>
           )}
         </div>
       </div>
@@ -320,8 +320,8 @@ export default function StatsView() {
           </svg>
         </button>
         <div>
-          <h1 className="text-xl font-bold text-heading">Statistics</h1>
-          <p className="text-xs text-muted">Your learning analytics</p>
+          <h1 className="text-2xl font-bold text-heading tracking-tight">Statistics</h1>
+          <p className="text-sm text-muted">Your learning analytics</p>
         </div>
         <button
           onClick={load}
@@ -360,7 +360,7 @@ export default function StatsView() {
         ].map(s => (
           <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
             <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
-            <div className="text-[10px] text-muted mt-0.5">{s.label}</div>
+            <div className="text-xs text-muted mt-0.5">{s.label}</div>
             <div className="text-[9px] text-faint">{s.sub}</div>
           </div>
         ))}
@@ -370,7 +370,7 @@ export default function StatsView() {
       {xpData && (
         <div className="bg-card border border-default rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-heading">XP &amp; Daily Goal</h2>
+            <h2 className="text-base font-semibold text-heading">XP &amp; Daily Goal</h2>
             <span className="text-xs text-faint">{totalXP} total XP</span>
           </div>
           <div className="flex items-center gap-4">
@@ -427,7 +427,7 @@ export default function StatsView() {
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }}/>
                   <span className="text-xs text-body flex-1">{s.label}</span>
                   <span className="text-xs font-semibold text-heading">{s.value}</span>
-                  <span className="text-[10px] text-faint w-8 text-right">
+                  <span className="text-xs text-faint w-8 text-right">
                     {totalWords > 0 ? `${Math.round((s.value/totalWords)*100)}%` : '—'}
                   </span>
                 </div>
@@ -448,11 +448,11 @@ export default function StatsView() {
       {/* ── 7-day Sparkline ─────────────────────────────────────────────────── */}
       <div className="bg-card border border-default rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-heading">7-Day Activity</h2>
+          <h2 className="text-base font-semibold text-heading">7-Day Activity</h2>
           <span className="text-xs text-faint">{dateLabel(6)} — Today</span>
         </div>
         <Sparkline data={sparkData} color="#3b82f6" height={56}/>
-        <div className="flex justify-between text-[10px] text-faint mt-1">
+        <div className="flex justify-between text-xs text-faint mt-1">
           {Array.from({length:7},(_,i)=>6-i).map(d=>(
             <span key={d}>{d===0?'Today':new Date(Date.now()-d*86400000).toLocaleDateString('en',{weekday:'narrow'})}</span>
           ))}
@@ -462,8 +462,8 @@ export default function StatsView() {
       {/* ── Activity Heatmap ─────────────────────────────────────────────────── */}
       <div className="bg-card border border-default rounded-2xl p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-heading">30-Day Heatmap</h2>
-          <div className="flex items-center gap-1.5 text-[10px] text-faint">
+          <h2 className="text-base font-semibold text-heading">30-Day Heatmap</h2>
+          <div className="flex items-center gap-1.5 text-xs text-faint">
             <span>Less</span>
             {['#1e3a5f','#1d4ed8','#3b82f6','#93c5fd'].map(c=>(
               <div key={c} className="w-3 h-3 rounded-sm" style={{backgroundColor:c}}/>
@@ -472,7 +472,7 @@ export default function StatsView() {
           </div>
         </div>
         <Heatmap data={upcomingDays}/>
-        <p className="text-[10px] text-faint text-center mt-3">Reviews per day — last 30 days</p>
+        <p className="text-xs text-faint text-center mt-3">Reviews per day — last 30 days</p>
       </div>
 
       {/* ── Upcoming Reviews ─────────────────────────────────────────────────── */}
@@ -507,8 +507,8 @@ export default function StatsView() {
       {totalReviews > 0 && (
         <div className="bg-card border border-default rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-heading">Review Quality</h2>
-            <span className="text-xs text-muted">avg <b className="text-heading">{avgQ}</b>/5</span>
+            <h2 className="text-base font-semibold text-heading">Review Quality</h2>
+            <span className="text-sm text-muted">avg <b className="text-heading">{avgQ}</b>/5</span>
           </div>
           <div className="space-y-2">
             {qualityData.filter(d=>d.value>0).map(d=>(
@@ -535,13 +535,13 @@ export default function StatsView() {
               <div key={i} className="flex items-center gap-3 py-1.5 border-b border-subtle last:border-0">
                 <span className="text-xs text-faint w-4 shrink-0">#{i+1}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-semibold text-heading">{w.word}</span>
+                  <span className="text-base font-semibold text-heading">{w.word}</span>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-muted">{w.reviewed_count} reviews</span>
-                    <span className="text-[10px] text-red-400">{w.lapses} lapses</span>
+                    <span className="text-sm text-muted">{w.reviewed_count} reviews</span>
+                    <span className="text-xs text-red-400">{w.lapses} lapses</span>
                   </div>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
                   w.status==='learning'  ? 'bg-amber-500/10 text-amber-500' :
                   w.status==='reviewing' ? 'bg-blue-500/10  text-blue-500'  :
                                            'bg-green-500/10 text-green-500'
@@ -561,7 +561,7 @@ export default function StatsView() {
               <div key={t.tag}
                 className="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded-full px-3 py-1 text-xs font-medium">
                 <span>{t.tag}</span>
-                <span className="bg-blue-500/20 rounded-full px-1.5 py-0.5 text-[10px] font-bold">{t.count}</span>
+                <span className="bg-blue-500/20 rounded-full px-1.5 py-0.5 text-xs font-bold">{t.count}</span>
               </div>
             ))}
           </div>

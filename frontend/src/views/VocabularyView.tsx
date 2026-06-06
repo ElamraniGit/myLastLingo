@@ -179,7 +179,7 @@ export default function VocabularyView() {
       <div className="sticky top-0 z-20 bg-base/90 backdrop-blur-xl border-b border-default px-4 pt-5 pb-3">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-heading">My Words</h2>
+            <h2 className="text-2xl font-bold text-heading tracking-tight">My Words</h2>
             <p className="text-xs text-muted mt-0.5">{displayTotal} saved · tap for details</p>
           </div>
           <div className="flex items-center gap-1.5">
@@ -229,7 +229,7 @@ export default function VocabularyView() {
           {STATS.map(s => (
             <div key={s.label} className="shrink-0 bg-card border border-default rounded-xl px-3 py-2 text-center min-w-[64px]">
               <div className={`text-lg font-bold ${s.color}`}>{s.val}</div>
-              <div className="text-[10px] text-muted">{s.label}</div>
+              <div className="text-xs text-muted">{s.label}</div>
             </div>
           ))}
         </div>
@@ -302,9 +302,9 @@ export default function VocabularyView() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-heading">{w.word}</span>
                     {w.level && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-semibold">{w.level}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-semibold">{w.level}</span>
                     )}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${STATUS_COLOR[w.status] || 'text-muted'}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${STATUS_COLOR[w.status] || 'text-muted'}`}>
                       {w.status}
                     </span>
                   </div>
@@ -323,14 +323,14 @@ export default function VocabularyView() {
                           style={{ width: `${sm2Progress(w)}%` }}
                         />
                       </div>
-                      <span className="text-[9px] text-faint tabular-nums">{sm2Progress(w)}%</span>
+                      <span className="text-xs text-faint tabular-nums">{sm2Progress(w)}%</span>
                     </div>
                   )}
                 </div>
 
                 {/* Right */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[10px] text-faint mr-1">{fmtRelative(w.next_review)}</span>
+                  <span className="text-xs text-faint mr-1">{fmtRelative(w.next_review)}</span>
                   <button
                     onClick={e => { e.stopPropagation(); speak(w.word); }}
                     className="w-8 h-8 rounded-xl hover:bg-blue-500/10 text-faint hover:text-blue-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 text-sm"

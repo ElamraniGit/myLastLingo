@@ -127,14 +127,14 @@ export default function InstallPrompt() {
         {iosMode && (
           <div className="mt-3 flex items-center gap-3 text-xs text-body">
             <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center text-[10px] font-bold text-heading">1</span>
+              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center text-xs font-bold text-heading">1</span>
               <span>Tap</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
               </svg>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center text-[10px] font-bold text-heading">2</span>
+              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center text-xs font-bold text-heading">2</span>
               <span>"Add to Home Screen"</span>
             </div>
           </div>

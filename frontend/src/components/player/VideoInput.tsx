@@ -45,8 +45,8 @@ export default function VideoInput() {
       <div className="flex items-center gap-2.5 mb-3">
         <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0 text-red-500"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="15" height="16" rx="2"/><polygon points="16 9 23 4 23 20 16 15 16 9"/></svg></div>
         <div>
-          <div className="text-sm font-semibold text-heading">Add YouTube Video</div>
-          <div className="text-xs text-muted">Paste a URL to learn with subtitles</div>
+          <div className="text-base font-semibold text-heading">Add YouTube Video</div>
+          <div className="text-sm text-muted">Paste a URL to learn with subtitles</div>
         </div>
       </div>
 

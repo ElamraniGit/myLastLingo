@@ -150,7 +150,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
               <p className="text-sm font-semibold text-heading truncate">
                 "{phrase.length > 45 ? phrase.slice(0, 45) + '…' : phrase}"
               </p>
-              <p className="text-[11px] text-muted mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 {wordCount} word{wordCount !== 1 ? 's' : ''} selected
               </p>
             </div>
@@ -174,7 +174,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                 {/* Arabic translation */}
                 {phraseInfo?.translation && (
                   <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl px-3 py-2.5">
-                    <p className="text-[10px] text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
+                    <p className="text-xs text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
                     <p className="text-base font-semibold text-heading leading-relaxed"
                        style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Segoe UI', 'Noto Sans Arabic', sans-serif" }}>
                       {phraseInfo.translation}
@@ -185,7 +185,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                 {/* Definition (phrasal verbs etc.) */}
                 {phraseInfo?.definition && (
                   <div className="bg-card border border-default rounded-xl px-3 py-2.5">
-                    <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Definition</p>
+                    <p className="text-xs text-muted uppercase tracking-wider mb-1">Definition</p>
                     <p className="text-sm text-heading leading-relaxed">{phraseInfo.definition}</p>
                   </div>
                 )}
@@ -193,7 +193,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                 {/* Sentence context */}
                 {sentence && sentence !== phrase && (
                   <div className="bg-elevated/50 rounded-xl px-3 py-2">
-                    <p className="text-[10px] text-muted uppercase tracking-wider mb-1">Context</p>
+                    <p className="text-xs text-muted uppercase tracking-wider mb-1">Context</p>
                     <p className="text-xs text-body leading-relaxed italic">"{sentence}"</p>
                   </div>
                 )}
@@ -216,7 +216,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                          bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20
                          text-blue-500 transition-all active:scale-95">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <span className="text-[11px] font-semibold">Look up</span>
+              <span className="text-xs font-semibold">Look up</span>
             </button>
           )}
 
@@ -236,7 +236,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               )}
             </span>
-            <span className="text-[11px] font-semibold">{saved ? 'Saved!' : 'Save'}</span>
+            <span className="text-xs font-semibold">{saved ? 'Saved!' : 'Save'}</span>
           </button>
 
           {/* Pronounce */}
@@ -245,7 +245,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                        bg-card border border-default text-muted hover:text-body
                        hover:bg-elevated transition-all active:scale-95">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            <span className="text-[11px] font-semibold">Hear</span>
+            <span className="text-xs font-semibold">Hear</span>
           </button>
 
         </div>
