@@ -447,7 +447,7 @@ function SettingsTab() {
               style={{ backgroundColor: avatarUrl ? 'transparent' : avatarColor }}
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                <img src={avatarUrl || ""} alt="avatar" className="w-full h-full object-cover" />
               ) : (
                 (user?.display_name || user?.username || 'U')[0].toUpperCase()
               )}

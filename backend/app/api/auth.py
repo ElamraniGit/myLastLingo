@@ -266,6 +266,10 @@ async def create_auth_tables(conn: aiosqlite.Connection):
         await conn.execute("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 0")
     if "groq_api_key" not in cols:
         await conn.execute("ALTER TABLE users ADD COLUMN groq_api_key TEXT DEFAULT ''")
+    if "avatar_url" not in cols:
+        await conn.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT NULL")
+    if "avatar_color" not in cols:
+        await conn.execute("ALTER TABLE users ADD COLUMN avatar_color TEXT DEFAULT '#3b82f6'")
 
     await conn.commit()
 
@@ -622,7 +626,7 @@ async def get_avatar(filename: str):
     import re
 
     # Security: only allow safe filenames
-    if not re.match(r'^[a-zA-Z0-9_-]+\.(jpg|png|webp)$', filename):
+    if not re.match(r'^[a-zA-Z0-9_-]+[.](jpg|png|webp)$', filename):
         raise HTTPException(404, "Not found")
 
     path = Path("data/avatars") / filename

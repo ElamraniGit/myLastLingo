@@ -12,6 +12,16 @@ export const BACKEND_ORIGIN = API_BASE.replace(/\/api\/v1\/?$/, '');
 
 const BASE = API_BASE;
 
+/** Normalise a user object returned from the API — make avatar_url absolute. */
+function normaliseUser(u: any): any {
+  if (u?.avatar_url && u.avatar_url.startsWith('/')) {
+    u.avatar_url = BACKEND_ORIGIN + u.avatar_url;
+  }
+  return u;
+}
+
+
+
 export const tokenStore = {
   get: (): string | null => {
     if (typeof window === 'undefined') return null;
@@ -112,7 +122,7 @@ export const authApi = {
   login: (username: string, password: string, remember = false) =>
     req<any>('/auth/login', { method: 'POST', body: { username, password, remember }, auth: false }),
 
-  me: () => req<any>('/auth/me'),
+  me: () => req<any>('/auth/me').then(normaliseUser),
 
   updateProfile: (data: any) => req<any>('/auth/me', { method: 'PATCH', body: data }),
 
@@ -143,7 +153,12 @@ export const authApi = {
       const err = await res.json().catch(() => ({}));
       throw new ApiError(err?.detail || `HTTP ${res.status}`, res.status);
     }
-    return res.json();
+    const data = await res.json();
+    // Convert relative path to full URL so <img src> works from port 3000
+    if (data.avatar_url && data.avatar_url.startsWith('/')) {
+      data.avatar_url = BACKEND_ORIGIN + data.avatar_url;
+    }
+    return data;
   },
 
   refresh: () => req<any>('/auth/refresh', { method: 'POST' }),
