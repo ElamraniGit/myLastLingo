@@ -91,7 +91,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile top bar */}
         <header className="lg:hidden flex items-center justify-between
-                            px-4 h-11 shrink-0 bg-base/90 backdrop-blur border-b border-subtle z-30">
+                            px-4 py-3 shrink-0 bg-base/90 backdrop-blur border-b border-subtle z-30">
           <div className="flex items-center gap-2">
             <AppLogo size={26} />
             <NetworkBadge />
