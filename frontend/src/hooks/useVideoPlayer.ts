@@ -19,7 +19,9 @@ let sessionRestoreVideoId: string | null = null;
 let lastPersistedVideoId: string | null = null;
 let lastPersistedPosition = -1;
 
-const SYNC_INTERVAL_MS = 120;
+// Slightly faster segment-sync cadence to make subtitle sentence changes feel
+// snappier on mobile without returning to the old battery-heavier 40ms loop.
+const SYNC_INTERVAL_MS = 90;
 const SESSION_PERSIST_INTERVAL_MS = 20000;
 const MIN_PERSIST_DELTA_SECONDS = 2.5;
 

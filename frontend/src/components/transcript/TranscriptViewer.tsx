@@ -2,7 +2,7 @@
  * TranscriptViewer — v5 (rebuilt from scratch)
  *
  * Design goals:
- *  ① Video sync  — active word highlighted; active segment scrolls into view
+ *  ① Video sync  — active sentence highlighted; active segment scrolls into view
  *  ② Single tap  — opens WordPopup for that word
  *  ③ Long-press (500ms) + drag → custom word-range selection → bottom toolbar
  *  ④ No native browser selection → user-select:none → no browser popup
@@ -33,19 +33,6 @@ function fmtTime(s: number): string {
   if (!s || !isFinite(s)) return '0:00';
   const m = Math.floor(s / 60), sec = Math.floor(s % 60);
   return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
-function getActiveWordIndex(words: WordTiming[], t: number): number {
-  if (!words?.length) return -1;
-  const ct = t + 0.08;
-  const exact = words.findIndex(w => ct >= w.start && ct <= w.end + 0.08);
-  if (exact >= 0) return exact;
-  let best = -1, bd = 0.2;
-  for (let i = 0; i < words.length; i++) {
-    const d = Math.min(Math.abs(ct - words[i].start), Math.abs(ct - words[i].end));
-    if (d < bd) { bd = d; best = i; }
-  }
-  return best;
 }
 
 function wordElAt(x: number, y: number, container: HTMLElement): HTMLElement | null {
@@ -303,7 +290,6 @@ export default function TranscriptViewer() {
       >
         {transcript.segments.map((seg, segListIndex) => {
           const isActive   = playerState.current_segment === seg.index;
-          const activeWord = getActiveWordIndex(seg.words ?? [], currentTime);
           const segSel     = selRange?.si === seg.index ? selRange : null;
           const savedMatch = savedMatchBySegment[segListIndex];
 
@@ -321,7 +307,6 @@ export default function TranscriptViewer() {
                   const word  = typeof wt === 'object' ? wt.word : wt;
                   const clean = word.replace(/[^\w'-]/g, '').trim();
                   const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
-                  const isCur = seg.words?.length ? activeWord === wi : false;
                   const suppressSavedHighlight = !!segSel;
                   const isSavedPhrase = !suppressSavedHighlight && !!savedMatch?.phraseIndexes.has(wi);
                   const isSavedWord = !suppressSavedHighlight && !!savedMatch?.singleWordIndexes.has(wi);
@@ -335,10 +320,9 @@ export default function TranscriptViewer() {
                         className={[
                           fs, 'inline cursor-pointer rounded px-0.5 py-px transition-colors select-none',
                           isSel ? 'bg-blue-500/35 text-blue-100 font-semibold'
-                          : isCur ? 'bg-blue-500/20 text-blue-300 font-semibold underline decoration-blue-400 decoration-2 underline-offset-2'
                           : isSavedPhrase ? 'bg-green-500/20 text-green-300 font-semibold ring-1 ring-green-500/20'
                           : isSavedWord ? 'text-green-400 font-medium underline decoration-green-500/40 decoration-2 underline-offset-2'
-                          : isActive ? 'text-heading hover:bg-blue-500/10 hover:text-blue-300'
+                          : isActive ? 'bg-blue-500/12 text-blue-200 font-medium'
                           : 'text-muted hover:bg-elevated hover:text-heading',
                         ].join(' ')}
                       >{word}</span>
