@@ -30,6 +30,7 @@ function isActive(itemId: AppPage, currentPage: AppPage): boolean {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { currentPage, setPage, user } = useStore();
+  const currentNav = NAV.find(item => isActive(item.id, currentPage)) || NAV[0];
 
   return (
     <div className="flex h-screen bg-base overflow-clip">
@@ -112,7 +113,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto scrollbar-none">{children}</main>
 
         {/* Mobile bottom nav */}
-        <nav className="lg:hidden nav-bar flex shrink-0 pb-safe">
+        <nav className="lg:hidden nav-bar flex shrink-0 pb-safe px-2 pt-1">
           {NAV.map(item => {
             const active = isActive(item.id, currentPage);
             return (

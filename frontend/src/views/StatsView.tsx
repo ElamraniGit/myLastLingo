@@ -306,10 +306,10 @@ export default function StatsView() {
   );
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-5 pb-28 lg:pb-8 space-y-4 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 pt-5 pb-28 lg:pb-8 space-y-4 animate-fade-in">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
+      <div className="surface-panel p-3 flex items-center gap-3">
         <button
           onClick={() => setPage('player')}
           className="w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors"

@@ -47,23 +47,23 @@
 
   /* Dark theme — true-black base, high contrast */
   .dark {
-    --bg-base:       6   6  10;
-    --bg-surface:   12  12  18;
-    --bg-card:      20  20  28;
-    --bg-elevated:  30  31  42;
-    --bg-input:     20  20  28;
+    --bg-base:       9  14  24;
+    --bg-surface:   15  23  42;
+    --bg-card:      17  24  39;
+    --bg-elevated:  30  41  59;
+    --bg-input:     15  23  42;
 
-    --tx-heading:  250 250 254;
-    --tx-body:     155 156 170;
-    --tx-muted:    100 101 116;
-    --tx-faint:     52  53  66;
+    --tx-heading:  248 250 252;
+    --tx-body:     203 213 225;
+    --tx-muted:    148 163 184;
+    --tx-faint:     71  85 105;
 
-    --border:       36  37  50;
-    --border-sub:   24  25  36;
+    --border:       51  65  85;
+    --border-sub:   30  41  59;
 
-    --accent:       96 165 250;   /* blue-400 — lighter on dark */
-    --accent-hi:   147 197 253;   /* blue-300                   */
-    --accent-dim:   23  37  84;   /* blue-950                   */
+    --accent:       96 165 250;
+    --accent-hi:   125 211 252;
+    --accent-dim:   30  41  59;
 
     --success:      74 222 128;
     --danger:      248 113 113;
@@ -200,6 +200,7 @@
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-top: 1px solid rgb(var(--border-sub));
+    box-shadow: 0 -8px 20px rgb(15 23 42 / 0.05);
   }
 
   /* ── Card ───────────────────────────────────────────────────────── */

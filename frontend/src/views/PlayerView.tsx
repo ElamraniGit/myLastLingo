@@ -120,68 +120,84 @@ function HomeDashboard() {
   const goalPct     = Math.min(100, Math.round((dailyXP / Math.max(dailyGoal, 1)) * 100));
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6 pb-28 lg:pb-8 space-y-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 pt-6 pb-28 lg:pb-8 space-y-6 animate-fade-in">
 
-      {/* ── Greeting ──────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-heading tracking-tight">
-            {greeting()}{user?.display_name ? `, ${user.display_name.split(' ')[0]}` : '!'}
-          </h2>
-          <p className="text-sm text-muted mt-0.5">
-            {dueCount > 0
-              ? `${dueCount} word${dueCount === 1 ? '' : 's'} waiting for review`
-              : 'All caught up — great work!'}
-          </p>
-        </div>
-        {/* Daily goal ring */}
-        {dailyGoal > 0 && (
-          <div className="relative w-14 h-14 shrink-0">
-            <svg viewBox="0 0 48 48" className="w-full h-full -rotate-90">
-              <circle cx="24" cy="24" r="20" fill="none" stroke="rgb(var(--bg-elevated))" strokeWidth="5"/>
-              <circle
-                cx="24" cy="24" r="20" fill="none"
-                stroke="rgb(var(--accent))" strokeWidth="5"
-                strokeDasharray={`${2 * Math.PI * 20}`}
-                strokeDashoffset={`${2 * Math.PI * 20 * (1 - goalPct / 100)}`}
-                strokeLinecap="round"
-                className="transition-all duration-700"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xs font-bold text-heading">{goalPct}%</span>
-              <span className="text-[8px] text-faint">daily</span>
-            </div>
+      <section className="surface-panel p-5 overflow-hidden relative">
+        <div className="absolute -top-14 -right-10 w-40 h-40 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-8 w-36 h-36 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+        <div className="relative flex items-start justify-between gap-4">
+          <div>
+            <p className="section-title mb-2">Dashboard</p>
+            <h2 className="text-3xl font-bold text-heading tracking-tight">
+              {greeting()}{user?.display_name ? `, ${user.display_name.split(' ')[0]}` : '!'}
+            </h2>
+            <p className="text-sm text-muted mt-1 max-w-sm">
+              {dueCount > 0
+                ? `${dueCount} word${dueCount === 1 ? '' : 's'} are ready for review. Keep your streak alive today.`
+                : 'Everything is reviewed for now. Open your library, practice, or talk to the AI tutor.'}
+            </p>
           </div>
-        )}
-      </div>
+          {dailyGoal > 0 && (
+            <div className="relative w-16 h-16 shrink-0 mt-1">
+              <svg viewBox="0 0 48 48" className="w-full h-full -rotate-90">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="rgb(var(--bg-elevated))" strokeWidth="5"/>
+                <circle
+                  cx="24" cy="24" r="20" fill="none"
+                  stroke="rgb(var(--accent))" strokeWidth="5"
+                  strokeDasharray={`${2 * Math.PI * 20}`}
+                  strokeDashoffset={`${2 * Math.PI * 20 * (1 - goalPct / 100)}`}
+                  strokeLinecap="round"
+                  className="transition-all duration-700"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs font-bold text-heading">{goalPct}%</span>
+                <span className="text-[8px] text-faint">daily</span>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* ── Stat pills ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-2.5">
-        {[
-          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='2' y='4' width='20' height='16' rx='3'/><path d='M8 10h8M8 14h5'/><circle cx='18' cy='14' r='2' fill='currentColor' stroke='none'/></svg>), label: 'Due',     val: dueCount,              color: dueCount > 0 ? 'text-blue-500' : 'text-muted', onClick: () => dueCount > 0 && setPage('flashcards') },
-          { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), label: 'Learned', val: summary?.learned ?? 0, color: 'text-green-500', onClick: () => setPage('vocabulary') },
-          { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>, label: 'Streak',  val: streak,                color: streak > 0 ? 'text-orange-400' : 'text-muted', onClick: undefined },
-        ].map(s => (
-          <button
-            key={s.label}
-            onClick={s.onClick}
-            disabled={!s.onClick}
-            className={`flex flex-col items-center gap-1.5 bg-card border border-default rounded-2xl py-3.5 transition-all ${s.onClick ? 'card-hover cursor-pointer' : 'cursor-default'}`}
-          >
-            <span className="text-xl">{s.icon}</span>
-            <span className={`text-lg font-bold ${s.color}`}>{loading ? '—' : s.val}</span>
-            <span className="text-xs text-faint font-medium uppercase tracking-wide">{s.label}</span>
-          </button>
-        ))}
-      </div>
+        <div className="relative grid grid-cols-3 gap-2.5 mt-5">
+          {[
+            { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='2' y='4' width='20' height='16' rx='3'/><path d='M8 10h8M8 14h5'/><circle cx='18' cy='14' r='2' fill='currentColor' stroke='none'/></svg>), label: 'Due',     val: dueCount,              color: dueCount > 0 ? 'text-blue-500' : 'text-muted', onClick: () => dueCount > 0 && setPage('flashcards') },
+            { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), label: 'Learned', val: summary?.learned ?? 0, color: 'text-green-500', onClick: () => setPage('vocabulary') },
+            { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>, label: 'Streak',  val: streak,                color: streak > 0 ? 'text-orange-400' : 'text-muted', onClick: undefined },
+          ].map(s => (
+            <button
+              key={s.label}
+              onClick={s.onClick}
+              disabled={!s.onClick}
+              className={`flex flex-col items-center gap-1.5 bg-base/70 border border-default rounded-2xl py-3.5 transition-all ${s.onClick ? 'card-hover cursor-pointer' : 'cursor-default'}`}
+            >
+              <span className="text-xl">{s.icon}</span>
+              <span className={`text-lg font-bold ${s.color}`}>{loading ? '—' : s.val}</span>
+              <span className="text-xs text-faint font-medium uppercase tracking-wide">{s.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="relative grid grid-cols-3 gap-2 mt-3">
+          {[
+            { label: 'Library', onClick: () => setPage('library'), icon: '📚' },
+            { label: 'Practice', onClick: () => setPage('flashcards'), icon: '🧠' },
+            { label: 'AI Tutor', onClick: () => setPage('chat'), icon: '✨' },
+          ].map(item => (
+            <button key={item.label} onClick={item.onClick}
+              className="bg-card border border-default rounded-2xl px-3 py-3 text-sm font-medium text-heading card-hover">
+              <div className="text-lg mb-1">{item.icon}</div>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </section>
       {/* ── Review CTA ────────────────────────────────────────────── */}
       {dueCount > 0 && (
         <button
           onClick={() => setPage('flashcards')}
-          className="w-full flex items-center gap-4 bg-gradient-to-r from-blue-600/10 to-indigo-600/10
-                     border border-blue-500/25 rounded-2xl p-4 hover:border-blue-500/40 active:scale-[0.985]
-                     transition-all text-left group"
+          className="w-full flex items-center gap-4 bg-gradient-to-r from-blue-600/12 to-indigo-600/12
+                     border border-blue-500/25 rounded-3xl p-4 hover:border-blue-500/40 active:scale-[0.985]
+                     transition-all text-left group shadow-card"
         >
           <div className="w-11 h-11 rounded-xl bg-blue-600/15 group-hover:bg-blue-600/20 flex items-center justify-center text-xl shrink-0 transition-colors">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg>
@@ -200,7 +216,7 @@ function HomeDashboard() {
       )}
       {/* ── Recent words ──────────────────────────────────────────── */}
       {recentWords.length > 0 && (
-        <section>
+        <section className="space-y-3">
           <div className="flex items-center justify-between mb-3">
             <span className="section-title mb-3">Recent Words</span>
             <button onClick={() => setPage('vocabulary')} className="text-xs text-blue-500 font-medium hover:text-blue-400 transition-colors">
@@ -242,14 +258,14 @@ function HomeDashboard() {
 
       {/* ── Recent sources ────────────────────────────────────────── */}
       {sources.length > 0 && (
-        <section>
+        <section className="space-y-3">
           <div className="flex items-center justify-between mb-3">
             <span className="section-title mb-3">Recent Sources</span>
             <button onClick={() => setPage('library')} className="text-xs text-blue-500 font-medium hover:text-blue-400 transition-colors">
               See all →
             </button>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {sources.slice(0, 4).map((s: any) => (
               <button
                 key={s.id}

@@ -72,7 +72,7 @@ export default function ProfileView({ tab: initialTab }: { tab?: Tab } = {}) {
               onClick={() => setTab(t.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
                 tab === t.id
-                  ? 'bg-base text-heading shadow-sm'
+                  ? 'bg-card text-heading shadow-card'
                   : 'text-muted hover:text-body'
               }`}
             >
