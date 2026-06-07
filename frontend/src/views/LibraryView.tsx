@@ -547,19 +547,39 @@ function AddModal({
 function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
   const [word,   setWord]   = useState('');
   const [busy,   setBusy]   = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
-  const [result, setResult] = useState<any>(null);
-  const { lookupWord } = useDictionary();
+  const [result, setResult] = useState<string>('');
+  const [saved,  setSaved]  = useState(false);
+  const { lookupWord, saveWord } = useDictionary();
 
   const search = async () => {
     const w = word.trim().toLowerCase();
     if (!w) return;
-    setBusy(true); setError('');
+    setBusy(true); setError(''); setSaved(false);
     try {
       await lookupWord(w, '');
-      setResult({ word: w });
-    } catch { setError('Word not found'); }
+      setResult(w);
+    } catch {
+      setResult('');
+      setError('Word not found');
+    }
     setBusy(false);
+  };
+
+  const addWord = async () => {
+    const target = (result || word).trim().toLowerCase();
+    if (!target) return;
+    setSaving(true); setError('');
+    try {
+      const ok = await saveWord(target);
+      if (!ok) throw new Error('save failed');
+      setSaved(true);
+      setTimeout(() => onSaved(), 500);
+    } catch {
+      setError('Failed to save word');
+    }
+    setSaving(false);
   };
 
   return (
@@ -568,20 +588,25 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
         <label className="block text-xs font-medium text-muted mb-1.5">English Word</label>
         <input
           value={word}
-          onChange={e => { setWord(e.target.value); setError(''); setResult(null); }}
+          onChange={e => { setWord(e.target.value); setError(''); setResult(''); setSaved(false); }}
           onKeyDown={e => e.key === 'Enter' && search()}
           placeholder="e.g. ambiguous"
           className="input-field text-sm"
         />
       </div>
       {error  && <p className="text-xs text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>{error}</p>}
-      {result && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>{result}</p>}
+      {result && !saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Found: {result}</p>}
+      {saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Saved: {result || word.trim().toLowerCase()}</p>}
       <div className="flex gap-2">
         <button onClick={onBack} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
-        <button onClick={search} disabled={busy || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
+        <button onClick={search} disabled={busy || saving || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
           {busy ? 'Looking up…' : 'Look Up'}
         </button>
       </div>
+      <button onClick={addWord} disabled={saving || busy || !(result || word.trim())}
+        className="w-full py-2.5 rounded-xl border border-green-500/25 bg-green-500/10 text-green-500 text-sm font-semibold disabled:opacity-50">
+        {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Word'}
+      </button>
     </div>
   );
 }
