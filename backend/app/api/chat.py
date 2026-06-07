@@ -331,9 +331,8 @@ async def send_message_stream(
         event_generator(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control":               "no-cache",
-            "X-Accel-Buffering":           "no",
-            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
         },
     )
 

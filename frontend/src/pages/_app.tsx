@@ -7,6 +7,7 @@ import '@/styles/globals.css';
 import React, { useEffect, useRef, useState } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useStore } from '@/store/appStore';
 import { authApi, tokenStore } from '@/lib/api';
@@ -16,25 +17,34 @@ import OfflineBanner from '@/components/common/OfflineBanner';
 import NotificationCenter from '@/components/common/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
 import { warmUpTTS } from '@/lib/tts';
-import LoginPage from '@/components/auth/LoginPage';
-import RegisterPage from '@/components/auth/RegisterPage';
-import PlayerView from '@/views/PlayerView';
-import VocabularyView from '@/views/VocabularyView';
-import ReviewView from '@/views/ReviewView';
-import ProfileView from '@/views/ProfileView';
-import LibraryView from '@/views/LibraryView';
-import ChatView from '@/views/ChatView';
-import TextReaderView from '@/views/TextReaderView';
-import StatsView from '@/views/StatsView';
-import OnboardingView from '@/views/OnboardingView';
-import WordDetailView from '@/views/WordDetailView';
-import CoreLibraryView from '@/views/CoreLibraryView';
-import WordPopup from '@/components/dictionary/WordPopup';
 
 function NotificationsBootstrap() {
   useNotifications();
   return null;
 }
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center py-10 text-sm text-muted">
+      Loading…
+    </div>
+  );
+}
+
+const LoginPage = dynamic(() => import('@/components/auth/LoginPage'), { loading: () => <PageLoader /> });
+const RegisterPage = dynamic(() => import('@/components/auth/RegisterPage'), { loading: () => <PageLoader /> });
+const PlayerView = dynamic(() => import('@/views/PlayerView'), { loading: () => <PageLoader /> });
+const VocabularyView = dynamic(() => import('@/views/VocabularyView'), { loading: () => <PageLoader /> });
+const ReviewView = dynamic(() => import('@/views/ReviewView'), { loading: () => <PageLoader /> });
+const ProfileView = dynamic(() => import('@/views/ProfileView'), { loading: () => <PageLoader /> });
+const LibraryView = dynamic(() => import('@/views/LibraryView'), { loading: () => <PageLoader /> });
+const ChatView = dynamic(() => import('@/views/ChatView'), { loading: () => <PageLoader /> });
+const TextReaderView = dynamic(() => import('@/views/TextReaderView'), { loading: () => <PageLoader /> });
+const StatsView = dynamic(() => import('@/views/StatsView'), { loading: () => <PageLoader /> });
+const OnboardingView = dynamic(() => import('@/views/OnboardingView'), { loading: () => <PageLoader /> });
+const WordDetailView = dynamic(() => import('@/views/WordDetailView'), { loading: () => <PageLoader /> });
+const CoreLibraryView = dynamic(() => import('@/views/CoreLibraryView'), { loading: () => <PageLoader /> });
+const WordPopup = dynamic(() => import('@/components/dictionary/WordPopup'), { ssr: false });
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();

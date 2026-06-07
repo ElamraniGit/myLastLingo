@@ -16,6 +16,12 @@ import type { TranscriptSegment, VideoQuality } from '@/types';
 const sharedPlayerRef: { current: any } = { current: null };
 let transcriptProbeVideoId: string | null = null;
 let sessionRestoreVideoId: string | null = null;
+let lastPersistedVideoId: string | null = null;
+let lastPersistedPosition = -1;
+
+const SYNC_INTERVAL_MS = 120;
+const SESSION_PERSIST_INTERVAL_MS = 20000;
+const MIN_PERSIST_DELTA_SECONDS = 2.5;
 
 const VIDEO_QUALITY_ORDER: VideoQuality[] = [
   'auto',
@@ -119,6 +125,8 @@ export function useVideoPlayer() {
       loop_end: undefined,
       quality: defaultVideoQuality,
     });
+    lastPersistedVideoId = currentVideo.id;
+    lastPersistedPosition = 0;
     setCurrentTime(0);
     restoredSeekForVideoRef.current = null;
   }, [currentVideo?.id, defaultSpeed, defaultVideoQuality, updatePlayerState, setCurrentTime]);
@@ -147,6 +155,8 @@ export function useVideoPlayer() {
           volume: safeVolume,
           quality: useAppStore.getState().playerState.quality ?? defaultVideoQuality,
         });
+        lastPersistedVideoId = currentVideo.id;
+        lastPersistedPosition = safePosition;
         setCurrentTime(safePosition);
         restoredSeekForVideoRef.current = null;
 
@@ -405,30 +415,41 @@ export function useVideoPlayer() {
 
   const onEnded = useCallback(() => updatePlayerState({ playing: false }), [updatePlayerState]);
 
-  // High-frequency sync loop for accurate word highlighting.
+  // High-frequency sync loop for accurate word highlighting without polling at
+  // 25fps. 120ms keeps highlighting responsive while cutting battery / CPU use.
   useEffect(() => {
     if (!currentVideo || !playerState.playing) return;
     const iv = setInterval(() => {
       const current = Number(playerRef.current?.getCurrentTime?.());
       if (Number.isFinite(current)) syncPlaybackState(current);
-    }, 40);
+    }, SYNC_INTERVAL_MS);
     return () => clearInterval(iv);
   }, [currentVideo?.id, playerState.playing, playerRef, syncPlaybackState]);
 
   useEffect(() => {
     if (!currentVideo || !playerState.playing) return;
-    let watchMinutes = 0;
+    let watchTicks = 0;
     const iv = setInterval(() => {
-      playerApi.saveState({
-        ...playerStateRef.current,
-        video_id: currentVideo.id,
-      }).catch(() => {});
-      // Award XP every ~60s of watching (4 x 15s intervals)
-      watchMinutes++;
-      if (watchMinutes % 4 === 0) {
+      const snapshot = playerStateRef.current;
+      const position = Number(snapshot.position || 0);
+      const videoChanged = lastPersistedVideoId !== currentVideo.id;
+      const movedEnough = Math.abs(position - lastPersistedPosition) >= MIN_PERSIST_DELTA_SECONDS;
+
+      if (videoChanged || movedEnough) {
+        playerApi.saveState({
+          ...snapshot,
+          video_id: currentVideo.id,
+        }).catch(() => {});
+        lastPersistedVideoId = currentVideo.id;
+        lastPersistedPosition = position;
+      }
+
+      // Award XP roughly once per minute of active watching.
+      watchTicks++;
+      if (watchTicks % 3 === 0) {
         awardXP('watch_minute');
       }
-    }, 15000);
+    }, SESSION_PERSIST_INTERVAL_MS);
     return () => clearInterval(iv);
   }, [currentVideo?.id, playerState.playing]);
 

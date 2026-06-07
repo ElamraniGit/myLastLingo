@@ -20,6 +20,43 @@ router = APIRouter()
 db_manager = None
 
 
+async def _get_groq_key(user_id: str) -> Optional[str]:
+    if not db_manager or not user_id:
+        return None
+    try:
+        async with db_manager.get_connection() as conn:
+            async with conn.execute(
+                "SELECT groq_api_key FROM users WHERE id = ?", (user_id,)
+            ) as cursor:
+                row = await cursor.fetchone()
+        if row:
+            key = (dict(row).get("groq_api_key") or "").strip()
+            return key or None
+    except Exception:
+        return None
+    return None
+
+
+async def _lookup_or_build_word_entry(word: str, user_id: str) -> Dict[str, Any]:
+    from ai.language.service import get_service
+
+    cached = await db_manager.get_word(word)
+    if cached:
+        return cached
+
+    groq_key = await _get_groq_key(user_id)
+    try:
+        entry = await get_service(db_manager).lookup(word, groq_key)
+        word_data = _language_entry_to_word_record(entry)
+    except Exception as exc:
+        logger.warning("Unified language lookup failed for %r: %s", word, exc)
+        word_data = _make_basic_entry(word)
+
+    word_data.setdefault("id", str(uuid.uuid4()))
+    await db_manager.add_word(word_data)
+    return word_data
+
+
 async def _assert_owns_saved_word(saved_id: str, user_id: str) -> None:
     """
     FIX-SEC-2 (IDOR): Verify the saved word belongs to the current user before
@@ -78,22 +115,7 @@ async def save_word(request: SaveWordRequest, current_user: dict = Depends(get_c
     if not word:
         raise HTTPException(status_code=400, detail="Word cannot be empty")
 
-    word_data = await db_manager.get_word(word)
-    if not word_data:
-        try:
-            from ai.dictionary.service import DictionaryService
-            svc = DictionaryService()
-            word_data = await svc.lookup(word)
-            if word_data:
-                word_data["id"] = str(uuid.uuid4())
-                await db_manager.add_word(word_data)
-            else:
-                word_data = _make_basic_entry(word)
-                await db_manager.add_word(word_data)
-        except Exception as e:
-            logger.warning(f"Dictionary lookup failed, using basic entry: {e}")
-            word_data = _make_basic_entry(word)
-            await db_manager.add_word(word_data)
+    word_data = await _lookup_or_build_word_entry(word, current_user["sub"])
 
     async with db_manager.get_connection() as conn:
         async with conn.execute(
@@ -498,17 +520,7 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
             failed += 1
             continue
         try:
-            word_data = await db_manager.get_word(word)
-            if not word_data:
-                try:
-                    from ai.dictionary.service import DictionaryService
-                    svc = DictionaryService()
-                    word_data = await svc.lookup(word) or _make_basic_entry(word)
-                    word_data.setdefault("id", str(uuid.uuid4()))
-                    await db_manager.add_word(word_data)
-                except Exception:
-                    word_data = _make_basic_entry(word)
-                    await db_manager.add_word(word_data)
+            word_data = await _lookup_or_build_word_entry(word, uid)
 
             # Skip if the user already has this word
             async with db_manager.get_connection() as conn:
@@ -531,6 +543,53 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
     return {"message": "Import complete", "added": added, "skipped": skipped, "failed": failed}
 
 
+def _language_entry_to_word_record(entry: Dict[str, Any]) -> Dict[str, Any]:
+    definitions = entry.get("definitions") or []
+    primary_definition = ""
+    mapped_definitions = []
+    for item in definitions:
+        text = str((item or {}).get("text", "")).strip()
+        if not text:
+            continue
+        if not primary_definition:
+            primary_definition = text
+        mapped_definitions.append({
+            "part_of_speech": entry.get("part_of_speech", "unknown"),
+            "definition": text,
+            "example": "",
+        })
+
+    usage_notes = str(entry.get("usage_notes", "")).strip()
+    grammar_notes = str(entry.get("grammar_notes", "")).strip()
+    difficulty = float(entry.get("learning_difficulty", 0.5) or 0.5)
+    priority = float(entry.get("priority_score", 0.5) or 0.5)
+
+    return {
+        "id": str(uuid.uuid4()),
+        "word": (entry.get("term") or "").lower().strip(),
+        "pronunciation": entry.get("pronunciation", ""),
+        "part_of_speech": entry.get("part_of_speech", "unknown"),
+        "level": entry.get("cefr_level", "B1"),
+        "meaning_ar": entry.get("translation", ""),
+        "meaning_en": primary_definition,
+        "definitions": mapped_definitions,
+        "how_to_use": [usage_notes] if usage_notes else [],
+        "usage_notes": usage_notes,
+        "grammar_notes": grammar_notes,
+        "examples": entry.get("examples", []),
+        "synonyms": entry.get("synonyms", []),
+        "antonyms": entry.get("antonyms", []),
+        "collocations": entry.get("collocations", []),
+        "conjugations": {},
+        "related_words": entry.get("related_words", []),
+        "entry_type": entry.get("entry_type", "word"),
+        "difficulty_score": difficulty,
+        "priority_score": priority,
+        "frequency": max(1, round(priority * 100)),
+        "ai_enriched": bool(entry.get("ai_generated")),
+    }
+
+
 def _make_basic_entry(word: str) -> Dict[str, Any]:
     return {
         "id": str(uuid.uuid4()),
@@ -540,11 +599,19 @@ def _make_basic_entry(word: str) -> Dict[str, Any]:
         "level": "B1",
         "meaning_ar": "",
         "meaning_en": f'Definition not available locally for "{word}"',
+        "definitions": [],
+        "how_to_use": [],
+        "usage_notes": "",
+        "grammar_notes": "",
         "examples": [],
         "synonyms": [],
         "antonyms": [],
+        "collocations": [],
         "conjugations": {},
         "related_words": [],
+        "entry_type": "word",
+        "difficulty_score": 0.5,
+        "priority_score": 0.5,
         "frequency": 1,
     }
 

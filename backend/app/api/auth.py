@@ -1,6 +1,6 @@
 """
 Authentication API for LinguaLearn.
-Local-first auth: bcrypt password hashing, JWT tokens stored in SQLite.
+Local-first auth: PBKDF2 password hashing, signed local tokens stored in SQLite.
 No external auth services required. Works fully offline on Termux.
 """
 
@@ -274,6 +274,40 @@ async def create_auth_tables(conn: aiosqlite.Connection):
     await conn.commit()
 
 
+def _project_root():
+    from pathlib import Path
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def _delete_avatar_file(user_id: str) -> None:
+    avatar_dir = _project_root() / "data" / "avatars"
+    for old_file in avatar_dir.glob(f"{user_id}.*"):
+        try:
+            old_file.unlink()
+        except Exception:
+            pass
+
+
+async def _purge_user_library(conn: aiosqlite.Connection, user_id: str) -> None:
+    """Delete user-owned library records and downloaded media files."""
+    async with conn.execute("SELECT id FROM videos WHERE user_id = ?", (user_id,)) as cur:
+        video_ids = [dict(r)["id"] for r in await cur.fetchall()]
+
+    for video_id in video_ids:
+        try:
+            path = _project_root() / "data" / "downloads" / f"{video_id}.mp4"
+            if path.exists():
+                path.unlink()
+        except Exception:
+            pass
+
+    if video_ids:
+        for video_id in video_ids:
+            await conn.execute("DELETE FROM videos WHERE id = ? AND user_id = ?", (video_id, user_id))
+
+    await conn.execute("DELETE FROM text_sources WHERE user_id = ?", (user_id,))
+
+
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
 @router.post("/register")
@@ -377,6 +411,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "email": user.get("email"),
         "display_name": user.get("display_name"),
         "avatar_color": user.get("avatar_color", "#3b82f6"),
+        "avatar_url": user.get("avatar_url"),
         "streak_days": user.get("streak_days", 0),
         "created_at": user.get("created_at"),
         "last_login": user.get("last_login"),
@@ -401,18 +436,22 @@ async def update_profile(
         params = []
 
         if req.display_name is not None:
+            display_name = req.display_name.strip()[:80]
             updates.append("display_name = ?")
-            params.append(req.display_name.strip())
+            params.append(display_name)
 
         if req.email is not None:
+            email = (req.email or "").strip().lower()
+            if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+                raise HTTPException(status_code=400, detail="Invalid email address")
             # Check email not taken
             async with conn.execute(
-                "SELECT id FROM users WHERE email = ? AND id != ?", (req.email, user_id)
+                "SELECT id FROM users WHERE email = ? AND id != ?", (email or None, user_id)
             ) as cur2:
-                if await cur2.fetchone():
+                if email and await cur2.fetchone():
                     raise HTTPException(status_code=409, detail="Email already in use")
             updates.append("email = ?")
-            params.append(req.email)
+            params.append(email or None)
 
         if req.avatar_color is not None:
             # Basic hex colour validation
@@ -501,18 +540,21 @@ async def delete_account(
             raise HTTPException(401, "Incorrect password")
 
         # Delete all user data (cascade handles word_reviews via FK)
+        await _purge_user_library(conn, user_id)
         for sql in [
-            "DELETE FROM saved_words    WHERE user_id = ?",
-            "DELETE FROM chat_messages  WHERE user_id = ?",
-            "DELETE FROM user_xp        WHERE user_id = ?",
-            "DELETE FROM xp_log         WHERE user_id = ?",
-            "DELETE FROM text_sources   WHERE user_id = ?",
+            "DELETE FROM saved_words        WHERE user_id = ?",
+            "DELETE FROM chat_messages      WHERE user_id = ?",
+            "DELETE FROM user_xp            WHERE user_id = ?",
+            "DELETE FROM xp_log             WHERE user_id = ?",
+            "DELETE FROM user_core_progress WHERE user_id = ?",
+            "DELETE FROM core_word_reviews  WHERE user_id = ?",
         ]:
             await conn.execute(sql, (user_id,))
 
         # Delete account last
         await conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
 
+    _delete_avatar_file(user_id)
     return {"message": "Account deleted"}
 
 
@@ -526,6 +568,12 @@ async def clear_vocabulary(current_user: dict = Depends(get_current_user)):
         # word_reviews deleted via CASCADE on saved_words
         await conn.execute(
             "DELETE FROM saved_words WHERE user_id = ?", (user_id,)
+        )
+        await conn.execute(
+            "DELETE FROM user_core_progress WHERE user_id = ?", (user_id,)
+        )
+        await conn.execute(
+            "DELETE FROM core_word_reviews WHERE user_id = ?", (user_id,)
         )
         await conn.execute(
             "DELETE FROM user_xp    WHERE user_id = ?", (user_id,)

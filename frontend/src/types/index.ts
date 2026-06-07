@@ -18,6 +18,7 @@ export interface User {
   email?: string;
   display_name: string;
   avatar_color: string;
+  avatar_url?: string | null;
   streak_days: number;
   created_at?: string;
   last_login?: string;
@@ -79,12 +80,18 @@ export interface Word {
   meaning_en: string;
   definitions?: WordDefinition[];
   how_to_use?: string[];
+  usage_notes?: string;
+  grammar_notes?: string | string[];
   examples: string[];
   synonyms: string[];
   antonyms: string[];
+  collocations?: string[];
   root_form?: string;
   conjugations?: Record<string, string>;
   related_words?: string[];
+  entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
+  difficulty_score?: number;
+  priority_score?: number;
   frequency?: number;
 }
 
@@ -102,8 +109,16 @@ export interface SavedWord {
   examples?: string[];
   synonyms?: string[];
   antonyms?: string[];
+  definitions?: WordDefinition[];
+  how_to_use?: string[];
+  usage_notes?: string;
+  grammar_notes?: string;
+  collocations?: string[];
   conjugations?: Record<string, string>;
   related_words?: string[];
+  entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
+  difficulty_score?: number;
+  priority_score?: number;
   video_id?: string;
   source_video_title?: string;
   source_video_channel?: string;

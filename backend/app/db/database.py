@@ -113,6 +113,15 @@ class DatabaseManager:
                 root_form TEXT,
                 conjugations TEXT,
                 related_words TEXT,
+                collocations TEXT DEFAULT '[]',
+                definitions TEXT DEFAULT '[]',
+                how_to_use TEXT DEFAULT '[]',
+                usage_notes TEXT DEFAULT '',
+                grammar_notes TEXT DEFAULT '',
+                entry_type TEXT DEFAULT 'word',
+                difficulty_score REAL DEFAULT 0.5,
+                priority_score REAL DEFAULT 0.5,
+                ai_enriched INTEGER DEFAULT 0,
                 frequency INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -326,9 +335,15 @@ class DatabaseManager:
             word_columns = {dict(r)["name"] for r in wrows}
 
         word_migrations = {
-            "definitions":  "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
-            "how_to_use":   "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
-            "ai_enriched":  "ALTER TABLE words ADD COLUMN ai_enriched INTEGER DEFAULT 0",
+            "definitions":      "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
+            "how_to_use":       "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
+            "ai_enriched":      "ALTER TABLE words ADD COLUMN ai_enriched INTEGER DEFAULT 0",
+            "collocations":     "ALTER TABLE words ADD COLUMN collocations TEXT DEFAULT '[]'",
+            "usage_notes":      "ALTER TABLE words ADD COLUMN usage_notes TEXT DEFAULT ''",
+            "grammar_notes":    "ALTER TABLE words ADD COLUMN grammar_notes TEXT DEFAULT ''",
+            "entry_type":       "ALTER TABLE words ADD COLUMN entry_type TEXT DEFAULT 'word'",
+            "difficulty_score": "ALTER TABLE words ADD COLUMN difficulty_score REAL DEFAULT 0.5",
+            "priority_score":   "ALTER TABLE words ADD COLUMN priority_score REAL DEFAULT 0.5",
         }
         for col, sql in word_migrations.items():
             if col not in word_columns:
@@ -415,8 +430,19 @@ class DatabaseManager:
         data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
         data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
         data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+        data["collocations"] = self._decode_json_field(data.get("collocations"), [])
+        data["definitions"] = self._decode_json_field(data.get("definitions"), [])
+        data["how_to_use"] = self._decode_json_field(data.get("how_to_use"), [])
         data["tags"] = self._decode_json_field(data.get("tags"), [])
         data["favorite"] = bool(data.get("favorite", 0))
+        try:
+            data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
+        except (TypeError, ValueError):
+            data["difficulty_score"] = 0.5
+        try:
+            data["priority_score"] = float(data.get("priority_score", 0.5) or 0.5)
+        except (TypeError, ValueError):
+            data["priority_score"] = 0.5
         return data
 
     def _build_saved_words_query(
@@ -440,6 +466,8 @@ class DatabaseManager:
             sw.*, w.word, w.pronunciation, w.part_of_speech,
             w.meaning_ar, w.meaning_en, w.level, w.examples,
             w.synonyms, w.antonyms, w.conjugations, w.related_words,
+            w.collocations, w.definitions, w.how_to_use, w.usage_notes,
+            w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
             COALESCE(v.title, '') as source_video_title,
             COALESCE(v.channel, '') as source_video_channel
         """
@@ -718,8 +746,9 @@ class DatabaseManager:
                 INSERT OR REPLACE INTO words
                     (id, word, pronunciation, part_of_speech, level, meaning_ar, meaning_en,
                      examples, synonyms, antonyms, root_form, conjugations, related_words,
-                     definitions, how_to_use, frequency, ai_enriched)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     collocations, definitions, how_to_use, usage_notes, grammar_notes,
+                     entry_type, difficulty_score, priority_score, frequency, ai_enriched)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     word_data.get("id"),
@@ -735,8 +764,14 @@ class DatabaseManager:
                     word_data.get("root_form", ""),
                     json.dumps(word_data.get("conjugations", {}), ensure_ascii=False),
                     json.dumps(word_data.get("related_words", []), ensure_ascii=False),
+                    json.dumps(word_data.get("collocations", []), ensure_ascii=False),
                     json.dumps(word_data.get("definitions", []), ensure_ascii=False),
                     json.dumps(word_data.get("how_to_use", []), ensure_ascii=False),
+                    word_data.get("usage_notes", ""),
+                    word_data.get("grammar_notes", ""),
+                    word_data.get("entry_type", "word"),
+                    float(word_data.get("difficulty_score", 0.5) or 0.5),
+                    float(word_data.get("priority_score", 0.5) or 0.5),
                     word_data.get("frequency", 0),
                     1 if word_data.get("ai_enriched") else 0,
                 ),
@@ -755,9 +790,18 @@ class DatabaseManager:
                 data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
                 data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
                 data["related_words"] = self._decode_json_field(data.get("related_words"), [])
+                data["collocations"] = self._decode_json_field(data.get("collocations"), [])
                 data["definitions"]  = self._decode_json_field(data.get("definitions"), [])
                 data["how_to_use"]   = self._decode_json_field(data.get("how_to_use"), [])
                 data["ai_enriched"]  = bool(data.get("ai_enriched", 0))
+                try:
+                    data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
+                except (TypeError, ValueError):
+                    data["difficulty_score"] = 0.5
+                try:
+                    data["priority_score"] = float(data.get("priority_score", 0.5) or 0.5)
+                except (TypeError, ValueError):
+                    data["priority_score"] = 0.5
                 return data
 
     # =========================================================================
@@ -816,6 +860,8 @@ class DatabaseManager:
                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
+                       w.collocations, w.definitions, w.how_to_use, w.usage_notes,
+                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
                        COALESCE(v.title, '') as source_video_title,
                        COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw
@@ -1002,6 +1048,8 @@ class DatabaseManager:
                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
+                       w.collocations, w.definitions, w.how_to_use, w.usage_notes,
+                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
                        COALESCE(v.title, '') as source_video_title,
                        COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw
@@ -1017,6 +1065,7 @@ class DatabaseManager:
                         ELSE 3
                     END,
                     COALESCE(sw.favorite, 0) DESC,
+                    COALESCE(w.priority_score, 0.5) DESC,
                     COALESCE(sw.lapses, 0) DESC,
                     {due_expr} ASC,
                     sw.created_at ASC

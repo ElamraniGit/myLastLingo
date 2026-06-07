@@ -35,6 +35,16 @@ db_manager = None
 whisper_service = None
 
 
+async def _assert_video_access(video_id: str, user_id: str) -> Dict[str, Any]:
+    video = await db_manager.get_video(video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    owner = video.get("user_id") or ""
+    if owner and owner != user_id:
+        raise HTTPException(status_code=404, detail="Video not found")
+    return video
+
+
 def _ensure_whisper_dependencies() -> None:
     """Validate optional Whisper dependencies before queuing background task."""
     try:
@@ -71,9 +81,7 @@ async def extract_transcript(
 ):
     """Extract transcript from YouTube video (captions or Whisper)."""
 
-    video = await db_manager.get_video(video_id)
-    if not video:
-        raise HTTPException(status_code=404, detail="Video not found")
+    video = await _assert_video_access(video_id, current_user["sub"])
 
     # Return cached transcript only if it actually has segments (a status-only
     # placeholder row, e.g. 'processing', must not be treated as ready).
@@ -673,6 +681,7 @@ async def get_transcript_status(
 
     Returns: {status: idle|processing|ready|error, error, segment_count}
     """
+    await _assert_video_access(video_id, current_user["sub"])
     return await db_manager.get_transcript_status(video_id, language)
 
 
@@ -683,6 +692,7 @@ async def get_transcript(
     current_user: dict = Depends(get_current_user),
 ):
     """Get transcript for a video."""
+    await _assert_video_access(video_id, current_user["sub"])
     transcript = await db_manager.get_transcript(video_id, language)
     # A status-only placeholder row (no segments) is not a usable transcript.
     if not transcript or not transcript.get("segments"):
@@ -699,6 +709,7 @@ async def get_transcript_segments(
     current_user: dict = Depends(get_current_user),
 ):
     """Get transcript segments, optionally filtered by time range."""
+    await _assert_video_access(video_id, current_user["sub"])
     transcript = await db_manager.get_transcript(video_id, language)
     if not transcript:
         raise HTTPException(status_code=404, detail="Transcript not found")

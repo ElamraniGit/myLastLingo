@@ -18,7 +18,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Depends
 from pydantic import BaseModel
 
-from backend.app.api.auth import get_current_user, _verify_token
+from backend.app.api.auth import get_current_user, _verify_token, _token_version_ok
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,16 @@ def _safe_video_path(video_id: str) -> Path:
     return target
 
 
+async def _assert_video_access(video_id: str, user_id: str) -> Dict[str, Any]:
+    video = await db_manager.get_video(video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    owner = video.get("user_id") or ""
+    if owner and owner != user_id:
+        raise HTTPException(status_code=404, detail="Video not found")
+    return video
+
+
 # Bug #11 fix: key = unique session_id, value = (websocket, video_id)
 active_connections: Dict[str, tuple] = {}
 
@@ -65,6 +75,7 @@ async def update_player_state(
 ):
     """Update and save player state (scoped to the current user)."""
     uid = current_user["sub"]
+    await _assert_video_access(state.video_id, uid)
     async with db_manager.get_connection() as conn:
         # FIX-SEC-3: scope session by (video_id, user_id) so two users watching
         # the same YouTube video don't overwrite each other's resume position.
@@ -104,6 +115,7 @@ async def get_player_state(
     current_user: dict = Depends(get_current_user),
 ):
     """Get saved player state for a video (scoped to the current user)."""
+    await _assert_video_access(video_id, current_user["sub"])
     async with db_manager.get_connection() as conn:
         async with conn.execute(
             "SELECT * FROM sessions WHERE video_id = ? AND user_id = ?",
@@ -183,8 +195,14 @@ async def websocket_sync(
         return
 
     payload = _verify_token(token)
-    if not payload:
+    if not payload or not await _token_version_ok(payload):
         await websocket.close(code=4001, reason="Invalid or expired token")
+        return
+
+    try:
+        await _assert_video_access(video_id, payload.get("sub", ""))
+    except HTTPException:
+        await websocket.close(code=4404, reason="Video not found")
         return
 
     await websocket.accept()

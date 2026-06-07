@@ -123,7 +123,7 @@ async def process_video(input_data: VideoURLInput, background_tasks: BackgroundT
         raise
     except Exception as e:
         logger.error(f"Error processing video: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to process video")
 
 
 @router.get("/list")

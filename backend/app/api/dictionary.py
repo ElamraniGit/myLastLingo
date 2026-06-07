@@ -110,6 +110,12 @@ def _to_legacy(entry: dict) -> dict:
         "antonyms":       entry.get("antonyms", []),
         "collocations":   entry.get("collocations", []),
         "related_words":  entry.get("related_words", []),
+        "collocations":   entry.get("collocations", []),
+        "usage_notes":    entry.get("usage_notes", ""),
+        "grammar_notes":  entry.get("grammar_notes", ""),
+        "difficulty_score": entry.get("learning_difficulty", 0.5),
+        "priority_score":   entry.get("priority_score", 0.5),
+        "entry_type":     entry.get("entry_type", "word"),
         "conjugations":   {},
         "root_form":      entry.get("term", ""),
         "frequency":      1,
@@ -140,9 +146,6 @@ async def lookup_word(
 
     try:
         entry = await _svc().lookup(term, groq_key)
-        # If no AI data and no Groq key, fall back to multi-source pipeline
-        if not entry.get("ai_generated") and not groq_key:
-            entry = await _fallback_lookup(term, entry)
     except Exception as e:
         logger.error(f"Lookup failed for '{term}': {e}", exc_info=True)
         raise HTTPException(500, "Language lookup failed")

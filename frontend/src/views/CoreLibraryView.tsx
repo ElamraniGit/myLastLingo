@@ -35,6 +35,7 @@ interface CoreWord {
   antonyms?: string[];
   collocations?: string[];
   example?: string;
+  ease_factor?: number;
   progress?: {
     status: 'new' | 'learning' | 'reviewing' | 'learned';
     ease_factor: number;
