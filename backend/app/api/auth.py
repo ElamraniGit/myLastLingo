@@ -571,36 +571,49 @@ async def upload_avatar(
 ):
     """
     Upload a profile picture.
-    Accepts JPEG/PNG/WebP up to 5 MB.
-    Saves to data/avatars/<user_id>.<ext>
+    Accepts JPEG/PNG/WebP (or any image/* MIME) up to 5 MB.
+    Saves to data/avatars/<user_id>.<ext> relative to PROJECT_ROOT.
     Returns the public URL path.
     """
-    import os, uuid
     from pathlib import Path
 
     user_id = current_user["sub"]
 
-    # Validate
-    ALLOWED = {"image/jpeg", "image/png", "image/webp"}
-    ct = (file.content_type or "").lower()
-    if ct not in ALLOWED:
-        raise HTTPException(400, "Only JPEG, PNG, or WebP images are allowed")
-
+    # Read data first — needed for magic-bytes detection
     data = await file.read()
+
     if len(data) > 5 * 1024 * 1024:
         raise HTTPException(400, "Image too large — max 5 MB")
-    if len(data) < 100:
+    if len(data) < 12:
         raise HTTPException(400, "Invalid image file")
 
-    ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}.get(ct, "jpg")
+    # Detect format from magic bytes (more reliable than content-type on Android)
+    if data[:2] == b"\xff\xd8":
+        ext = "jpg"
+    elif data[:8] == b"\x89PNG\r\n\x1a\n":
+        ext = "png"
+    elif data[:4] in (b"RIFF", b"WEBP") or data[8:12] == b"WEBP":
+        ext = "webp"
+    else:
+        # Fall back to content-type (normalise common variants)
+        ct = (file.content_type or "image/jpeg").lower().strip()
+        ct_map = {
+            "image/jpeg": "jpg", "image/jpg": "jpg", "image/pjpeg": "jpg",
+            "image/png": "png", "image/webp": "webp",
+        }
+        ext = ct_map.get(ct)
+        if not ext:
+            raise HTTPException(400, "Only JPEG, PNG or WebP images are allowed")
 
-    # Save file
-    avatars_dir = Path("data/avatars")
+    # Save to PROJECT_ROOT/data/avatars/
+    # Use an absolute path relative to this file to avoid cwd issues
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    avatars_dir  = project_root / "data" / "avatars"
     avatars_dir.mkdir(parents=True, exist_ok=True)
 
-    # Remove old avatar for this user
-    for old in avatars_dir.glob(f"{user_id}.*"):
-        try: old.unlink()
+    # Remove previous avatar for this user
+    for old_file in avatars_dir.glob(f"{user_id}.*"):
+        try: old_file.unlink()
         except: pass
 
     filename  = f"{user_id}.{ext}"
@@ -629,7 +642,8 @@ async def get_avatar(filename: str):
     if not re.match(r'^[a-zA-Z0-9_-]+[.](jpg|png|webp)$', filename):
         raise HTTPException(404, "Not found")
 
-    path = Path("data/avatars") / filename
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    path = project_root / "data" / "avatars" / filename
     if not path.exists():
         raise HTTPException(404, "Avatar not found")
 
