@@ -322,8 +322,9 @@ export default function TranscriptViewer() {
                   const clean = word.replace(/[^\w'-]/g, '').trim();
                   const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
                   const isCur = seg.words?.length ? activeWord === wi : false;
-                  const isSavedPhrase = !!savedMatch?.phraseIndexes.has(wi);
-                  const isSavedWord = !!savedMatch?.singleWordIndexes.has(wi);
+                  const suppressSavedHighlight = !!segSel;
+                  const isSavedPhrase = !suppressSavedHighlight && !!savedMatch?.phraseIndexes.has(wi);
+                  const isSavedWord = !suppressSavedHighlight && !!savedMatch?.singleWordIndexes.has(wi);
                   return (
                     <React.Fragment key={wi}>
                       <span

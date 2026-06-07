@@ -367,8 +367,9 @@ export default function TextReaderView() {
               const isStart  = !!active && i === active.start;
               const clean    = word.replace(/[^a-zA-Z'-]/g, '');
               const isWord   = clean.length >= 2;
-              const isSavedPhrase = isWord && savedMatch.phraseIndexes.has(i);
-              const isSavedWord = isWord && savedMatch.singleWordIndexes.has(i);
+              const suppressSavedHighlight = !!trSelRange;
+              const isSavedPhrase = !suppressSavedHighlight && isWord && savedMatch.phraseIndexes.has(i);
+              const isSavedWord = !suppressSavedHighlight && isWord && savedMatch.singleWordIndexes.has(i);
 
               return (
                 <React.Fragment key={i}>
