@@ -31,9 +31,21 @@ if [ ! -d "node_modules" ]; then
 fi
 chmod +x node_modules/.bin/* 2>/dev/null || true
 
+IS_TERMUX_ANDROID=false
+if [ -n "${PREFIX:-}" ] && echo "$PREFIX" | grep -qi "com.termux"; then
+  IS_TERMUX_ANDROID=true
+elif uname -o 2>/dev/null | grep -qi "android"; then
+  IS_TERMUX_ANDROID=true
+fi
+
+if [ "$IS_TERMUX_ANDROID" = true ] && [ "$DEV_MODE" = false ]; then
+  echo "⚠️  Termux/Android detected — forcing frontend to DEV mode (production build unsupported)."
+  DEV_MODE=true
+fi
+
 if [ "$DEV_MODE" = true ]; then
   echo "🌐 Starting frontend (DEV) on http://127.0.0.1:${PORT}"
-  exec npx next dev -p "$PORT"
+  exec npx next dev -H 127.0.0.1 -p "$PORT"
 fi
 
 # ── Production: build FIRST (blocking), then start ───────────────
@@ -46,7 +58,7 @@ if [ ! -d ".next" ] || [ ! -f ".next/BUILD_ID" ]; then
   npx next build 2>&1 || true
   if [ ! -f ".next/BUILD_ID" ]; then
     echo "❌ Build failed! Starting in dev mode instead..."
-    exec npx next dev -p "$PORT"
+    exec npx next dev -H 127.0.0.1 -p "$PORT"
   fi
   echo "✅ Build complete!"
 fi

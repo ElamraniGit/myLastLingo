@@ -11,9 +11,10 @@ set -e
 echo "🔄 Updating LinguaLearn..."
 echo ""
 
-# 1. Pull latest code
-echo "📥 Pulling latest code..."
-git pull
+# 1. Sync latest code safely (avoid Termux merge conflicts)
+echo "📥 Syncing latest code..."
+git fetch origin
+git reset --hard origin/main
 echo ""
 
 # 2. Kill running processes

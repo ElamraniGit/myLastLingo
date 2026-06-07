@@ -27,6 +27,23 @@ for arg in "$@"; do
   [ "$arg" = "--rebuild" ] && FORCE_REBUILD=true
 done
 
+IS_TERMUX_ANDROID=false
+if [ -n "${PREFIX:-}" ] && echo "$PREFIX" | grep -qi "com.termux"; then
+  IS_TERMUX_ANDROID=true
+elif uname -o 2>/dev/null | grep -qi "android"; then
+  IS_TERMUX_ANDROID=true
+fi
+
+# Next.js production builds are not reliable on Termux/Android ARM because SWC
+# binaries are unavailable. Downgrade to dev immediately instead of wasting time
+# on a build that will fail and then fall back anyway.
+if [ "$IS_TERMUX_ANDROID" = true ] && [ -z "$DEV_FLAG" ]; then
+  echo -e "${YELLOW}⚠️  Termux/Android detected — production Next.js build is unsupported on this platform.${NC}"
+  echo -e "${YELLOW}   Switching to DEVELOPMENT mode automatically.${NC}"
+  DEV_FLAG="--dev"
+  MODE="DEVELOPMENT"
+fi
+
 echo -e "${BLUE}"
 echo "╔══════════════════════════════════════════╗"
 echo "║     LinguaLearn — $MODE"
