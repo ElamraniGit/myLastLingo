@@ -10,6 +10,7 @@
  *  - Sort: newest first
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { speak as ttsSpeak } from '@/lib/tts';
 import { useStore } from '@/store/appStore';
 import { libraryApi, videosApi, dictionaryApi, ApiError } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
@@ -325,6 +326,7 @@ export default function LibraryView() {
                 <button
                   onClick={e => deleteSource(s.id, e)}
                   className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-faint hover:text-red-500
+                             flex:text-red-500
                              flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shrink-0 text-sm"
                   aria-label="Delete"
                 ><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
@@ -545,45 +547,73 @@ function AddModal({
 
 /* ── Word Lookup ──────────────────────────────────────────────── */
 function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
-  const [word,   setWord]   = useState('');
+  const [term,   setTerm]   = useState('');
   const [busy,   setBusy]   = useState(false);
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
+  const [info,   setInfo]   = useState('');
   const [result, setResult] = useState<any | null>(null);
   const [saved,  setSaved]  = useState(false);
-  const { saveWord } = useDictionary();
+  const savedWords = useStore(s => s.savedWords);
+  const { saveWord, loadVocabulary } = useDictionary();
+
+  useEffect(() => {
+    if (savedWords.length === 0) {
+      loadVocabulary({ page: 1, limit: 300 }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const normalizedResult = (result?.word || term).trim().toLowerCase();
+  const alreadySaved = !!normalizedResult && savedWords.some(
+    w => (w.word || '').trim().toLowerCase() === normalizedResult
+  );
 
   const search = async () => {
-    const w = word.trim().toLowerCase();
-    if (!w) return;
+    const value = term.trim().toLowerCase();
+    if (!value) return;
     setBusy(true);
     setError('');
+    setInfo('');
     setSaved(false);
     try {
-      const data = await dictionaryApi.lookup(w);
+      const data = value.includes(' ')
+        ? await dictionaryApi.lookupPhrase(value)
+        : await dictionaryApi.lookup(value);
       setResult(data);
     } catch {
       setResult(null);
-      setError('Word not found');
+      setError('Nothing found for this word or phrase');
     }
     setBusy(false);
   };
 
   const addWord = async () => {
-    const target = (result?.word || word).trim().toLowerCase();
+    const target = normalizedResult;
     if (!target) return;
+    if (alreadySaved) {
+      setInfo('This term is already saved in your vocabulary');
+      return;
+    }
     setSaving(true);
     setError('');
+    setInfo('');
     try {
       const sentence = Array.isArray(result?.examples) && result.examples[0] ? String(result.examples[0]) : '';
       const ok = await saveWord(target, undefined, sentence, 'library');
       if (!ok) throw new Error('save failed');
       setSaved(true);
+      setInfo('Saved to your vocabulary');
       setTimeout(() => onSaved(), 500);
     } catch {
-      setError('Failed to save word');
+      setError('Failed to save term');
     }
     setSaving(false);
+  };
+
+  const handleSpeak = () => {
+    const text = result?.word || term.trim();
+    if (!text) return;
+    ttsSpeak(text, { rate: text.includes(' ') ? 1.0 : 0.9 });
   };
 
   const meaningEn = result?.meaning_en || result?.definitions?.[0]?.definition || '';
@@ -591,32 +621,43 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
   const pronunciation = result?.pronunciation || '';
   const examples = Array.isArray(result?.examples) ? result.examples : [];
   const synonyms = Array.isArray(result?.synonyms) ? result.synonyms : [];
+  const collocations = Array.isArray(result?.collocations) ? result.collocations : [];
+  const entryType = result?.entry_type || (normalizedResult.includes(' ') ? 'phrase' : 'word');
 
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-muted mb-1.5">English Word</label>
+        <label className="block text-xs font-medium text-muted mb-1.5">English Word / Phrase / Idiom</label>
         <input
-          value={word}
-          onChange={e => { setWord(e.target.value); setError(''); setResult(null); setSaved(false); }}
+          value={term}
+          onChange={e => { setTerm(e.target.value); setError(''); setInfo(''); setResult(null); setSaved(false); }}
           onKeyDown={e => e.key === 'Enter' && search()}
-          placeholder="e.g. ambiguous"
+          placeholder="e.g. ambiguous · take off · piece of cake"
           className="input-field text-sm"
         />
+        <p className="text-[11px] text-faint mt-1">Supports words, phrases, and idioms.</p>
       </div>
 
       {error && <p className="text-xs text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>{error}</p>}
-      {saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Saved: {(result?.word || word).trim().toLowerCase()}</p>}
+      {info && !error && <p className={`text-xs flex items-center gap-1.5 ${saved || alreadySaved ? 'text-amber-400' : 'text-green-400'}`}><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>{info}</p>}
 
       {result && (
         <div className="bg-card border border-default rounded-2xl p-4 space-y-3 animate-fade-in">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-lg font-bold text-heading">{result.word}</h4>
-              {result.level && <span className="text-xs px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-bold uppercase">{result.level}</span>}
-              {result.part_of_speech && <span className="text-xs text-muted">{result.part_of_speech}</span>}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-lg font-bold text-heading">{result.word}</h4>
+                {result.level && <span className="text-xs px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-bold uppercase">{result.level}</span>}
+                <span className="text-xs px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-semibold capitalize">{entryType}</span>
+                {result.part_of_speech && <span className="text-xs text-muted">{result.part_of_speech}</span>}
+              </div>
+              {pronunciation && <p className="text-xs text-muted font-mono mt-1">{pronunciation}</p>}
             </div>
-            {pronunciation && <p className="text-xs text-muted font-mono mt-1">{pronunciation}</p>}
+            <button onClick={handleSpeak}
+              className="w-9 h-9 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center shrink-0"
+              aria-label="Pronounce term">
+              <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
           </div>
 
           {meaningEn && (
@@ -650,18 +691,32 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
               </div>
             </div>
           )}
+
+          {collocations.length > 0 && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Collocations</p>
+              <div className="flex flex-wrap gap-1.5">
+                {collocations.slice(0, 5).map((item: string) => (
+                  <span key={item} className="text-xs px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400">{item}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      <div className="flex gap-2">
-        <button onClick={onBack} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
-        <button onClick={search} disabled={busy || saving || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
-          {busy ? 'Looking up…' : result ? 'Refresh' : 'Look Up'}
+      <div className="grid grid-cols-3 gap-2">
+        <button onClick={onBack} className="py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
+        <button onClick={handleSpeak} disabled={!result && !term.trim()} className="py-2.5 rounded-xl border border-blue-500/25 bg-blue-500/10 text-blue-500 text-sm font-semibold disabled:opacity-50">
+          Hear
+        </button>
+        <button onClick={search} disabled={busy || saving || !term.trim()} className="btn-primary py-2.5 text-sm rounded-xl">
+          {busy ? 'Looking…' : result ? 'Refresh' : 'Look Up'}
         </button>
       </div>
-      <button onClick={addWord} disabled={saving || busy || !(result?.word || word.trim())}
+      <button onClick={addWord} disabled={saving || busy || !normalizedResult || alreadySaved}
         className="w-full py-2.5 rounded-xl border border-green-500/25 bg-green-500/10 text-green-500 text-sm font-semibold disabled:opacity-50">
-        {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Word'}
+        {saving ? 'Saving…' : alreadySaved ? 'Already Saved' : saved ? 'Saved!' : 'Save Term'}
       </button>
     </div>
   );
