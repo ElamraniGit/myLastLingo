@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: false,
 
-  // Disable SWC minifier — crashes on Termux ARM64
-  swcMinify: false,
-
   images: {
     domains: ['i.ytimg.com', 'img.youtube.com', 'i3.ytimg.com'],
     unoptimized: true,
