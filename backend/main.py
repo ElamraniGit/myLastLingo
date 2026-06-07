@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse
 
 from config.settings import load_config
 from backend.app.db.database import DatabaseManager
+from ai.groq_language_service import init_service as init_groq_service
 from backend.app.api import router as api_router
 from backend.app.api.auth import create_auth_tables
 from backend.app.services.cache import CacheManager
@@ -55,6 +56,11 @@ async def lifespan(app: FastAPI):
     db_path.parent.mkdir(parents=True, exist_ok=True)
     db_manager = DatabaseManager(str(db_path))
     await db_manager.initialize()
+
+    # Init Groq Language Service (singleton)
+    groq_svc = init_groq_service(db_manager)
+    await groq_svc.ensure_table()
+    logger.info("GroqLanguageService initialised")
 
     # Seed Core English 3000 built-in vocabulary
     await db_manager.seed_core_words()

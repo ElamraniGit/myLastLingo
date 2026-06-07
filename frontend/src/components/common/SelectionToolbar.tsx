@@ -22,44 +22,18 @@ interface Props {
   videoId?: string;
 }
 
-// Fetch Arabic translation for any text (word or phrase)
-async function fetchTranslation(text: string): Promise<string> {
+// All phrase lookups go through the backend Groq service — no direct external API calls
+async function fetchPhraseData(text: string): Promise<{ translation: string; definition: string }> {
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ar`;
-    const ctrl1 = new AbortController();
-    const t1 = setTimeout(() => ctrl1.abort(), 6000);
-    const res  = await fetch(url, { signal: ctrl1.signal });
-    clearTimeout(t1);
-    if (!res.ok) return '';
-    const data = await res.json();
-    const tr   = data?.responseData?.translatedText || '';
-    // MyMemory returns the query itself when it fails
-    if (tr && tr.toLowerCase() !== text.toLowerCase()) return tr;
-  } catch {}
-  return '';
-}
-
-// Try to get a definition from Free Dictionary API (works for some phrases)
-async function fetchDefinition(text: string): Promise<string> {
-  // Only try if 1-2 words (phrasal verbs, compound words)
-  const words = text.trim().split(/\s+/);
-  if (words.length > 3) return '';
-  try {
-    const query = words.join('%20');
-    const res   = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${query}`,
-      (() => {
-        const ctrl = new AbortController();
-        setTimeout(() => ctrl.abort(), 6000);
-        return { signal: ctrl.signal };
-      })()
-    );
-    if (!res.ok) return '';
-    const data = await res.json();
-    const def  = data?.[0]?.meanings?.[0]?.definitions?.[0]?.definition || '';
-    return def;
-  } catch {}
-  return '';
+    const { dictionaryApi } = await import('@/lib/api');
+    const result = await dictionaryApi.lookupPhrase(text);
+    return {
+      translation: result?.meaning_ar || '',
+      definition:  result?.meaning_en || (result?.definitions?.[0]?.definition ?? ''),
+    };
+  } catch {
+    return { translation: '', definition: '' };
+  }
 }
 
 interface PhraseInfo {
@@ -88,10 +62,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
   useEffect(() => {
     if (!isMultiWord) return;
     setPhraseInfo({ translation: '', definition: '', loading: true });
-    Promise.all([
-      fetchTranslation(phrase),
-      fetchDefinition(phrase),
-    ]).then(([translation, definition]) => {
+    fetchPhraseData(phrase).then(({ translation, definition }) => {
       setPhraseInfo({ translation, definition, loading: false });
     });
   }, [phrase, isMultiWord]);

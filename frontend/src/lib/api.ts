@@ -199,6 +199,10 @@ export const transcriptsApi = {
 };
 
 export const dictionaryApi = {
+  lookupPhrase: (phrase: string) =>
+    req<any>('/dictionary/lookup/phrase', { method: 'POST', body: { phrase }, timeout: 20000 }),
+
+
   lookup: (word: string) => req<any>('/dictionary/lookup', { method: 'POST', body: { word } }),
 
   search: (query: string, limit = 10) => req<any>(`/dictionary/search?query=${encodeURIComponent(query)}&limit=${limit}`),
