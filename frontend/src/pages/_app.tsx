@@ -16,6 +16,7 @@ import InstallPrompt from '@/components/common/InstallPrompt';
 import OfflineBanner from '@/components/common/OfflineBanner';
 import NotificationCenter from '@/components/common/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
+import { AppLogo } from '@/components/ui/Icons';
 import { warmUpTTS } from '@/lib/tts';
 
 function NotificationsBootstrap() {
@@ -25,8 +26,14 @@ function NotificationsBootstrap() {
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center py-10 text-sm text-muted">
-      Loading…
+    <div className="flex items-center justify-center py-12">
+      <div className="surface-panel px-5 py-4 flex items-center gap-3 animate-fade-in">
+        <AppLogo size={28} />
+        <div>
+          <p className="text-sm font-semibold text-heading">Loading</p>
+          <p className="text-xs text-muted">Preparing your workspace…</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -162,15 +169,17 @@ export default function App({ Component, pageProps }: AppProps) {
 
   // ── Loading spinner (waiting for Zustand rehydration) ────────────
   if (!hydrated) return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      height: '100vh', backgroundColor: '#000',
-    }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: 14, backgroundColor: '#2563eb',
-        color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 26, fontWeight: 800,
-      }}>L</div>
+    <div className="min-h-screen bg-base flex items-center justify-center px-5">
+      <div className="surface-panel w-full max-w-xs px-5 py-6 text-center animate-scale-in">
+        <div className="flex items-center justify-center mb-4">
+          <AppLogo size={46} />
+        </div>
+        <p className="text-base font-semibold text-heading">LinguaLearn</p>
+        <p className="text-sm text-muted mt-1">Restoring your session…</p>
+        <div className="mt-4 h-1.5 bg-elevated rounded-full overflow-hidden">
+          <div className="h-full bg-accent rounded-full animate-pulse-soft" style={{ width: '55%' }} />
+        </div>
+      </div>
     </div>
   );
 

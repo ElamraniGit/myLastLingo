@@ -153,7 +153,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
     // Blockquote
     if (line.startsWith('> ')) {
       result.push(
-        <blockquote key={key++} className="border-l-2 border-accent/40 pl-3 text-body italic">
+        <blockquote key={key++} className="border-l-2 border-blue-500/40 pl-3 text-body italic">
           {inline(line.slice(2))}
         </blockquote>
       );
@@ -591,7 +591,7 @@ export default function ChatView() {
             maxLength={600}
             className="flex-1 resize-none bg-card border-2 border-default rounded-2xl
                        px-4 py-3 text-base text-heading placeholder:text-muted
-                       focus:outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/12
+                       focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10
                        disabled:opacity-50 transition-all min-h-[48px] max-h-[160px]
                        leading-relaxed scrollbar-none"
             style={{ height: '48px' }}
@@ -613,7 +613,7 @@ export default function ChatView() {
             <button
               onClick={() => send()}
               disabled={!input.trim()}
-              className="w-10 h-10 flex items-center justify-center bg-accent hover:bg-accent/90
+              className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500
                          text-white rounded-xl disabled:opacity-35 transition-all
                          active:scale-95 shadow-sm shrink-0"
               title="Send (Enter)"

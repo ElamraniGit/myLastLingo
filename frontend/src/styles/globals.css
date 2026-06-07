@@ -207,6 +207,18 @@
     background-color: rgb(var(--bg-card));
     border: 1px solid rgb(var(--border) / 0.7);
     border-radius: var(--r-lg);
+    box-shadow: 0 10px 30px rgb(15 23 42 / 0.06);
+  }
+
+  .surface-panel {
+    background: linear-gradient(180deg, rgb(var(--bg-card)) 0%, rgb(var(--bg-surface)) 100%);
+    border: 1px solid rgb(var(--border) / 0.75);
+    border-radius: var(--r-xl);
+    box-shadow: 0 14px 36px rgb(15 23 42 / 0.08);
+  }
+
+  .shadow-card {
+    box-shadow: 0 12px 28px rgb(15 23 42 / 0.10);
   }
 
   .card-interactive {

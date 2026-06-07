@@ -1,7 +1,7 @@
 /**
  * App Shell — clean sidebar (desktop) + bottom nav (mobile).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
 import { BACKEND_ORIGIN } from '@/lib/api';
@@ -54,15 +54,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <button
                 key={item.id}
                 onClick={() => setPage(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium
-                            transition-all duration-100 ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-sm font-medium
+                            transition-all duration-150 ${
                   active
-                    ? 'bg-accent/10 text-accent'
+                    ? 'bg-accent-soft text-accent shadow-card'
                     : 'text-body hover:bg-card hover:text-heading'
                 }`}
               >
                 <item.Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-accent' : 'text-muted'}`} />
-                {item.label}
+                <span className="flex-1 text-left">{item.label}</span>
+                {active && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
               </button>
             );
           })}
@@ -125,10 +126,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 {active && (
                   <span className="absolute top-0 left-1/2 -translate-x-1/2
-                                   w-7 h-[2.5px] rounded-full bg-accent" />
+                                   w-8 h-[3px] rounded-full bg-accent shadow-card" />
                 )}
-                <item.Icon className={`w-[22px] h-[22px] transition-transform ${active ? 'scale-105' : 'scale-100'}`} />
-                <span className="text-xs font-semibold tracking-tight">{item.label}</span>
+                <span className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all ${active ? 'bg-accent-soft' : 'bg-transparent'}`}>
+                  <item.Icon className={`w-[22px] h-[22px] transition-transform ${active ? 'scale-105' : 'scale-100'}`} />
+                </span>
+                <span className="text-[11px] font-semibold tracking-tight">{item.label}</span>
               </button>
             );
           })}
@@ -141,10 +144,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 /* ── Avatar ─────────────────────────────────────────────────────── */
 function Avatar({ user, size }: { user: any; size: number }) {
   const initials = (user?.display_name || user?.username || 'U')[0].toUpperCase();
+  const dimension = useMemo(() => {
+    const pxMap: Record<number, number> = { 7: 28, 8: 32, 9: 36 };
+    return pxMap[size] ?? size * 4;
+  }, [size]);
+
+  if (user?.avatar_url) {
+    return (
+      <img
+        src={user.avatar_url}
+        alt={user?.display_name || user?.username || 'User avatar'}
+        className="rounded-full object-cover shrink-0 border border-default"
+        style={{ width: dimension, height: dimension }}
+      />
+    );
+  }
+
   return (
     <div
-      className={`w-${size} h-${size} rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0`}
-      style={{ backgroundColor: user?.avatar_color || '#2563eb' }}
+      className="rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 border border-default"
+      style={{ width: dimension, height: dimension, backgroundColor: user?.avatar_color || '#2563eb' }}
     >
       {initials}
     </div>
@@ -224,7 +243,9 @@ function BackendStatus() {
         <span className="text-xs text-muted">{label}</span>
       </div>
       {pending > 0 && (
-        <span className="text-xs bg-warn/12 text-warn px-1.5 py-0.5 rounded-full font-semibold">{pending}</span>
+        <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold text-warn" style={{ backgroundColor: 'rgb(var(--warn) / 0.12)' }}>
+          {pending}
+        </span>
       )}
     </div>
   );
