@@ -14,6 +14,12 @@ import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from 'react';
 import { chatApi, ApiError } from '@/lib/api';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import SectionCard from '@/components/common/SectionCard';
+import StatTile from '@/components/common/StatTile';
+import ActionTile from '@/components/common/ActionTile';
+import EmptyState from '@/components/common/EmptyState';
+import InlineNotice from '@/components/common/InlineNotice';
 import { awardXP } from '@/components/common/XPBar';
 import { useStore } from '@/store/appStore';
 
@@ -336,49 +342,32 @@ export default function ChatView() {
   // ═══════════════════════════════════════════════════════════════════════════
   // ── Setup screen ────────────────────────────────────────────────────────────
   if (hasKey === false) return (
-    <div className="max-w-sm mx-auto px-4 py-10 animate-fade-in">
+    <div className="max-w-lg mx-auto px-4 py-8 space-y-4 animate-fade-in">
+      <ScreenHeader
+        title="AI Tutor"
+        subtitle="Your personal English tutor for quizzes, explanations, and vocabulary practice."
+        className="p-5"
+      />
 
-      {/* Hero */}
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600
-                        flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
-          <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </div>
-        <h1 className="text-xl font-bold text-heading tracking-tight">AI Tutor</h1>
-        <p className="text-sm text-muted mt-1.5 leading-relaxed">
-          Your personal English tutor — knows your vocabulary, quizzes you, and explains grammar.
-        </p>
-      </div>
-
-      {/* Features */}
-      <div className="grid grid-cols-3 gap-2 mb-6">
+      <div className="grid grid-cols-3 gap-2">
         {[
-          { icon: '🎯', label: 'Personalised', sub: 'Uses your words' },
-          { icon: '⚡', label: 'Instant',      sub: 'Groq-powered'   },
-          { icon: '🆓', label: 'Free',         sub: '30 req/min'     },
+          { icon: '🎯', label: 'Personal', sub: 'Uses your words' },
+          { icon: '⚡', label: 'Fast', sub: 'Groq-powered' },
+          { icon: '🆓', label: 'Free', sub: '30 req/min' },
         ].map(f => (
-          <div key={f.label} className="bg-card border border-default rounded-xl p-3 text-center">
-            <p className="text-lg mb-1">{f.icon}</p>
-            <p className="text-xs font-semibold text-heading">{f.label}</p>
-            <p className="text-xs text-muted">{f.sub}</p>
-          </div>
+          <StatTile key={f.label} label={f.label} value={f.icon} subtitle={f.sub} className="py-4" />
         ))}
       </div>
 
-      {/* Key form */}
-      <div className="bg-card border border-default rounded-2xl p-5 space-y-4">
-        <div>
-          <p className="text-sm font-semibold text-heading mb-1">Connect your free Groq key</p>
-          <p className="text-xs text-muted leading-relaxed">
-            1. Go to{' '}
-            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer"
-               className="text-accent underline">console.groq.com/keys</a>
-            {' '}→ Create API key (free)
-            <br />2. Paste it below
-          </p>
-        </div>
+      <SectionCard title="Connect your free Groq key" subtitle="Get your API key, paste it here, and start chatting immediately.">
+        <p className="text-xs text-muted leading-relaxed mb-3">
+          1. Go to{' '}
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-accent underline">
+            console.groq.com/keys
+          </a>
+          {' '}→ Create API key (free)
+          <br />2. Paste it below
+        </p>
 
         <div>
           <input
@@ -389,13 +378,13 @@ export default function ChatView() {
             placeholder="gsk_..."
             className="input-field text-sm"
           />
-          {keyError && <p className="text-xs text-red-400 mt-1.5">{keyError}</p>}
+          {keyError && <InlineNotice tone="danger" className="mt-2">{keyError}</InlineNotice>}
         </div>
 
         <button
           onClick={saveKey}
           disabled={savingKey || !keyInput.trim()}
-          className="btn-primary w-full py-2.5 text-sm"
+          className="btn-primary w-full py-2.5 text-sm mt-3"
         >
           {savingKey ? (
             <span className="flex items-center gap-2">
@@ -404,11 +393,9 @@ export default function ChatView() {
             </span>
           ) : 'Start Chatting'}
         </button>
-      </div>
+      </SectionCard>
 
-      <p className="text-center text-xs text-faint mt-4">
-        Key stored on your device only · Never shared
-      </p>
+      <InlineNotice tone="info">Key stored on your device only · Never shared</InlineNotice>
     </div>
   );
 
@@ -425,35 +412,20 @@ export default function ChatView() {
     <div className="flex flex-col h-full bg-base">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-base/90
-                      backdrop-blur border-b border-subtle shrink-0 z-10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
-                          flex items-center justify-center shadow-sm">
-            <svg className="w-[15px] h-[15px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-heading leading-none">AI Tutor</p>
-            <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-soft inline-block" />
-              Knows your vocabulary
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {messages.length > 0 && (
+      <div className="shrink-0 px-4 pt-4 pb-3 bg-base/90 backdrop-blur border-b border-subtle z-10">
+        <ScreenHeader
+          title="AI Tutor"
+          subtitle="Knows your vocabulary"
+          className="p-4"
+          actions={messages.length > 0 ? (
             <button
               onClick={clearChat}
-              className="text-xs text-muted hover:text-red-400 px-2 py-1.5 rounded-lg
-                         hover:bg-red-500/8 transition-colors"
+              className="text-xs text-muted hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-red-500/8 transition-colors"
             >
               Clear
             </button>
-          )}
-        </div>
+          ) : undefined}
+        />
       </div>
 
       {/* Messages */}
@@ -461,32 +433,19 @@ export default function ChatView() {
 
         {/* Empty state */}
         {messages.length === 0 && (
-          <div className="space-y-5 animate-fade-in">
-            <p className="text-center text-sm text-muted pt-1">
-              Ask me anything about your English learning
-            </p>
+          <div className="space-y-4 animate-fade-in">
+            <EmptyState
+              title="Ask me anything about your English learning"
+              description="Choose a suggested prompt below or type your own question."
+              className="py-8"
+            />
 
             {SUGGESTIONS.map(group => (
-              <div key={group.label}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className={group.color}>{group.icon}</span>
-                  <span className="text-xs font-semibold text-muted uppercase tracking-wider">
-                    {group.label}
-                  </span>
-                </div>
-                <div className="grid gap-1.5">
-                  {group.items.map((s, i) => (
-                    <button
-                      key={i}
-                      onClick={() => send(s)}
-                      className={`w-full text-left text-sm text-heading border rounded-xl
-                                  px-3.5 py-2.5 transition-all ${group.bg}`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SectionCard key={group.label} title={group.label} icon={group.icon} className="p-3" bodyClassName="space-y-2">
+                {group.items.map((s, i) => (
+                  <ActionTile key={i} title={s} onClick={() => send(s)} className={group.bg} />
+                ))}
+              </SectionCard>
             ))}
           </div>
         )}

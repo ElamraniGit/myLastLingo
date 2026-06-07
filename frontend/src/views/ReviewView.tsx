@@ -14,6 +14,11 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useStore } from '@/store/appStore';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import SectionCard from '@/components/common/SectionCard';
+import StatTile from '@/components/common/StatTile';
+import ActionTile from '@/components/common/ActionTile';
+import EmptyState from '@/components/common/EmptyState';
 import { xpApi } from '@/lib/api';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
@@ -223,131 +228,113 @@ export default function ReviewView() {
     <div className="flex flex-col h-full">
 
       {/* ── Page Header ──────────────────────────────────────────── */}
-      <div className="shrink-0 px-4 pt-5 pb-3 border-b border-subtle bg-base">
+      <div className="shrink-0 px-4 pt-4 pb-3 border-b border-subtle bg-base">
         <div className="max-w-lg mx-auto">
-
-          {/* Title row */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-heading tracking-tight">Practice</h1>
-              <p className="text-sm text-muted mt-0.5">
-                {summary?.due_now
-                  ? <><span className="text-blue-500 font-semibold">{summary.due_now}</span> due · {summary.learned ?? 0} learned</>
-                  : 'All caught up!'}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Streak badge */}
-              {streakData?.streak_days > 0 && (
-                <div className="flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2.5 py-1.5">
-                  <svg className="w-3.5 h-3.5 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/>
-                  </svg>
-                  <span className="text-sm font-bold text-orange-500">{streakData.streak_days}</span>
-                </div>
-              )}
-              {/* Settings (cards/quiz tabs only) */}
-              {tab !== 'games' && (
-                <button
-                  onClick={() => setShowSettings(v => !v)}
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors
-                              ${showSettings ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-card text-muted hover:text-body'}`}
-                >
-                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Session settings panel */}
-          {showSettings && tab !== 'games' && (
-            <div className="bg-card border border-default rounded-2xl p-4 mb-4 space-y-4 animate-fade-in">
-              {/* Session size */}
-              <div>
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Session size</p>
-                <div className="flex gap-2">
-                  {([5, 10, 20, 40] as SessionSize[]).map(n => (
-                    <button
-                      key={n}
-                      onClick={() => { setSessionSize(n); reload(n, cefrFilter); setShowSettings(false); }}
-                      className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all border ${
-                        sessionSize === n
-                          ? 'bg-blue-500/10 border-blue-500/40 text-blue-500'
-                          : 'border-default text-muted hover:border-default hover:text-body'
-                      }`}
-                    >{n}</button>
-                  ))}
-                </div>
-              </div>
-              {/* CEFR filter */}
-              <div>
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">CEFR level</p>
-                <div className="flex flex-wrap gap-2">
-                  {([null, 'A1','A2','B1','B2','C1','C2'] as (CEFRLevel|null)[]).map(l => (
-                    <button
-                      key={l ?? 'all'}
-                      onClick={() => { setCefrFilter(l); reload(sessionSize, l); setShowSettings(false); }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
-                        cefrFilter === l
-                          ? 'bg-blue-500/10 border-blue-500/40 text-blue-500'
-                          : 'border-default text-muted hover:text-body'
-                      }`}
-                    >{l ?? 'All'}</button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Tab bar ──────────────────────────────────────────── */}
-          <div className="flex bg-elevated rounded-2xl p-1 gap-1">
-            {([
-              { id: 'cards' as Tab, label: 'Cards',
-                icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
-              { id: 'quiz'  as Tab, label: 'Quiz',
-                icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
-              { id: 'games' as Tab, label: 'Games',
-                icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
-            ]).map(t => (
-              <button
-                key={t.id}
-                onClick={() => { setTab(t.id); if (t.id !== 'games') setGameMode('menu'); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  tab === t.id
-                    ? 'bg-base text-heading shadow-card'
-                    : 'text-muted hover:text-body'
-                }`}
-              >
-                <span className={tab === t.id ? 'text-blue-500' : ''}>{t.icon}</span>
-                {t.label}
-                {/* Due badge on Cards tab */}
-                {t.id === 'cards' && (summary?.due_now ?? 0) > 0 && (
-                  <span className="ml-0.5 min-w-[18px] h-[18px] text-xs font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
-                    {summary!.due_now}
-                  </span>
+          <ScreenHeader
+            title="Practice"
+            subtitle={summary?.due_now
+              ? `${summary.due_now} due · ${summary.learned ?? 0} learned`
+              : 'All caught up!'}
+            className="p-4"
+            actions={(
+              <div className="flex items-center gap-2">
+                {streakData?.streak_days > 0 && (
+                  <div className="flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2.5 py-1.5">
+                    <svg className="w-3.5 h-3.5 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/>
+                    </svg>
+                    <span className="text-sm font-bold text-orange-500">{streakData.streak_days}</span>
+                  </div>
                 )}
-              </button>
-            ))}
-          </div>
+                {tab !== 'games' && (
+                  <button
+                    onClick={() => setShowSettings(v => !v)}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${showSettings ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-card text-muted hover:text-body'}`}
+                  >
+                    <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+          >
+            {showSettings && tab !== 'games' && (
+              <SectionCard className="mb-4 animate-fade-in" bodyClassName="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Session size</p>
+                  <div className="flex gap-2">
+                    {([5, 10, 20, 40] as SessionSize[]).map(n => (
+                      <button
+                        key={n}
+                        onClick={() => { setSessionSize(n); reload(n, cefrFilter); setShowSettings(false); }}
+                        className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all border ${
+                          sessionSize === n ? 'bg-blue-500/10 border-blue-500/40 text-blue-500' : 'border-default text-muted hover:border-default hover:text-body'
+                        }`}
+                      >{n}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">CEFR level</p>
+                  <div className="flex flex-wrap gap-2">
+                    {([null, 'A1','A2','B1','B2','C1','C2'] as (CEFRLevel|null)[]).map(l => (
+                      <button
+                        key={l ?? 'all'}
+                        onClick={() => { setCefrFilter(l); reload(sessionSize, l); setShowSettings(false); }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
+                          cefrFilter === l ? 'bg-blue-500/10 border-blue-500/40 text-blue-500' : 'border-default text-muted hover:text-body'
+                        }`}
+                      >{l ?? 'All'}</button>
+                    ))}
+                  </div>
+                </div>
+              </SectionCard>
+            )}
 
-          {/* Session progress bar (cards + quiz) */}
-          {tab !== 'games' && total > 0 && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted">{done} / {total}</span>
-                <span className="text-xs font-semibold text-blue-500">{pct}%</span>
-              </div>
-              <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
-                  style={{ width: `${pct}%` }} />
-              </div>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <StatTile label="Done" value={done} subtitle={`${total} total`} />
+              <StatTile label="Due" value={summary?.due_now ?? 0} toneClassName="text-blue-500" />
+              <StatTile label="Learned" value={summary?.learned ?? 0} toneClassName="text-green-500" />
+              <StatTile label="Streak" value={streakData?.streak_days ?? 0} toneClassName="text-orange-400" />
             </div>
-          )}
+
+            <div className="flex bg-elevated rounded-2xl p-1 gap-1">
+              {([
+                { id: 'cards' as Tab, label: 'Cards', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
+                { id: 'quiz'  as Tab, label: 'Quiz', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
+                { id: 'games' as Tab, label: 'Games', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
+              ]).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setTab(t.id); if (t.id !== 'games') setGameMode('menu'); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? 'bg-base text-heading shadow-card' : 'text-muted hover:text-body'}`}
+                >
+                  <span className={tab === t.id ? 'text-blue-500' : ''}>{t.icon}</span>
+                  {t.label}
+                  {t.id === 'cards' && (summary?.due_now ?? 0) > 0 && (
+                    <span className="ml-0.5 min-w-[18px] h-[18px] text-xs font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
+                      {summary.due_now}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {tab !== 'games' && total > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted">{done} / {total}</span>
+                  <span className="text-xs font-semibold text-blue-500">{pct}%</span>
+                </div>
+                <div className="h-1.5 bg-elevated rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            )}
+          </ScreenHeader>
         </div>
       </div>
-
       {/* ── Streak alert toast ─────────────────────────────────────── */}
       {streakAlert && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-pop-in">
@@ -446,7 +433,7 @@ function CardsTab({
 }) {
   if (loading) return <CardsSkeleton />;
   if (!current) return (
-    <EmptyState completed={completed} done={done} summary={summary} streakData={streakData} onReload={onReload} />
+    <SessionEmptyState completed={completed} done={done} summary={summary} streakData={streakData} onReload={onReload} />
   );
 
   const CEFR_COLOR: Record<string, string> = {
@@ -578,7 +565,7 @@ function QuizTab({
 }) {
   if (loading) return <CardsSkeleton />;
   if (!current) return (
-    <EmptyState completed={completed} done={done} summary={summary} streakData={streakData} onReload={onReload} />
+    <SessionEmptyState completed={completed} done={done} summary={summary} streakData={streakData} onReload={onReload} />
   );
 
   return (
@@ -702,19 +689,13 @@ function GamesTab({ playable, loading, gameMode, setGameMode, setPage }: {
   );
 
   if (playable.length < 4) return (
-    <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center">
-        <svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-          <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/>
-          <path d="M17 3l4 2v14l-4 2V3z"/>
-        </svg>
-      </div>
-      <h3 className="text-lg font-bold text-heading mb-2">Not enough words yet</h3>
-      <p className="text-sm text-muted mb-6 max-w-xs">Save at least 4 words with English definitions to play.</p>
-      <button onClick={() => setPage('library')} className="btn-primary px-6 py-3 rounded-2xl text-sm">
-        Go to Library
-      </button>
-    </div>
+    <EmptyState
+      icon={<svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg>}
+      title="Not enough words yet"
+      description="Save at least 4 words with English definitions to play."
+      action={<button onClick={() => setPage('library')} className="btn-primary px-6 py-3 rounded-2xl text-sm">Go to Library</button>}
+      className="animate-fade-in"
+    />
   );
 
   return (
@@ -804,7 +785,7 @@ function GameCard({ Icon, title, desc, xp, skill, color, wordCount, onClick }: {
 /* ─────────────────────────────────────────────────────────────────
    EMPTY / COMPLETE STATE
 ───────────────────────────────────────────────────────────────── */
-function EmptyState({ completed, done, summary, streakData, onReload }: {
+function SessionEmptyState({ completed, done, summary, streakData, onReload }: {
   completed: boolean; done: number; summary: ReviewSummary | null; streakData: any; onReload: () => void;
 }) {
   return (
