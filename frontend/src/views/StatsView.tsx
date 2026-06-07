@@ -15,6 +15,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import StatTile from '@/components/common/StatTile';
+import EmptyState from '@/components/common/EmptyState';
 import { xpApi } from '@/lib/api';
 import type { UserProgress, ReviewSummary } from '@/types';
 
@@ -309,45 +312,33 @@ export default function StatsView() {
     <div className="max-w-2xl mx-auto px-4 pt-5 pb-28 lg:pb-8 space-y-4 animate-fade-in">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="surface-panel p-3 flex items-center gap-3">
-        <button
-          onClick={() => setPage('player')}
-          className="w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors"
-          aria-label="Back"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-heading tracking-tight">Statistics</h1>
-          <p className="text-sm text-muted">Your learning analytics</p>
-        </div>
-        <button
-          onClick={load}
-          className="ml-auto w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors"
-          aria-label="Refresh"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-          </svg>
-        </button>
-      </div>
+      <ScreenHeader
+        title="Statistics"
+        subtitle="Your learning analytics"
+        onBack={() => setPage('player')}
+        actions={(
+          <button
+            onClick={load}
+            className="w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors"
+            aria-label="Refresh"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+          </button>
+        )}
+      />
 
       {/* ── Hero metric row ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
           { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='3' y='3' width='5' height='18' rx='1'/><rect x='10' y='3' width='5' height='18' rx='1'/><path d='M17 3l4 2v14l-4 2V3z'/></svg>), label: 'Total',   val: fmt(totalWords),   color: 'text-heading' },
           { icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), label: 'Learned', val: fmt(learned),      color: 'text-green-400' },
           { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-4.5 3-7.5 4-10 1.5 2 2 4 2 6.5C12 9 14 7 15 4c2 3.5 3 5 3 7a7 7 0 0 1-6 6.93V22z"/></svg>, label: 'Streak',  val: `${streak}d`,      color: 'text-orange-400' },
           { icon: '⭐', label: 'Level',   val: String(level),     color: 'text-yellow-400' },
         ].map(s => (
-          <div key={s.label} className="bg-card border border-default rounded-2xl py-3 text-center">
-            <div className="text-lg mb-0.5">{s.icon}</div>
-            <div className={`text-base font-bold ${s.color}`}>{s.val}</div>
-            <div className="text-xs text-faint uppercase tracking-wide">{s.label}</div>
-          </div>
+          <StatTile key={s.label} label={s.label} value={s.val} icon={s.icon} toneClassName={s.color} />
         ))}
       </div>
 
@@ -358,11 +349,7 @@ export default function StatsView() {
           { label: 'Today',       val: String(reviewedToday), sub: 'reviewed', color: 'text-blue-400'  },
           { label: 'Active Days', val: String(activeDays),   sub: 'last 30d', color: 'text-purple-400' },
         ].map(s => (
-          <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
-            <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
-            <div className="text-xs text-muted mt-0.5">{s.label}</div>
-            <div className="text-xs text-faint">{s.sub}</div>
-          </div>
+          <StatTile key={s.label} label={s.label} value={s.val} subtitle={s.sub} toneClassName={s.color} />
         ))}
       </div>
 

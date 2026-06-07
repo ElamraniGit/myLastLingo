@@ -14,6 +14,9 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from '@/store/appStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/hooks/useDictionary';
+import SectionCard from '@/components/common/SectionCard';
+import StatTile from '@/components/common/StatTile';
+import InlineNotice from '@/components/common/InlineNotice';
 import { authApi, BACKEND_ORIGIN, xpApi, chatApi } from '@/lib/api';
 import {
   NotifSettings,
@@ -181,11 +184,7 @@ function ProfileTab() {
           { label: 'Learned', value: progress?.learned ?? 0, icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round'><polyline points='20 6 9 17 4 12'/></svg>), color: 'text-green-400' },
           { label: 'Videos',  value: recentVideos.length,    icon: (<svg className='w-4 h-4' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round'><rect x='1' y='4' width='15' height='16' rx='2'/><polygon points='16 9 23 4 23 20 16 15 16 9'/></svg>), color: 'text-purple-400' },
         ].map(s => (
-          <div key={s.label} className="bg-card border border-default rounded-2xl p-3 text-center">
-            <div className="text-lg mb-1">{s.icon}</div>
-            <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-sm text-muted mt-0.5">{s.label}</p>
-          </div>
+          <StatTile key={s.label} label={s.label} value={s.value} icon={s.icon} toneClassName={s.color} />
         ))}
       </div>
 
@@ -622,7 +621,7 @@ function SettingsTab() {
           />
           <Button onClick={saveGroqKey} loading={savingKey} variant="primary" size="sm">Save</Button>
         </div>
-        {keyMsg && <p className={`text-xs ${keyMsg === 'Key saved' ? 'text-green-400' : 'text-red-400'}`}>{keyMsg}</p>}
+        {keyMsg && <InlineNotice tone={keyMsg === 'Key saved' ? 'success' : 'danger'}>{keyMsg}</InlineNotice>}
       </div>
 
       {/* Edit profile */}

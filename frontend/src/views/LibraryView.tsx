@@ -12,6 +12,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { useStore } from '@/store/appStore';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import ActionTile from '@/components/common/ActionTile';
+import EmptyState from '@/components/common/EmptyState';
+import InlineNotice from '@/components/common/InlineNotice';
 import ModalShell from '@/components/common/ModalShell';
 import { libraryApi, videosApi, dictionaryApi, ApiError } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
@@ -127,28 +131,25 @@ export default function LibraryView() {
     <div className="max-w-lg mx-auto pb-28 lg:pb-8 animate-fade-in">
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-base/90 backdrop-blur-xl border-b border-default">
-        <div className="flex items-center justify-between px-4 pt-5 pb-3">
-          <div>
-            <h2 className="text-2xl font-bold text-heading tracking-tight">Library</h2>
-            <p className="text-sm text-muted mt-0.5">
-              {sources.length} source{sources.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <button
-            onClick={() => setAddMode('choose')}
-            className="btn-primary py-2 px-4 text-sm rounded-xl flex items-center gap-1.5"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                 strokeLinecap="round" className="w-4 h-4">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Add
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="relative px-4 pb-2">
+      <div className="sticky top-0 z-20 bg-base/90 backdrop-blur-xl border-b border-default px-4 pt-4 pb-3">
+        <ScreenHeader
+          title="Library"
+          subtitle={`${sources.length} source${sources.length !== 1 ? 's' : ''}`}
+          className="p-4"
+          actions={(
+            <button
+              onClick={() => setAddMode('choose')}
+              className="btn-primary py-2 px-4 text-sm rounded-xl flex items-center gap-1.5"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                   strokeLinecap="round" className="w-4 h-4">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Add
+            </button>
+          )}
+        >
+          <div className="relative pb-2">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                strokeLinecap="round" strokeLinejoin="round"
                className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none">
@@ -191,7 +192,8 @@ export default function LibraryView() {
               }`}>{t.count}</span>
             </button>
           ))}
-        </div>
+          </div>
+        </ScreenHeader>
       </div>
 
       {/* ── Core English 3000 — featured card ──────────────────────── */}

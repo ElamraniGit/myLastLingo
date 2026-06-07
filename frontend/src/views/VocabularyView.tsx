@@ -9,6 +9,10 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import StatTile from '@/components/common/StatTile';
+import EmptyState from '@/components/common/EmptyState';
+import InlineNotice from '@/components/common/InlineNotice';
 import type { SavedWord, VocabularyListParams, ReviewSummary } from '@/types';
 
 type SortOption = 'next_review' | 'newest' | 'oldest' | 'alphabetical' | 'level' | 'difficulty';
@@ -248,8 +252,8 @@ export default function VocabularyView() {
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          {/* Filters */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {FILTERS.map(f => (
             <button
               key={String(f.id)}
@@ -295,7 +299,7 @@ export default function VocabularyView() {
               <div
                 key={w.id}
                 onClick={() => { setCurrentSavedWordId(w.id); setPage('worddetail'); }}
-                className="flex items-center gap-3 bg-card border border-default rounded-2xl px-4 py-3.5 cursor-pointer card-hover group"
+                className="flex items-center gap-3 bg-card border border-default rounded-2xl px-4 py-3.5 cursor-pointer card-hover group shadow-sm"
               >
                 {/* Left */}
                 <div className="flex-1 min-w-0">
