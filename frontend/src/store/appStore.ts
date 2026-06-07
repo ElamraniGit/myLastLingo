@@ -18,6 +18,7 @@ import type {
   UserProgress,
   VideoQuality,
   TranscriptFontSize,
+  TranscriptHighlightMode,
 } from '@/types';
 
 interface AppState {
@@ -122,6 +123,9 @@ interface AppState {
 
   transcriptFontSize: TranscriptFontSize;
   setTranscriptFontSize: (s: TranscriptFontSize) => void;
+
+  transcriptHighlightMode: TranscriptHighlightMode;
+  setTranscriptHighlightMode: (m: TranscriptHighlightMode) => void;
 
   autoPauseOnWord: boolean;
   setAutoPauseOnWord: (v: boolean) => void;
@@ -280,6 +284,9 @@ export const useStore = create<AppState>()(
       transcriptFontSize: 'md',
       setTranscriptFontSize: (s) => set({ transcriptFontSize: s }),
 
+      transcriptHighlightMode: 'sentence',
+      setTranscriptHighlightMode: (m) => set({ transcriptHighlightMode: m }),
+
       autoPauseOnWord: true,
       setAutoPauseOnWord: (v) => set({ autoPauseOnWord: v }),
 
@@ -318,6 +325,7 @@ export const useStore = create<AppState>()(
         defaultSpeed: s.defaultSpeed,
         defaultVideoQuality: s.defaultVideoQuality,
         transcriptFontSize: s.transcriptFontSize,
+        transcriptHighlightMode: s.transcriptHighlightMode,
         autoPauseOnWord: s.autoPauseOnWord,
         hasCompletedOnboarding: s.hasCompletedOnboarding,
       }),

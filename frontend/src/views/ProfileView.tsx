@@ -321,6 +321,7 @@ function SettingsTab() {
     defaultSpeed, setDefaultSpeed,
     defaultVideoQuality, setDefaultVideoQuality,
     transcriptFontSize, setTranscriptFontSize,
+    transcriptHighlightMode, setTranscriptHighlightMode,
     autoPauseOnWord, setAutoPauseOnWord,
     user, setUser,
   } = useStore();
@@ -595,6 +596,29 @@ function SettingsTab() {
                 }`}
               >
                 {s.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-sm text-body">Subtitle highlight</span>
+            <p className="text-xs text-muted">Choose sentence-level smooth sync or word-level precision</p>
+          </div>
+          <div className="flex gap-1">
+            {([
+              { id: 'sentence' as const, label: 'Sentence' },
+              { id: 'word' as const, label: 'Word' },
+            ]).map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setTranscriptHighlightMode(id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  transcriptHighlightMode === id ? 'bg-blue-600 text-white' : 'bg-elevated text-body hover:bg-card'
+                }`}
+              >
+                {label}
               </button>
             ))}
           </div>

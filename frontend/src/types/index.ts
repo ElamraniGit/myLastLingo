@@ -11,6 +11,7 @@ export type VideoQuality =
   | 'highres';
 
 export type TranscriptFontSize = 'sm' | 'md' | 'lg' | 'xl';
+export type TranscriptHighlightMode = 'sentence' | 'word';
 
 export interface User {
   id: string;
