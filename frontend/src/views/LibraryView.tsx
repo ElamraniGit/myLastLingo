@@ -12,7 +12,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { useStore } from '@/store/appStore';
-import BodyPortal from '@/components/common/BodyPortal';
+import ModalShell from '@/components/common/ModalShell';
 import { libraryApi, videosApi, dictionaryApi, ApiError } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 
@@ -407,17 +407,7 @@ function AddModal({
   const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
 
   return (
-    <BodyPortal>
-      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={close} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-lg bg-surface rounded-3xl border border-default max-h-[calc(100vh-1.5rem)] overflow-y-auto animate-slide-up shadow-2xl">
-
-          {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-2 sticky top-0 bg-surface z-10">
-            <div className="w-10 h-1 bg-elevated rounded-full" />
-          </div>
-
-          <div className="px-5 pb-8">
+    <ModalShell onClose={close} width="lg" contentClassName="px-5 pb-8" panelClassName="animate-slide-up">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-lg font-bold text-heading">{MODAL_TITLE[mode!] || 'Add'}</h3>
@@ -539,10 +529,7 @@ function AddModal({
           {mode === 'word' && (
             <WordLookup onBack={() => setMode('choose')} onSaved={() => { onAdded(); close(); }} />
           )}
-        </div>
-      </div>
-      </div>
-    </BodyPortal>
+    </ModalShell>
   );
 }
 

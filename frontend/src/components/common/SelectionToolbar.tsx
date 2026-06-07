@@ -11,7 +11,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
-import BodyPortal from '@/components/common/BodyPortal';
+import ModalShell from '@/components/common/ModalShell';
 import { speak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
 
@@ -100,24 +100,16 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
   }, [onClose]);
 
   return (
-    <BodyPortal>
-      <div
-        className={`fixed inset-0 z-[80] transition-all duration-250 ${visible ? 'opacity-100' : 'opacity-0'}`}
-        onPointerDown={handleClose}
-      >
-        <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" />
-        <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-safe">
-          <div
-            data-selection-toolbar="true"
-            onPointerDown={e => e.stopPropagation()}
-            className={`w-full max-w-lg bg-surface border border-default shadow-2xl transition-all duration-250 ease-out rounded-t-3xl sm:rounded-3xl ${visible ? 'translate-y-0' : 'translate-y-full'}`}
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)', maxHeight: '70vh', overflowY: 'auto' }}
-          >
-        {/* Handle */}
-        <div className="flex justify-center pt-2 pb-1 sticky top-0 bg-surface">
-          <div className="w-8 h-1 bg-elevated rounded-full" />
-        </div>
-
+    <ModalShell
+      visible={visible}
+      onClose={handleClose}
+      position="bottom"
+      width="lg"
+      zIndex={80}
+      overlayClassName="bg-black/35 backdrop-blur-[2px]"
+      contentClassName="pb-safe"
+    >
+      <div data-selection-toolbar="true" onPointerDown={e => e.stopPropagation()}>
         {/* Phrase preview */}
         <div className="px-4 py-2 border-b border-subtle">
           <div className="flex items-center justify-between">
@@ -136,7 +128,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
           </div>
         </div>
 
-        {/* ── Phrase info (multi-word) ─────────────────────────────────────── */}
         {isMultiWord && (
           <div className="px-4 py-3 border-b border-subtle space-y-2.5">
             {phraseInfo?.loading ? (
@@ -146,7 +137,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
               </div>
             ) : (
               <>
-                {/* Arabic translation */}
                 {phraseInfo?.translation && (
                   <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl px-3 py-2.5">
                     <p className="text-xs text-blue-400/70 uppercase tracking-wider mb-1">Arabic Translation</p>
@@ -157,7 +147,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                   </div>
                 )}
 
-                {/* Definition (phrasal verbs etc.) */}
                 {phraseInfo?.definition && (
                   <div className="bg-card border border-default rounded-xl px-3 py-2.5">
                     <p className="text-xs text-muted uppercase tracking-wider mb-1">Definition</p>
@@ -165,7 +154,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
                   </div>
                 )}
 
-                {/* Sentence context */}
                 {sentence && sentence !== phrase && (
                   <div className="bg-elevated/50 rounded-xl px-3 py-2">
                     <p className="text-xs text-muted uppercase tracking-wider mb-1">Context</p>
@@ -181,10 +169,7 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
           </div>
         )}
 
-        {/* ── Action buttons ───────────────────────────────────────────────── */}
         <div className="flex items-center px-3 py-3 gap-2">
-
-          {/* Look up (single word only — multi-word shows info above) */}
           {!isMultiWord && (
             <button onClick={handleLookup}
               className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
@@ -195,7 +180,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             </button>
           )}
 
-          {/* Save */}
           <button onClick={handleSave} disabled={saving || saved}
             className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                         border transition-all active:scale-95 disabled:opacity-60 ${
@@ -214,7 +198,6 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             <span className="text-xs font-semibold">{saved ? 'Saved!' : 'Save'}</span>
           </button>
 
-          {/* Pronounce */}
           <button onClick={handleSpeak}
             className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl
                        bg-card border border-default text-muted hover:text-body
@@ -222,11 +205,8 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             <span className="text-xs font-semibold">Hear</span>
           </button>
-
-          </div>
         </div>
       </div>
-      </div>
-    </BodyPortal>
+    </ModalShell>
   );
 }

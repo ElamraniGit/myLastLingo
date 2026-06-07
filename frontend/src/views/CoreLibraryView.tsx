@@ -16,7 +16,7 @@ import React, {
 } from 'react';
 import { coreApi, vocabularyApi } from '@/lib/api';
 import { useStore } from '@/store/appStore';
-import BodyPortal from '@/components/common/BodyPortal';
+import ModalShell from '@/components/common/ModalShell';
 import { awardXP } from '@/components/common/XPBar';
 import * as sfx from '@/lib/sfx';
 import { applyLocalSM2 } from '@/lib/offlineStore';
@@ -318,19 +318,7 @@ function WordDetailSheet({ word: w, onClose, onProgressUpdate }: {
   };
 
   return (
-    <BodyPortal>
-      <div className="fixed inset-0 z-[60]" onClick={onClose}>
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-5">
-          <div className="w-full max-w-lg bg-surface rounded-3xl max-h-[calc(100vh-1.5rem)] overflow-y-auto z-[70] border border-default shadow-2xl"
-            onClick={e => e.stopPropagation()}>
-
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-surface z-10">
-          <div className="w-10 h-1 bg-elevated rounded-full" />
-        </div>
-
-        <div className="px-5 pb-8 pt-2 space-y-4">
+    <ModalShell onClose={onClose} width="lg" contentClassName="px-5 pb-8 pt-2 space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
@@ -462,11 +450,7 @@ function WordDetailSheet({ word: w, onClose, onProgressUpdate }: {
               </button>
             )}
           </div>
-        </div>
-      </div>
-        </div>
-      </div>
-    </BodyPortal>
+    </ModalShell>
   );
 }
 

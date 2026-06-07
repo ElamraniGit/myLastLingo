@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import BodyPortal from '@/components/common/BodyPortal';
+import ModalShell from '@/components/common/ModalShell';
 import { Button } from '@/components/ui/Button';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak } from '@/lib/tts';
@@ -140,137 +140,116 @@ export default function PronunciationTrainer({ word, pronunciation, onClose }: P
 
   if (!supported) {
     return (
-      <BodyPortal>
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60" onClick={onClose} />
-          <div className="relative bg-card border border-line rounded-3xl p-6 w-full max-w-sm z-10 shadow-2xl">
-            <h3 className="text-lg font-bold text-heading mb-2">Not Supported</h3>
-            <p className="text-sm text-body mb-4">
-              Speech recognition is not available in this browser. Please use Chrome or Edge.
-            </p>
-            <Button onClick={onClose} variant="primary" className="w-full">Close</Button>
-          </div>
-        </div>
-      </BodyPortal>
+      <ModalShell onClose={onClose} width="sm" showHandle={false} contentClassName="p-6">
+        <h3 className="text-lg font-bold text-heading mb-2">Not Supported</h3>
+        <p className="text-sm text-body mb-4">
+          Speech recognition is not available in this browser. Please use Chrome or Edge.
+        </p>
+        <Button onClick={onClose} variant="primary" className="w-full">Close</Button>
+      </ModalShell>
     );
   }
 
   return (
-    <BodyPortal>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative bg-card border border-line rounded-3xl w-full max-w-sm z-10 overflow-hidden shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <ModalShell onClose={onClose} width="sm" contentClassName="px-5 pb-6 pt-2 space-y-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-heading">Pronunciation</h3>
+        <button onClick={onClose} className="p-2 rounded-xl hover:bg-elevated text-muted hover:text-heading">✕</button>
+      </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-2">
-          <h3 className="text-lg font-bold text-heading">Pronunciation</h3>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-elevated text-muted hover:text-heading">✕</button>
-        </div>
+      <div className="text-center py-4">
+        <h2 className="text-3xl font-extrabold text-heading">{word}</h2>
+        {pronunciation && <p className="text-muted font-mono text-sm mt-1">{pronunciation}</p>}
+        {bestScore !== null && (
+          <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${
+            bestScore >= 80 ? 'bg-green-500/15 text-green-400' :
+            bestScore >= 50 ? 'bg-yellow-500/15 text-yellow-400' :
+            'bg-red-500/15 text-red-400'
+          }`}>
+            Best: {bestScore}%
+          </div>
+        )}
+      </div>
 
-        <div className="px-5 pb-6 space-y-5">
+      <div className="bg-surface rounded-xl p-4">
+        <p className="text-xs text-muted uppercase tracking-wider mb-3">Step 1 — Listen</p>
+        <button onClick={listenCorrect} disabled={playing || listening}
+          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
+            playing ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-600 text-white hover:bg-blue-500'
+          } disabled:opacity-50`}>
+          {playing ? (
+            <><span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Playing...</>
+          ) : (
+            <><svg className="w-4 h-4 mr-1.5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>Listen to correct pronunciation</>
+          )}
+        </button>
+      </div>
 
-          {/* Word display */}
-          <div className="text-center py-4">
-            <h2 className="text-3xl font-extrabold text-heading">{word}</h2>
-            {pronunciation && <p className="text-muted font-mono text-sm mt-1">{pronunciation}</p>}
-            {bestScore !== null && (
-              <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${
-                bestScore >= 80 ? 'bg-green-500/15 text-green-400' :
-                bestScore >= 50 ? 'bg-yellow-500/15 text-yellow-400' :
-                'bg-red-500/15 text-red-400'
-              }`}>
-                Best: {bestScore}%
+      <div className="bg-surface rounded-xl p-4">
+        <p className="text-xs text-muted uppercase tracking-wider mb-3">Step 2 — Your turn</p>
+        <button
+          onClick={listening ? stopListening : startListening}
+          disabled={playing}
+          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-sm font-medium transition-all ${
+            listening
+              ? 'bg-red-500/20 text-red-400 border-2 border-red-500/40 animate-pulse'
+              : 'bg-green-600 text-white hover:bg-green-500'
+          } disabled:opacity-50`}>
+          {listening ? (
+            <>
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
+              Listening... Tap to stop
+            </>
+          ) : (
+            <><svg className="w-4 h-4 mr-1.5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg>Tap and say &quot;{word}&quot;</>
+          )}
+        </button>
+
+        {listening && currentHeard && (
+          <p className="text-center text-sm text-body mt-3 italic">"{currentHeard}"</p>
+        )}
+      </div>
+
+      {attempts.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted uppercase tracking-wider">Results</p>
+          {attempts.slice(0, 5).map((a, i) => (
+            <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${
+              a.correct
+                ? 'bg-green-500/8 border-green-500/20'
+                : a.score >= 50
+                ? 'bg-yellow-500/8 border-yellow-500/20'
+                : 'bg-red-500/8 border-red-500/20'
+            }`}>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5">
+                  {a.correct ? (
+                    <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><polyline points="20 6 9 17 4 12"/></svg>
+                  ) : a.score >= 50 ? (
+                    <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="16" r="1" fill="white"/></svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+                  )}
+                </span>
+                <span className="text-sm text-body">"{a.heard}"</span>
               </div>
-            )}
-          </div>
-
-          {/* Step 1: Listen */}
-          <div className="bg-surface rounded-xl p-4">
-            <p className="text-xs text-muted uppercase tracking-wider mb-3">Step 1 — Listen</p>
-            <button onClick={listenCorrect} disabled={playing || listening}
-              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
-                playing ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-600 text-white hover:bg-blue-500'
-              } disabled:opacity-50`}>
-              {playing ? (
-                <><span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Playing...</>
-              ) : (
-                <><svg className="w-4 h-4 mr-1.5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" opacity="0.9"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>Listen to correct pronunciation</>
-              )}
-            </button>
-          </div>
-
-          {/* Step 2: Speak */}
-          <div className="bg-surface rounded-xl p-4">
-            <p className="text-xs text-muted uppercase tracking-wider mb-3">Step 2 — Your turn</p>
-            <button
-              onClick={listening ? stopListening : startListening}
-              disabled={playing}
-              className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-sm font-medium transition-all ${
-                listening
-                  ? 'bg-red-500/20 text-red-400 border-2 border-red-500/40 animate-pulse'
-                  : 'bg-green-600 text-white hover:bg-green-500'
-              } disabled:opacity-50`}>
-              {listening ? (
-                <>
-                  <span className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
-                  Listening... Tap to stop
-                </>
-              ) : (
-                <><svg className="w-4 h-4 mr-1.5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg>Tap and say &quot;{word}&quot;</>
-              )}
-            </button>
-
-            {/* Live transcription */}
-            {listening && currentHeard && (
-              <p className="text-center text-sm text-body mt-3 italic">"{currentHeard}"</p>
-            )}
-          </div>
-
-          {/* Results */}
-          {attempts.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted uppercase tracking-wider">Results</p>
-              {attempts.slice(0, 5).map((a, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${
-                  a.correct
-                    ? 'bg-green-500/8 border-green-500/20'
-                    : a.score >= 50
-                    ? 'bg-yellow-500/8 border-yellow-500/20'
-                    : 'bg-red-500/8 border-red-500/20'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-5 h-5">
-      {a.correct ? (
-        <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><polyline points="20 6 9 17 4 12"/></svg>
-      ) : a.score >= 50 ? (
-        <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="16" r="1" fill="white"/></svg>
-      ) : (
-        <svg className="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-      )}
-    </span>
-                    <span className="text-sm text-body">"{a.heard}"</span>
-                  </div>
-                  <span className={`text-sm font-bold ${
-                    a.correct ? 'text-green-400' : a.score >= 50 ? 'text-yellow-400' : 'text-red-400'
-                  }`}>
-                    {a.score}%
-                  </span>
-                </div>
-              ))}
+              <span className={`text-sm font-bold ${
+                a.correct ? 'text-green-400' : a.score >= 50 ? 'text-yellow-400' : 'text-red-400'
+              }`}>
+                {a.score}%
+              </span>
             </div>
-          )}
-
-          {/* Tips */}
-          {attempts.length > 0 && attempts[0].score < 80 && (
-            <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl p-3">
-              <p className="text-xs text-blue-400">
-                Tip: Listen again slowly, then try speaking clearly. Focus on each syllable.
-              </p>
-            </div>
-          )}
+          ))}
         </div>
-      </div>
-      </div>
-    </BodyPortal>
+      )}
+
+      {attempts.length > 0 && attempts[0].score < 80 && (
+        <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl p-3">
+          <p className="text-xs text-blue-400">
+            Tip: Listen again slowly, then try speaking clearly. Focus on each syllable.
+          </p>
+        </div>
+      )}
+    </ModalShell>
   );
 }

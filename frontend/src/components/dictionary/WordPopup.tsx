@@ -7,7 +7,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
-import BodyPortal from '@/components/common/BodyPortal';
+import ModalShell from '@/components/common/ModalShell';
 import { LevelBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { CEFRLevel } from '@/types';
@@ -132,30 +132,7 @@ export default function WordPopup() {
   const hasConjugations = Object.keys(conjugations).length > 0;
 
   return (
-    <BodyPortal>
-      {/* ── Backdrop ──────────────────────────────────────────── */}
-      <div
-        className={`fixed inset-0 z-[60] transition-all duration-300 ${
-          visible ? 'bg-black/60 backdrop-blur-sm' : 'bg-black/0'
-        }`}
-        onClick={handleClose}
-      />
-
-      {/* ── Centered modal ─────────────────────────────────────── */}
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 pointer-events-none">
-        <div
-          ref={sheetRef}
-          onClick={e => e.stopPropagation()}
-          className={`pointer-events-auto w-full max-w-lg bg-surface shadow-2xl overflow-y-auto overscroll-contain transition-all duration-300 ease-out border border-line/50 rounded-3xl max-h-[calc(100vh-1.5rem)] sm:max-h-[min(92vh,820px)] ${
-            visible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-[0.98] opacity-0'
-          }`}
-        >
-          {/* Handle */}
-          <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-surface z-10">
-            <div className="w-10 h-1 bg-elevated rounded-full" />
-          </div>
-
-          <div className="px-5 pb-8 pt-2">
+    <ModalShell visible={visible} onClose={handleClose} width="lg" panelRef={sheetRef} contentClassName="px-5 pb-8 pt-2">
 
           {/* ── Header: word, pronunciation, POS, level ──────── */}
           <div className="flex items-start justify-between">
@@ -389,9 +366,6 @@ export default function WordPopup() {
               </Button>
             )}
           </div>
-        </div>
-      </div>
-      </div>
       {/* Pronunciation Trainer */}
       {showPronunciation && (
         <PronunciationTrainer
@@ -400,6 +374,6 @@ export default function WordPopup() {
           onClose={() => setShowPronunciation(false)}
         />
       )}
-    </BodyPortal>
+    </ModalShell>
   );
 }
