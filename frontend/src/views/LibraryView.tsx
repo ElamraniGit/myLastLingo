@@ -11,7 +11,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@/store/appStore';
-import { libraryApi, videosApi, ApiError } from '@/lib/api';
+import { libraryApi, videosApi, dictionaryApi, ApiError } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 
 interface Source {
@@ -549,30 +549,34 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
   const [busy,   setBusy]   = useState(false);
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
-  const [result, setResult] = useState<string>('');
+  const [result, setResult] = useState<any | null>(null);
   const [saved,  setSaved]  = useState(false);
-  const { lookupWord, saveWord } = useDictionary();
+  const { saveWord } = useDictionary();
 
   const search = async () => {
     const w = word.trim().toLowerCase();
     if (!w) return;
-    setBusy(true); setError(''); setSaved(false);
+    setBusy(true);
+    setError('');
+    setSaved(false);
     try {
-      await lookupWord(w, '');
-      setResult(w);
+      const data = await dictionaryApi.lookup(w);
+      setResult(data);
     } catch {
-      setResult('');
+      setResult(null);
       setError('Word not found');
     }
     setBusy(false);
   };
 
   const addWord = async () => {
-    const target = (result || word).trim().toLowerCase();
+    const target = (result?.word || word).trim().toLowerCase();
     if (!target) return;
-    setSaving(true); setError('');
+    setSaving(true);
+    setError('');
     try {
-      const ok = await saveWord(target);
+      const sentence = Array.isArray(result?.examples) && result.examples[0] ? String(result.examples[0]) : '';
+      const ok = await saveWord(target, undefined, sentence, 'library');
       if (!ok) throw new Error('save failed');
       setSaved(true);
       setTimeout(() => onSaved(), 500);
@@ -582,28 +586,80 @@ function WordLookup({ onBack, onSaved }: { onBack: () => void; onSaved: () => vo
     setSaving(false);
   };
 
+  const meaningEn = result?.meaning_en || result?.definitions?.[0]?.definition || '';
+  const meaningAr = result?.meaning_ar || '';
+  const pronunciation = result?.pronunciation || '';
+  const examples = Array.isArray(result?.examples) ? result.examples : [];
+  const synonyms = Array.isArray(result?.synonyms) ? result.synonyms : [];
+
   return (
     <div className="space-y-3">
       <div>
         <label className="block text-xs font-medium text-muted mb-1.5">English Word</label>
         <input
           value={word}
-          onChange={e => { setWord(e.target.value); setError(''); setResult(''); setSaved(false); }}
+          onChange={e => { setWord(e.target.value); setError(''); setResult(null); setSaved(false); }}
           onKeyDown={e => e.key === 'Enter' && search()}
           placeholder="e.g. ambiguous"
           className="input-field text-sm"
         />
       </div>
-      {error  && <p className="text-xs text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>{error}</p>}
-      {result && !saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Found: {result}</p>}
-      {saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Saved: {result || word.trim().toLowerCase()}</p>}
+
+      {error && <p className="text-xs text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>{error}</p>}
+      {saved && <p className="text-xs text-green-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>Saved: {(result?.word || word).trim().toLowerCase()}</p>}
+
+      {result && (
+        <div className="bg-card border border-default rounded-2xl p-4 space-y-3 animate-fade-in">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-lg font-bold text-heading">{result.word}</h4>
+              {result.level && <span className="text-xs px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-bold uppercase">{result.level}</span>}
+              {result.part_of_speech && <span className="text-xs text-muted">{result.part_of_speech}</span>}
+            </div>
+            {pronunciation && <p className="text-xs text-muted font-mono mt-1">{pronunciation}</p>}
+          </div>
+
+          {meaningEn && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Definition</p>
+              <p className="text-sm text-heading leading-relaxed">{meaningEn}</p>
+            </div>
+          )}
+
+          {meaningAr && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Arabic</p>
+              <p className="text-sm text-heading leading-relaxed" style={{ direction: 'rtl', textAlign: 'right', fontFamily: "'Segoe UI', 'Noto Sans Arabic', sans-serif" }}>{meaningAr}</p>
+            </div>
+          )}
+
+          {examples.length > 0 && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Example</p>
+              <p className="text-sm text-body italic leading-relaxed">"{String(examples[0])}"</p>
+            </div>
+          )}
+
+          {synonyms.length > 0 && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Synonyms</p>
+              <div className="flex flex-wrap gap-1.5">
+                {synonyms.slice(0, 6).map((syn: string) => (
+                  <span key={syn} className="text-xs px-2 py-0.5 rounded-lg bg-green-500/10 text-green-500">{syn}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-2">
         <button onClick={onBack} className="flex-1 py-2.5 rounded-xl border border-default text-sm text-body hover:bg-card transition-colors">← Back</button>
         <button onClick={search} disabled={busy || saving || !word.trim()} className="btn-primary flex-1 py-2.5 text-sm rounded-xl">
-          {busy ? 'Looking up…' : 'Look Up'}
+          {busy ? 'Looking up…' : result ? 'Refresh' : 'Look Up'}
         </button>
       </div>
-      <button onClick={addWord} disabled={saving || busy || !(result || word.trim())}
+      <button onClick={addWord} disabled={saving || busy || !(result?.word || word.trim())}
         className="w-full py-2.5 rounded-xl border border-green-500/25 bg-green-500/10 text-green-500 text-sm font-semibold disabled:opacity-50">
         {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Word'}
       </button>
