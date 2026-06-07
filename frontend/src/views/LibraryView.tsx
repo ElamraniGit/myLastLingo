@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { useStore } from '@/store/appStore';
+import BodyPortal from '@/components/common/BodyPortal';
 import { libraryApi, videosApi, dictionaryApi, ApiError } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
 
@@ -406,18 +407,17 @@ function AddModal({
   const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
 
   return (
-    <>
+    <BodyPortal>
       <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={close} />
-      <div className="fixed z-50 bottom-0 left-0 right-0 bg-surface rounded-t-3xl border-t border-default
-                      max-h-[88vh] overflow-y-auto animate-slide-up
-                      lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-lg bg-surface rounded-3xl border border-default max-h-[calc(100vh-1.5rem)] overflow-y-auto animate-slide-up shadow-2xl">
 
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 bg-elevated rounded-full" />
-        </div>
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-2 sticky top-0 bg-surface z-10">
+            <div className="w-10 h-1 bg-elevated rounded-full" />
+          </div>
 
-        <div className="px-5 pb-8">
+          <div className="px-5 pb-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-lg font-bold text-heading">{MODAL_TITLE[mode!] || 'Add'}</h3>
@@ -541,7 +541,8 @@ function AddModal({
           )}
         </div>
       </div>
-    </>
+      </div>
+    </BodyPortal>
   );
 }
 

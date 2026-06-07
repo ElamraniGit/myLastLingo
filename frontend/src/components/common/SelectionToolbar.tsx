@@ -11,6 +11,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '@/store/appStore';
 import { useDictionary } from '@/hooks/useDictionary';
+import BodyPortal from '@/components/common/BodyPortal';
 import { speak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
 
@@ -99,16 +100,19 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
   }, [onClose]);
 
   return (
-    <div
-      className={`fixed inset-0 z-[80] transition-all duration-250 ${visible ? 'opacity-100' : 'opacity-0'}`}
-      onPointerDown={handleClose}
-    >
+    <BodyPortal>
       <div
-        data-selection-toolbar="true"
-        onPointerDown={e => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 right-0 bg-surface border-t border-default shadow-2xl transition-all duration-250 ease-out ${visible ? 'translate-y-0' : 'translate-y-full'}`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)', maxHeight: '70vh', overflowY: 'auto' }}
+        className={`fixed inset-0 z-[80] transition-all duration-250 ${visible ? 'opacity-100' : 'opacity-0'}`}
+        onPointerDown={handleClose}
       >
+        <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" />
+        <div className="absolute inset-x-0 bottom-0 flex justify-center px-3 pb-safe">
+          <div
+            data-selection-toolbar="true"
+            onPointerDown={e => e.stopPropagation()}
+            className={`w-full max-w-lg bg-surface border border-default shadow-2xl transition-all duration-250 ease-out rounded-t-3xl sm:rounded-3xl ${visible ? 'translate-y-0' : 'translate-y-full'}`}
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)', maxHeight: '70vh', overflowY: 'auto' }}
+          >
         {/* Handle */}
         <div className="flex justify-center pt-2 pb-1 sticky top-0 bg-surface">
           <div className="w-8 h-1 bg-elevated rounded-full" />
@@ -219,8 +223,10 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
             <span className="text-xs font-semibold">Hear</span>
           </button>
 
+          </div>
         </div>
       </div>
-    </div>
+      </div>
+    </BodyPortal>
   );
 }

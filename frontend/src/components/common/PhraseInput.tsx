@@ -11,6 +11,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useDictionary } from '@/hooks/useDictionary';
+import BodyPortal from '@/components/common/BodyPortal';
 import { speak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
 
@@ -85,7 +86,7 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
 
       {/* Modal */}
       {open && (
-        <>
+        <BodyPortal>
           {/* Backdrop */}
           <div
             className={`fixed inset-0 z-[60] transition-all duration-250 ${
@@ -94,19 +95,18 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
             onClick={handleClose}
           />
 
-          {/* Sheet */}
-          <div
-            className={`fixed z-[70] left-0 right-0 bottom-0 bg-surface rounded-t-3xl
-                        border-t border-default shadow-2xl transition-all duration-250 ease-out
-                        lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-md
-                        ${visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
-          >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 bg-elevated rounded-full" />
-            </div>
+          {/* Modal */}
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 pointer-events-none">
+            <div
+              onClick={e => e.stopPropagation()}
+              className={`pointer-events-auto w-full max-w-lg bg-surface rounded-3xl border border-default shadow-2xl transition-all duration-250 ease-out max-h-[calc(100vh-1.5rem)] overflow-y-auto ${visible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-[0.98]'}`}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-2 sticky top-0 bg-surface z-10">
+                <div className="w-10 h-1 bg-elevated rounded-full" />
+              </div>
 
-            <div className="px-5 pb-8 pt-2 space-y-4">
+              <div className="px-5 pb-8 pt-2 space-y-4">
               {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
@@ -177,7 +177,8 @@ export default function PhraseInput({ sentence, videoId, label = '+ Save phrase'
               </p>
             </div>
           </div>
-        </>
+          </div>
+        </BodyPortal>
       )}
     </>
   );

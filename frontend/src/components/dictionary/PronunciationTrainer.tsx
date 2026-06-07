@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import BodyPortal from '@/components/common/BodyPortal';
 import { Button } from '@/components/ui/Button';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak } from '@/lib/tts';
@@ -139,23 +140,26 @@ export default function PronunciationTrainer({ word, pronunciation, onClose }: P
 
   if (!supported) {
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-        <div className="fixed inset-0 bg-black/60" onClick={onClose} />
-        <div className="relative bg-card border border-line rounded-t-3xl sm:rounded-2xl p-6 w-full max-w-sm z-10">
-          <h3 className="text-lg font-bold text-heading mb-2">Not Supported</h3>
-          <p className="text-sm text-body mb-4">
-            Speech recognition is not available in this browser. Please use Chrome or Edge.
-          </p>
-          <Button onClick={onClose} variant="primary" className="w-full">Close</Button>
+      <BodyPortal>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60" onClick={onClose} />
+          <div className="relative bg-card border border-line rounded-3xl p-6 w-full max-w-sm z-10 shadow-2xl">
+            <h3 className="text-lg font-bold text-heading mb-2">Not Supported</h3>
+            <p className="text-sm text-body mb-4">
+              Speech recognition is not available in this browser. Please use Chrome or Edge.
+            </p>
+            <Button onClick={onClose} variant="primary" className="w-full">Close</Button>
+          </div>
         </div>
-      </div>
+      </BodyPortal>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-line rounded-t-3xl sm:rounded-2xl w-full max-w-sm z-10 overflow-hidden">
+    <BodyPortal>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative bg-card border border-line rounded-3xl w-full max-w-sm z-10 overflow-hidden shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-2">
@@ -266,6 +270,7 @@ export default function PronunciationTrainer({ word, pronunciation, onClose }: P
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </BodyPortal>
   );
 }
