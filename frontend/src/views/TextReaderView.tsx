@@ -8,10 +8,11 @@
  *  - Highlight words already in vocabulary (green dot)
  *  - Smooth auto-scroll during Read Aloud
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useStore } from '@/store/appStore';
 import { libraryApi } from '@/lib/api';
 import { useDictionary } from '@/hooks/useDictionary';
+import { buildSavedMatchMap } from '@/lib/savedWordMatching';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak, stopSpeaking } from '@/lib/tts';
@@ -46,7 +47,7 @@ function buildChunks(words: string[]): { text: string; start: number; end: numbe
 
 
 export default function TextReaderView() {
-  const { currentTextId, setPage, setCurrentTextId } = useStore();
+  const { currentTextId, setPage, setCurrentTextId, savedWords } = useStore();
   const { lookupWord } = useDictionary();
 
   const [source,       setSource]       = useState<TextSource | null>(null);
@@ -264,6 +265,11 @@ export default function TextReaderView() {
     setPage('library');
   }, [stopReading, setCurrentTextId, setPage]);
 
+  const words      = wordsRef.current;
+  const wordCount  = words.length;
+  const readTime   = estimateReadTime(wordCount, defaultSpeed);
+  const savedMatch = useMemo(() => buildSavedMatchMap(words, savedWords), [words, savedWords]);
+
   /* ── Loading ──────────────────────────────────────────────────── */
   if (loading) {
     return (
@@ -287,10 +293,6 @@ export default function TextReaderView() {
       </div>
     );
   }
-
-  const words      = wordsRef.current;
-  const wordCount  = words.length;
-  const readTime   = estimateReadTime(wordCount, defaultSpeed);
 
   return (
     <div className="flex flex-col h-full bg-base">
@@ -365,6 +367,8 @@ export default function TextReaderView() {
               const isStart  = !!active && i === active.start;
               const clean    = word.replace(/[^a-zA-Z'-]/g, '');
               const isWord   = clean.length >= 2;
+              const isSavedPhrase = isWord && savedMatch.phraseIndexes.has(i);
+              const isSavedWord = isWord && savedMatch.singleWordIndexes.has(i);
 
               return (
                 <React.Fragment key={i}>
@@ -378,6 +382,10 @@ export default function TextReaderView() {
                         ? 'bg-blue-500/35 text-blue-100 font-semibold'
                         : isActive
                         ? 'bg-blue-500/20 text-blue-400'
+                        : isSavedPhrase
+                        ? 'bg-green-500/20 text-green-300 font-semibold ring-1 ring-green-500/20'
+                        : isSavedWord
+                        ? 'text-green-400 font-medium underline decoration-green-500/40 decoration-2 underline-offset-2 cursor-pointer'
                         : lookedUp.has(clean.toLowerCase()) && isWord
                         ? 'text-green-400 cursor-pointer'
                         : isWord

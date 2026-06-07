@@ -13,11 +13,12 @@
  *   the initial touchstart.
  */
 
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
 import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
+import { buildSavedMatchMap } from '@/lib/savedWordMatching';
 import { Button } from '@/components/ui/Button';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
 
@@ -103,7 +104,7 @@ function StatusBanner() {
 interface SelRange { si: number; lo: number; hi: number; }
 
 export default function TranscriptViewer() {
-  const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize, currentVideo } = useStore();
+  const { transcript, playerState, currentTime, transcriptStatus, transcriptFontSize, currentVideo, savedWords } = useStore();
   const { seekTo }     = useVideoPlayer();
   const { lookupWord } = useDictionary();
   const scrollRef  = useRef<HTMLDivElement>(null);
@@ -124,6 +125,13 @@ export default function TranscriptViewer() {
   // React state
   const [selRange, setSelRange] = useState<SelRange | null>(null);
   const [toolbar,  setToolbar]  = useState<{ phrase: string; sentence: string } | null>(null);
+
+  const savedMatchBySegment = useMemo(() => {
+    return (transcript?.segments ?? []).map(seg => {
+      const displayWords = (seg.words?.length ? seg.words.map(w => w.word) : seg.text.split(' '));
+      return buildSavedMatchMap(displayWords, savedWords);
+    });
+  }, [transcript?.segments, savedWords]);
 
   // Auto-scroll
   useEffect(() => {
@@ -293,10 +301,11 @@ export default function TranscriptViewer() {
         onTouchEnd={onScrollTouchEnd}
         onTouchCancel={onScrollTouchEnd}
       >
-        {transcript.segments.map(seg => {
+        {transcript.segments.map((seg, segListIndex) => {
           const isActive   = playerState.current_segment === seg.index;
           const activeWord = getActiveWordIndex(seg.words ?? [], currentTime);
           const segSel     = selRange?.si === seg.index ? selRange : null;
+          const savedMatch = savedMatchBySegment[segListIndex];
 
           return (
             <div
@@ -313,6 +322,8 @@ export default function TranscriptViewer() {
                   const clean = word.replace(/[^\w'-]/g, '').trim();
                   const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
                   const isCur = seg.words?.length ? activeWord === wi : false;
+                  const isSavedPhrase = !!savedMatch?.phraseIndexes.has(wi);
+                  const isSavedWord = !!savedMatch?.singleWordIndexes.has(wi);
                   return (
                     <React.Fragment key={wi}>
                       <span
@@ -324,6 +335,8 @@ export default function TranscriptViewer() {
                           fs, 'inline cursor-pointer rounded px-0.5 py-px transition-colors select-none',
                           isSel ? 'bg-blue-500/35 text-blue-100 font-semibold'
                           : isCur ? 'bg-blue-500/20 text-blue-300 font-semibold underline decoration-blue-400 decoration-2 underline-offset-2'
+                          : isSavedPhrase ? 'bg-green-500/20 text-green-300 font-semibold ring-1 ring-green-500/20'
+                          : isSavedWord ? 'text-green-400 font-medium underline decoration-green-500/40 decoration-2 underline-offset-2'
                           : isActive ? 'text-heading hover:bg-blue-500/10 hover:text-blue-300'
                           : 'text-muted hover:bg-elevated hover:text-heading',
                         ].join(' ')}
