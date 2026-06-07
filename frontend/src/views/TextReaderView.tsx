@@ -196,12 +196,19 @@ export default function TextReaderView() {
     const lo = dragLo.current;
     const hi = dragHi.current;
     startWordRef.current = '';
-    setTrSelRange(null);
 
-    if (lo < 0 || hi < lo) return;
+    if (lo < 0 || hi < lo) {
+      setTrSelRange(null);
+      return;
+    }
     const allWords = wordsRef.current;
     const phrase   = allWords.slice(lo, hi + 1).join(' ').replace(/[.,!?;:]+$/, '').trim();
-    if (phrase.split(/\s+/).filter(Boolean).length < 1) return;
+    if (phrase.split(/\s+/).filter(Boolean).length < 1) {
+      setTrSelRange(null);
+      return;
+    }
+    // Keep the full visual selection highlighted until the toolbar closes.
+    setTrSelRange({ lo, hi });
     setToolbar({ phrase });
   }, [cancelLP, lookupWord]);
 

@@ -248,6 +248,9 @@ export default function TranscriptViewer() {
     });
     const phrase = words.filter(Boolean).join(' ').replace(/[.,!?;:""\''«»]+$/, '').trim();
     if (!phrase) { setSelRange(null); return; }
+    // Re-apply the final range explicitly so the visual highlight persists after
+    // touchend until the toolbar is dismissed.
+    setSelRange({ si, lo, hi });
     setToolbar({ phrase, sentence: ctx || phrase });
   }, [cancelLP, resetDrag, lookupWord]);
 
