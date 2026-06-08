@@ -15,6 +15,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { SavedWord } from '@/types';
 import { awardXP } from '@/components/common/XPBar';
 import * as sfx from '@/lib/sfx';
+import { speak as ttsSpeak } from '@/lib/tts';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -212,6 +213,7 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
   const [dir, setDir] = useState<Dir>('across');
   const [hints, setHints] = useState(0);
   const [done, setDone] = useState(false);
+  const [showAr, setShowAr] = useState(false);   // reveal Arabic meaning for active clue
   const solvedRef = useRef<Set<string>>(new Set());
   const [solvedCount, setSolvedCount] = useState(0);
 
@@ -256,6 +258,14 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
     }
     return set;
   }, [activeWord]);
+
+  // Speak the active answer word (listening practice — clearly pronounced).
+  const speakClue = useCallback(() => {
+    if (activeWord) ttsSpeak(activeWord.word.toLowerCase(), { rate: 0.8 });
+  }, [activeWord]);
+
+  // Hide the Arabic hint whenever the active clue changes.
+  useEffect(() => { setShowAr(false); }, [activeWord?.number, activeWord?.dir]);
 
   const selectCell = useCallback((r: number, c: number) => {
     if (!isCell(r, c)) return;
@@ -451,11 +461,39 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
 
       {/* Active clue bar */}
       {activeWord && (
-        <div className="flex items-center gap-2 bg-card border border-default rounded-xl px-3 py-2.5 mb-3">
-          <span className="text-xs font-bold text-blue-500 shrink-0">
-            {activeWord.number} {activeWord.dir === 'across' ? '→' : '↓'}
-          </span>
-          <span className="text-sm text-body flex-1 leading-snug">{activeWord.clue}</span>
+        <div className="bg-card border border-default rounded-xl px-3 py-2.5 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-blue-500 shrink-0">
+              {activeWord.number} {activeWord.dir === 'across' ? '→' : '↓'}
+            </span>
+            <span className="text-sm text-body flex-1 leading-snug">{activeWord.clue}</span>
+
+            {/* Listen to the answer word (pronunciation practice) */}
+            <button onClick={speakClue} aria-label="Listen to the word"
+              className="shrink-0 w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 active:scale-95 flex items-center justify-center transition-all">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14" />
+              </svg>
+            </button>
+
+            {/* Toggle Arabic meaning (only if available) */}
+            {activeWord.meaningAr && (
+              <button onClick={() => setShowAr(s => !s)} aria-label="Show Arabic meaning"
+                className={`shrink-0 w-8 h-8 rounded-lg text-xs font-bold active:scale-95 flex items-center justify-center transition-all ${
+                  showAr ? 'bg-emerald-500/20 text-emerald-500' : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                }`}>
+                ع
+              </button>
+            )}
+          </div>
+
+          {/* Arabic meaning (revealed on demand) */}
+          {showAr && activeWord.meaningAr && (
+            <div dir="rtl" className="mt-2 pt-2 border-t border-subtle text-sm text-emerald-500/90 leading-relaxed">
+              {activeWord.meaningAr}
+            </div>
+          )}
         </div>
       )}
 
