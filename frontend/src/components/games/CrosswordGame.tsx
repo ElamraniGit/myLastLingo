@@ -8,7 +8,7 @@
  *  4. Each word that becomes fully correct is "solved" (sfx + XP).
  *  5. When every word is solved → result screen.
  *
- * Self-contained on purpose: own header + result screen so GamesView stays lean.
+ * Self-contained on purpose: own header + result screen so the Games tab stays lean.
  */
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';

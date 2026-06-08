@@ -24,7 +24,8 @@ import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
 import { awardXP } from '@/components/common/XPBar';
-import { SpellingIcon, ScrambleIcon, MatchIcon } from '@/components/ui/Icons';
+import { SpellingIcon, ScrambleIcon, MatchIcon, CrosswordIcon } from '@/components/ui/Icons';
+import CrosswordGame from '@/components/games/CrosswordGame';
 
 /* ─────────────────────────────────────────────────────────────────
    HELPERS
@@ -79,7 +80,7 @@ function filterPlayable(words: SavedWord[]): SavedWord[] {
 ───────────────────────────────────────────────────────────────── */
 type Tab         = 'cards' | 'quiz' | 'games';
 type QuizType    = 'definition' | 'fillblank' | 'word';
-type GameMode    = 'menu' | 'spelling' | 'scramble' | 'matching';
+type GameMode    = 'menu' | 'spelling' | 'scramble' | 'matching' | 'crossword';
 type SessionSize = 5 | 10 | 20 | 40;
 type CEFRLevel   = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
@@ -220,6 +221,8 @@ export default function ReviewView() {
     return <WordScramble words={playable} onBack={() => setGameMode('menu')} />;
   if (tab === 'games' && gameMode === 'matching')
     return <MatchingPairs words={playable} onBack={() => setGameMode('menu')} />;
+  if (tab === 'games' && gameMode === 'crossword')
+    return <CrosswordGame words={playable} onBack={() => setGameMode('menu')} />;
 
   /* ─────────────────────────────────────────────────────────────
      RENDER
@@ -742,6 +745,18 @@ function GamesTab({ playable, loading, gameMode, setGameMode, setPage }: {
         onClick={() => setGameMode('matching')}
       />
 
+      {/* Crossword */}
+      <GameCard
+        Icon={CrosswordIcon}
+        title="Crossword"
+        desc="Fill the grid using the definition clues"
+        xp="+4 XP"
+        skill="Spelling & Recall"
+        color="amber"
+        wordCount={Math.min(9, playable.length)}
+        onClick={() => setGameMode('crossword')}
+      />
+
       <p className="text-center text-xs text-faint pt-2">
         All games use your saved words · XP counts toward your level
       </p>
@@ -751,12 +766,13 @@ function GamesTab({ playable, loading, gameMode, setGameMode, setPage }: {
 
 function GameCard({ Icon, title, desc, xp, skill, color, wordCount, onClick }: {
   Icon: React.ComponentType<{className?: string}>; title: string; desc: string;
-  xp: string; skill: string; color: 'blue'|'green'|'purple'; wordCount: number; onClick: () => void;
+  xp: string; skill: string; color: 'blue'|'green'|'purple'|'amber'; wordCount: number; onClick: () => void;
 }) {
   const cl = {
     blue:   { bg: 'bg-blue-600/12',   border: 'hover:border-blue-500/30 hover:bg-blue-500/5',   badge: 'bg-blue-500/10 text-blue-500'   },
     green:  { bg: 'bg-green-600/12',  border: 'hover:border-green-500/30 hover:bg-green-500/5',  badge: 'bg-green-500/10 text-green-500'  },
     purple: { bg: 'bg-purple-600/12', border: 'hover:border-purple-500/30 hover:bg-purple-500/5', badge: 'bg-purple-500/10 text-purple-500' },
+    amber:  { bg: 'bg-amber-600/12',  border: 'hover:border-amber-500/30 hover:bg-amber-500/5',  badge: 'bg-amber-500/10 text-amber-500'  },
   }[color];
 
   return (
