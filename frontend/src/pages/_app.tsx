@@ -83,7 +83,20 @@ export default function App({ Component, pageProps }: AppProps) {
   // ── 2. Register SW + mark hydrated ───────────────────────────────
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      // updateViaCache:'none' → the browser always revalidates /sw.js itself,
+      // so a new service worker version is picked up promptly.
+      navigator.serviceWorker
+        .register('/sw.js', { updateViaCache: 'none' })
+        .catch(() => {});
+
+      // When a new SW takes control (after old tabs close), reload once so the
+      // freshly cached app code is used. Guarded flag prevents reload loops.
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        window.location.reload();
+      });
     }
     // Give Zustand one tick to rehydrate from localStorage before rendering
     const raf = requestAnimationFrame(() => setHydrated(true));

@@ -2,7 +2,9 @@
  * LinguaLearn Service Worker v4 — Full Offline Support
  *
  * Strategy:
- *  - App shell (HTML/JS/CSS) : Cache-first → network fallback
+ *  - HTML navigation         : Network-first → app-shell fallback
+ *  - App code (JS/CSS)       : Network-first → cache fallback (always get latest build)
+ *  - Media (img/font/svg)    : Cache-first → network fallback (rarely changes)
  *  - Dictionary API GET      : Network-first → cache fallback
  *  - Vocabulary GET          : Network-first → cache fallback (short TTL)
  *  - Mutations (POST/PATCH/DELETE): Network-only (handled by IndexedDB queue)
@@ -10,11 +12,14 @@
  *  - Other API              : Network-only
  *
  * FIX (v3): No skipWaiting / clients.claim() — prevents reload loop.
+ * FIX (v5): JS/CSS switched from cache-first to network-first so new builds
+ *           (e.g. newly added features) show up immediately instead of serving
+ *           a stale bundle forever. Media stays cache-first for offline speed.
  */
 
-const STATIC_CACHE = 'll-static-v4';
-const API_CACHE    = 'll-api-v4';
-const TTS_CACHE    = 'll-tts-v4';
+const STATIC_CACHE = 'll-static-v5';
+const API_CACHE    = 'll-api-v5';
+const TTS_CACHE    = 'll-tts-v5';
 
 const KEEP_CACHES  = [STATIC_CACHE, API_CACHE, TTS_CACHE];
 
@@ -87,8 +92,18 @@ self.addEventListener('fetch', (event) => {
     return; // Let the browser handle it normally
   }
 
-  // ── Static assets: cache-first → network fallback ──────────────────────────
-  if (url.pathname.match(/\.(js|css|svg|png|jpg|jpeg|webp|ico|woff2?)$/)) {
+  // ── App code (JS/CSS): network-first → cache fallback ──────────────────────
+  // Cache-first here would pin an old bundle forever (esp. in `next dev` where
+  // filenames are stable), hiding new features. Prefer the network, fall back to
+  // cache only when offline.
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(networkThenCache(req, STATIC_CACHE));
+    return;
+  }
+
+  // ── Media (images/fonts): cache-first → network fallback ───────────────────
+  // These have content hashes / rarely change, so caching first is safe & fast.
+  if (url.pathname.match(/\.(svg|png|jpg|jpeg|webp|ico|woff2?)$/)) {
     event.respondWith(cacheThenNetwork(req, STATIC_CACHE));
     return;
   }
