@@ -2,11 +2,13 @@
  * CrosswordGame — vocabulary crossword built from the user's saved words.
  *
  * Flow:
- *  1. Pick playable words (3–9 letters, with an English definition).
- *  2. Auto-generate an interlocking grid (perpendicular intersections only).
+ *  1. Player picks a difficulty (Easy / Medium / Hard) — controls grid size,
+ *     word length range, and how many letters are revealed up-front.
+ *  2. Auto-generate an interlocking grid (perpendicular intersections only),
+ *     with some "given" letters pre-filled so the player has anchors to rely on.
  *  3. User fills cells via an on-screen keyboard (mobile) or physical keyboard.
- *  4. Each word that becomes fully correct is "solved" (sfx + XP).
- *  5. When every word is solved → result screen.
+ *  4. Game points: +SOLVE_POINTS per solved word, −HINT_COST per revealed letter.
+ *  5. When every word is solved → result screen; XP awarded = final game score.
  *
  * Self-contained on purpose: own header + result screen so the Games tab stays lean.
  */
@@ -16,6 +18,31 @@ import type { SavedWord } from '@/types';
 import { awardXP } from '@/components/common/XPBar';
 import * as sfx from '@/lib/sfx';
 import { speak as ttsSpeak } from '@/lib/tts';
+
+// ── Scoring ──────────────────────────────────────────────────────────────────
+
+const SOLVE_POINTS = 10;   // points earned per word solved
+const HINT_COST    = 3;    // points deducted per revealed letter
+
+// ── Difficulty ───────────────────────────────────────────────────────────────
+
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+interface DiffConfig {
+  label: string;
+  desc: string;
+  maxWords: number;
+  minLen: number;
+  maxLen: number;
+  prefillRatio: number;   // fraction of cells revealed up-front
+  color: 'green' | 'blue' | 'red';
+}
+
+const DIFFICULTY: Record<Difficulty, DiffConfig> = {
+  easy:   { label: 'Easy',   desc: 'Short words · more letters given', maxWords: 5,  minLen: 3, maxLen: 6, prefillRatio: 0.30, color: 'green' },
+  medium: { label: 'Medium', desc: 'A balanced challenge',             maxWords: 8,  minLen: 3, maxLen: 8, prefillRatio: 0.16, color: 'blue'  },
+  hard:   { label: 'Hard',   desc: 'More & longer words · few hints',  maxWords: 12, minLen: 4, maxLen: 9, prefillRatio: 0.06, color: 'red'   },
+};
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -38,6 +65,7 @@ interface Puzzle {
   placements: Placement[];
   rows: number;
   cols: number;
+  given: Set<string>;   // cell keys revealed up-front
 }
 
 const key = (r: number, c: number) => `${r},${c}`;
@@ -129,9 +157,49 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildPuzzle(words: SavedWord[], maxWords = 9): Puzzle {
+/**
+ * Choose cells to reveal up-front. Never reveals every letter of a word —
+ * each word keeps at least one empty cell for the player to fill in.
+ */
+function pickGivenCells(placements: Placement[], prefillRatio: number): Set<string> {
+  const cellWords = new Map<string, string[]>();  // cellKey -> [wordId]
+  const wordLen   = new Map<string, number>();    // wordId  -> length
+
+  placements.forEach(p => {
+    const id = `${p.number}-${p.dir}`;
+    wordLen.set(id, p.word.length);
+    for (let i = 0; i < p.word.length; i++) {
+      const r = p.dir === 'across' ? p.row : p.row + i;
+      const c = p.dir === 'across' ? p.col + i : p.col;
+      const k = key(r, c);
+      const arr = cellWords.get(k) || [];
+      arr.push(id);
+      cellWords.set(k, arr);
+    }
+  });
+
+  const allCells = Array.from(cellWords.keys());
+  const target   = Math.round(allCells.length * prefillRatio);
+  const given    = new Set<string>();
+  const perWord  = new Map<string, number>();
+
+  for (const k of shuffle(allCells)) {
+    if (given.size >= target) break;
+    const ids = cellWords.get(k)!;
+    // Reveal only if every word through this cell still keeps ≥1 empty cell.
+    const ok = ids.every(id => (perWord.get(id) || 0) < wordLen.get(id)! - 1);
+    if (!ok) continue;
+    given.add(k);
+    ids.forEach(id => perWord.set(id, (perWord.get(id) || 0) + 1));
+  }
+  return given;
+}
+
+function buildPuzzle(words: SavedWord[], cfg: DiffConfig): Puzzle {
+  const empty: Puzzle = { placements: [], rows: 0, cols: 0, given: new Set() };
+
   const candidates: Entry[] = words
-    .filter(w => /^[a-zA-Z]+$/.test(w.word) && w.word.length >= 3 && w.word.length <= 9)
+    .filter(w => /^[a-zA-Z]+$/.test(w.word) && w.word.length >= cfg.minLen && w.word.length <= cfg.maxLen)
     .filter(w => (w.meaning_en || '').trim().length > 4)
     .map(w => ({
       word: w.word.toUpperCase(),
@@ -145,13 +213,13 @@ function buildPuzzle(words: SavedWord[], maxWords = 9): Puzzle {
 
   // Try several layouts, keep the one that places the most words.
   let best: Placement[] = [];
-  for (let attempt = 0; attempt < 12; attempt++) {
+  for (let attempt = 0; attempt < 14; attempt++) {
     const pool = shuffle(unique)
-      .slice(0, 16)
+      .slice(0, cfg.maxWords + 8)
       .sort((a, b) => b.word.length - a.word.length);
-    const result = buildOnce(pool, maxWords);
+    const result = buildOnce(pool, cfg.maxWords);
     if (result.length > best.length) best = result;
-    if (best.length >= maxWords) break;
+    if (best.length >= cfg.maxWords) break;
   }
 
   // Normalise coordinates to start at (0,0).
@@ -162,7 +230,7 @@ function buildPuzzle(words: SavedWord[], maxWords = 9): Puzzle {
     minR = Math.min(minR, p.row); minC = Math.min(minC, p.col);
     maxR = Math.max(maxR, endR); maxC = Math.max(maxC, endC);
   });
-  if (!isFinite(minR)) return { placements: [], rows: 0, cols: 0 };
+  if (!isFinite(minR)) return empty;
 
   best.forEach(p => { p.row -= minR; p.col -= minC; });
   const rows = maxR - minR + 1;
@@ -179,15 +247,121 @@ function buildPuzzle(words: SavedWord[], maxWords = 9): Puzzle {
   startKeys.forEach((k, i) => numberFor.set(k, i + 1));
   best.forEach(p => { p.number = numberFor.get(key(p.row, p.col)) || 0; });
 
-  return { placements: best, rows, cols };
+  const given = pickGivenCells(best, cfg.prefillRatio);
+
+  return { placements: best, rows, cols, given };
+}
+
+// Count how many playable words exist for a given difficulty (for the menu).
+function countPlayable(words: SavedWord[], cfg: DiffConfig): number {
+  const seen = new Set<string>();
+  return words.filter(w =>
+    /^[a-zA-Z]+$/.test(w.word) &&
+    w.word.length >= cfg.minLen && w.word.length <= cfg.maxLen &&
+    (w.meaning_en || '').trim().length > 4 &&
+    (seen.has(w.word.toUpperCase()) ? false : (seen.add(w.word.toUpperCase()), true))
+  ).length;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; onBack: () => void }) {
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [seed, setSeed] = useState(0);
-  const puzzle = useMemo(() => buildPuzzle(words), [words, seed]); // eslint-disable-line react-hooks/exhaustive-deps
-  const { placements, rows, cols } = puzzle;
+
+  // Difficulty selection screen (also shown as the in-game "Menu" target).
+  if (!difficulty) {
+    return <DifficultySelect words={words} onBack={onBack} onPick={(d) => { setDifficulty(d); setSeed(s => s + 1); }} />;
+  }
+
+  return (
+    <CrosswordPlay
+      key={`${difficulty}-${seed}`}
+      words={words}
+      cfg={DIFFICULTY[difficulty]}
+      onBack={onBack}
+      onNewPuzzle={() => setSeed(s => s + 1)}
+      onChangeDifficulty={() => setDifficulty(null)}
+    />
+  );
+}
+
+// ── Difficulty selection screen ───────────────────────────────────────────────
+
+function DifficultySelect({ words, onBack, onPick }: {
+  words: SavedWord[]; onBack: () => void; onPick: (d: Difficulty) => void;
+}) {
+  const swatch = {
+    green: { bg: 'bg-green-600/12', border: 'hover:border-green-500/40', badge: 'bg-green-500/10 text-green-500' },
+    blue:  { bg: 'bg-blue-600/12',  border: 'hover:border-blue-500/40',  badge: 'bg-blue-500/10 text-blue-500'  },
+    red:   { bg: 'bg-red-600/12',   border: 'hover:border-red-500/40',   badge: 'bg-red-500/10 text-red-500'    },
+  };
+
+  return (
+    <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
+      <div className="flex items-center gap-3 mb-5">
+        <button onClick={onBack}
+          className="w-9 h-9 rounded-xl hover:bg-card text-muted hover:text-body flex items-center justify-center transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="w-4 h-4">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div>
+          <div className="text-base font-bold text-heading">Crossword</div>
+          <div className="text-sm text-muted">Choose a difficulty</div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {(Object.keys(DIFFICULTY) as Difficulty[]).map(d => {
+          const cfg = DIFFICULTY[d];
+          const avail = countPlayable(words, cfg);
+          const enough = avail >= 2;
+          const s = swatch[cfg.color];
+          return (
+            <button key={d} disabled={!enough} onClick={() => onPick(d)}
+              className={`w-full flex items-center gap-4 bg-card border border-default rounded-2xl p-5 text-left transition-all
+                ${enough ? `${s.border} active:scale-[0.98]` : 'opacity-50 cursor-not-allowed'}`}>
+              <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center shrink-0`}>
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M15 9v12M3 15h12"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-base font-bold text-heading">{cfg.label}</div>
+                <div className="text-sm text-muted mt-0.5">{cfg.desc}</div>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${s.badge}`}>
+                    up to {cfg.maxWords} words
+                  </span>
+                  <span className="text-xs text-faint">
+                    {enough ? `${avail} words available` : 'need more words'}
+                  </span>
+                </div>
+              </div>
+              <svg className="w-5 h-5 text-faint shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="text-center text-xs text-faint pt-4">
+        +{SOLVE_POINTS} points per word · −{HINT_COST} per hint · points become XP
+      </p>
+    </div>
+  );
+}
+
+// ── Playable puzzle ───────────────────────────────────────────────────────────
+
+function CrosswordPlay({ words, cfg, onBack, onNewPuzzle, onChangeDifficulty }: {
+  words: SavedWord[]; cfg: DiffConfig;
+  onBack: () => void; onNewPuzzle: () => void; onChangeDifficulty: () => void;
+}) {
+  const puzzle = useMemo(() => buildPuzzle(words, cfg), [words, cfg]);
+  const { placements, rows, cols, given } = puzzle;
 
   // Solution + metadata maps.
   const { solution, cellMeta } = useMemo(() => {
@@ -212,26 +386,39 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
   const [sel, setSel] = useState<{ r: number; c: number } | null>(null);
   const [dir, setDir] = useState<Dir>('across');
   const [hints, setHints] = useState(0);
+  const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [showAr, setShowAr] = useState(false);   // reveal Arabic meaning for active clue
   const solvedRef = useRef<Set<string>>(new Set());
   const [solvedCount, setSolvedCount] = useState(0);
+  const scoreRef = useRef(0);
+  useEffect(() => { scoreRef.current = score; }, [score]);
 
-  // Reset all play state + select the first cell whenever a new puzzle is built.
+  const isGiven = useCallback((k: string) => given.has(k), [given]);
+
+  // Reset all play state + pre-fill the given letters whenever a puzzle is built.
   useEffect(() => {
-    setUser({});
+    const init: Record<string, string> = {};
+    given.forEach(k => { const ch = solution.get(k); if (ch) init[k] = ch; });
+    setUser(init);
     setHints(0);
+    setScore(0);
     setDone(false);
     solvedRef.current = new Set();
     setSolvedCount(0);
     if (placements.length > 0) {
+      // Select the first non-given cell of the first across word.
       const first = placements.find(p => p.dir === 'across') || placements[0];
-      setSel({ r: first.row, c: first.col });
+      let target = { r: first.row, c: first.col };
+      for (let i = 0; i < first.word.length; i++) {
+        const r = first.dir === 'across' ? first.row : first.row + i;
+        const c = first.dir === 'across' ? first.col + i : first.col;
+        if (!given.has(key(r, c))) { target = { r, c }; break; }
+      }
+      setSel(target);
       setDir(first.dir);
     }
-  }, [placements]);
-
-  const newPuzzle = useCallback(() => setSeed(s => s + 1), []);
+  }, [placements, given, solution]);
 
   const isCell = useCallback((r: number, c: number) => solution.has(key(r, c)), [solution]);
 
@@ -281,45 +468,55 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
     });
   }, [isCell, cellMeta]);
 
+  // Advance to the next editable (non-given) cell in the active word.
   const advance = useCallback((from: { r: number; c: number }, back = false) => {
     if (!activeWord) return from;
     const step = back ? -1 : 1;
-    let r = from.r + (activeWord.dir === 'down' ? step : 0);
-    let c = from.c + (activeWord.dir === 'across' ? step : 0);
-    if (isCell(r, c)) return { r, c };
+    let r = from.r, c = from.c;
+    for (let n = 0; n < activeWord.word.length; n++) {
+      r += activeWord.dir === 'down' ? step : 0;
+      c += activeWord.dir === 'across' ? step : 0;
+      if (!isCell(r, c)) return from;          // hit edge → stay
+      if (!isGiven(key(r, c))) return { r, c }; // first editable cell
+    }
     return from;
-  }, [activeWord, isCell]);
+  }, [activeWord, isCell, isGiven]);
 
   const typeLetter = useCallback((letter: string) => {
     if (!sel || done) return;
     const k = key(sel.r, sel.c);
+    if (isGiven(k)) { setSel(prev => (prev ? advance(prev) : prev)); return; }
     setUser(prev => ({ ...prev, [k]: letter.toUpperCase() }));
     setSel(prev => (prev ? advance(prev) : prev));
-  }, [sel, done, advance]);
+  }, [sel, done, advance, isGiven]);
 
   const backspace = useCallback(() => {
     if (!sel || done) return;
     const k = key(sel.r, sel.c);
-    if (user[k]) {
+    if (user[k] && !isGiven(k)) {
       setUser(prev => { const n = { ...prev }; delete n[k]; return n; });
     } else {
       const prevCell = advance(sel, true);
       const pk = key(prevCell.r, prevCell.c);
-      setUser(prev => { const n = { ...prev }; delete n[pk]; return n; });
+      if (!isGiven(pk)) {
+        setUser(prev => { const n = { ...prev }; delete n[pk]; return n; });
+      }
       setSel(prevCell);
     }
-  }, [sel, done, user, advance]);
+  }, [sel, done, user, advance, isGiven]);
 
   const revealCell = useCallback(() => {
     if (!sel || done) return;
     const k = key(sel.r, sel.c);
     const correct = solution.get(k);
     if (!correct) return;
+    if (isGiven(k) || user[k] === correct) return; // nothing to reveal here
     setUser(prev => ({ ...prev, [k]: correct }));
     setHints(h => h + 1);
+    setScore(s => Math.max(0, s - HINT_COST));   // deduct points for the hint
     sfx.tap();
     setSel(prev => (prev ? advance(prev) : prev));
-  }, [sel, done, solution, advance]);
+  }, [sel, done, solution, advance, isGiven, user]);
 
   // Physical keyboard support.
   useEffect(() => {
@@ -336,7 +533,7 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
   // Detect newly solved words + completion.
   useEffect(() => {
     if (placements.length === 0) return;
-    let newlySolved = false;
+    let added = 0;
     placements.forEach(p => {
       const id = `${p.number}-${p.dir}`;
       if (solvedRef.current.has(id)) return;
@@ -346,31 +543,37 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
         const c = p.dir === 'across' ? p.col + i : p.col;
         if (user[key(r, c)] !== p.word[i]) { ok = false; break; }
       }
-      if (ok) { solvedRef.current.add(id); newlySolved = true; }
+      if (ok) { solvedRef.current.add(id); added++; }
     });
-    if (newlySolved) {
+    if (added > 0) {
       const count = solvedRef.current.size;
       setSolvedCount(count);
+      setScore(s => s + added * SOLVE_POINTS);   // earn points per solved word
       sfx.correct();
-      awardXP('game_correct');
       if (count >= placements.length) {
         setDone(true);
         sfx.complete();
-        awardXP('game_complete');
       }
     }
   }, [user, placements]);
 
+  // Award XP once when finished. Capped at 50 to match the backend anti-cheat
+  // cap (the offline batch endpoint clamps a single action to 50 XP), so online
+  // and offline play stay consistent. The displayed game score is uncapped.
+  useEffect(() => {
+    if (done) awardXP('game_complete', Math.min(50, Math.max(1, scoreRef.current)));
+  }, [done]);
+
   if (placements.length < 2) {
     return (
       <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
-        <CwHeader title="Crossword" onBack={onBack} solved={0} total={0} />
+        <CwHeader title="Crossword" onBack={onChangeDifficulty} score={0} solved={0} total={0} />
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="text-base font-semibold text-heading mb-2">Couldn&apos;t build a puzzle</div>
           <p className="text-sm text-muted mb-6 max-w-xs">
-            Save a few more short words (3–9 letters) with English definitions so they can interlock.
+            Not enough interlocking words for this difficulty. Try an easier level or save more words.
           </p>
-          <button onClick={onBack} className="btn-primary px-6 py-2.5 text-sm rounded-xl">← Back to games</button>
+          <button onClick={onChangeDifficulty} className="btn-primary px-6 py-2.5 text-sm rounded-xl">← Change difficulty</button>
         </div>
       </div>
     );
@@ -379,16 +582,17 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
   if (done) {
     const total = placements.length;
     const pct = Math.max(0, Math.round(((total - hints) / total) * 100));
+    const xp  = Math.max(1, score);
     return (
       <div className="max-w-md mx-auto px-4 pt-10 pb-28 text-center animate-fade-in">
         <div className="text-7xl mb-3 animate-pop-in">{hints === 0 ? '★' : '✓'}</div>
         <h2 className="text-2xl font-black text-heading mb-1">{hints === 0 ? 'Flawless!' : 'Puzzle solved!'}</h2>
-        <p className="text-sm text-muted mb-6">Crossword</p>
+        <p className="text-sm text-muted mb-6">Crossword · {cfg.label}</p>
         <div className="bg-card border border-default rounded-3xl p-6 mb-5 grid grid-cols-3 gap-2">
           {[
-            { label: 'Words', val: total, color: 'text-green-400' },
-            { label: 'Hints used', val: hints, color: 'text-muted' },
-            { label: 'No-hint', val: `${pct}%`, color: 'text-blue-400' },
+            { label: 'Score',      val: score,      color: 'text-amber-400' },
+            { label: 'Hints used', val: hints,      color: 'text-muted' },
+            { label: 'No-hint',    val: `${pct}%`,  color: 'text-blue-400' },
           ].map(s => (
             <div key={s.label} className="bg-elevated rounded-2xl py-3">
               <div className={`text-xl font-black ${s.color}`}>{s.val}</div>
@@ -396,19 +600,23 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
             </div>
           ))}
         </div>
+        <div className="flex items-center justify-center gap-2 text-sm mb-5">
+          <span className="text-yellow-400">⭐</span>
+          <span className="font-semibold text-heading">+{xp} XP earned</span>
+        </div>
         <div className="flex gap-3">
-          <button onClick={onBack}
+          <button onClick={onChangeDifficulty}
             className="flex-1 py-3.5 rounded-2xl border border-default text-sm font-medium text-body hover:bg-card transition-colors">
             ← Menu
           </button>
-          <button onClick={newPuzzle}
+          <button onClick={onNewPuzzle}
             className="flex-1 btn-primary py-3.5 rounded-2xl text-sm">New puzzle</button>
         </div>
       </div>
     );
   }
 
-  const cellSize = cols <= 7 ? 38 : cols <= 9 ? 33 : cols <= 11 ? 29 : 25;
+  const cellSize = cols <= 7 ? 38 : cols <= 9 ? 33 : cols <= 11 ? 29 : cols <= 13 ? 25 : 22;
 
   const acrossClues = placements.filter(p => p.dir === 'across').sort((a, b) => a.number - b.number);
   const downClues   = placements.filter(p => p.dir === 'down').sort((a, b) => a.number - b.number);
@@ -416,7 +624,8 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
 
   return (
     <div className="max-w-md mx-auto px-4 pt-5 pb-28 animate-fade-in">
-      <CwHeader title="Crossword" onBack={onBack} solved={solvedCount} total={placements.length} />
+      <CwHeader title={`Crossword · ${cfg.label}`} onBack={onChangeDifficulty}
+        score={score} solved={solvedCount} total={placements.length} />
 
       {/* Grid */}
       <div className="flex justify-center mt-3 mb-3 overflow-auto">
@@ -434,7 +643,8 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
             const val = user[k] || '';
             const isSel = sel?.r === r && sel?.c === c;
             const isActive = activeCells.has(k);
-            const wrong = val && val !== solution.get(k);
+            const givenCell = isGiven(k);
+            const wrong = val && !givenCell && val !== solution.get(k);
 
             return (
               <button
@@ -444,6 +654,7 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
                 className={`relative flex items-center justify-center rounded-[3px] font-bold transition-colors
                   ${isSel ? 'bg-blue-500 text-white ring-2 ring-blue-300'
                     : isActive ? 'bg-blue-500/20 text-heading'
+                    : givenCell ? 'bg-amber-500/15 text-amber-600'
                     : 'bg-card text-heading'}
                   ${wrong && !isSel ? '!text-red-400' : ''}`}
               >
@@ -505,9 +716,9 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
         </button>
         <button onClick={revealCell}
           className="flex-1 py-2 rounded-xl border border-default text-xs font-medium text-amber-500 hover:bg-card transition-colors">
-          💡 Reveal letter
+          💡 Reveal (−{HINT_COST})
         </button>
-        <button onClick={newPuzzle}
+        <button onClick={onNewPuzzle}
           className="flex-1 py-2 rounded-xl border border-default text-xs font-medium text-body hover:bg-card transition-colors">
           ↻ New
         </button>
@@ -529,7 +740,9 @@ export default function CrosswordGame({ words, onBack }: { words: SavedWord[]; o
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function CwHeader({ title, onBack, solved, total }: { title: string; onBack: () => void; solved: number; total: number }) {
+function CwHeader({ title, onBack, score, solved, total }: {
+  title: string; onBack: () => void; score: number; solved: number; total: number;
+}) {
   const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
   return (
     <div>
@@ -540,13 +753,13 @@ function CwHeader({ title, onBack, solved, total }: { title: string; onBack: () 
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
-        <div className="flex-1">
-          <div className="text-base font-bold text-heading">{title}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-base font-bold text-heading truncate">{title}</div>
           <div className="text-sm text-muted">{solved} / {total} words solved</div>
         </div>
-        <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-1.5">
+        <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5">
           <span className="text-sm">⭐</span>
-          <span className="text-sm font-bold text-yellow-500">{solved}</span>
+          <span className="text-sm font-bold text-amber-500">{score}</span>
         </div>
       </div>
       <div className="h-2 bg-elevated rounded-full overflow-hidden">
