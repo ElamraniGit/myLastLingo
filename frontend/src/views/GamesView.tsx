@@ -17,7 +17,8 @@ import { speak as ttsSpeak } from '@/lib/tts';
 import { awardXP } from '@/components/common/XPBar';
 import * as sfx from '@/lib/sfx';
 import type { SavedWord } from '@/types';
-import { SpellingIcon, ScrambleIcon, MatchIcon, TrophyIcon } from '@/components/ui/Icons';
+import { SpellingIcon, ScrambleIcon, MatchIcon, CrosswordIcon, TrophyIcon } from '@/components/ui/Icons';
+import CrosswordGame from '@/components/games/CrosswordGame';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ function difficulty(w: SavedWord): 'easy' | 'medium' | 'hard' {
   return 'hard';
 }
 
-type GameMode = 'menu' | 'spelling' | 'scramble' | 'matching';
+type GameMode = 'menu' | 'spelling' | 'scramble' | 'matching' | 'crossword';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN MENU
@@ -74,6 +75,7 @@ export default function GamesView() {
   if (game === 'spelling')  return <SpellingBee  words={playable} onBack={() => setGame('menu')} />;
   if (game === 'scramble')  return <WordScramble  words={playable} onBack={() => setGame('menu')} />;
   if (game === 'matching')  return <MatchingPairs words={playable} onBack={() => setGame('menu')} />;
+  if (game === 'crossword') return <CrosswordGame  words={playable} onBack={() => setGame('menu')} />;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-28 lg:pb-8 animate-fade-in">
@@ -150,6 +152,18 @@ export default function GamesView() {
             onClick={() => setGame('matching')}
           />
 
+          {/* Crossword */}
+          <GameCard
+            EmojiComponent={CrosswordIcon}
+            title="Crossword"
+            desc="Fill the grid using the definition clues"
+            xp="+4 XP"
+            skill="Spelling + Recall"
+            color="amber"
+            wordCount={Math.min(9, playable.length)}
+            onClick={() => setGame('crossword')}
+          />
+
           <p className="text-center text-xs text-faint pt-1">
             All games use YOUR saved words · XP counts toward your level
           </p>
@@ -161,12 +175,13 @@ export default function GamesView() {
 
 function GameCard({ EmojiComponent, title, desc, xp, skill, color, wordCount, onClick }: {
   EmojiComponent?: React.ComponentType<{className?: string}>; title: string; desc: string; xp: string; skill: string;
-  color: 'blue' | 'green' | 'purple'; wordCount: number; onClick: () => void;
+  color: 'blue' | 'green' | 'purple' | 'amber'; wordCount: number; onClick: () => void;
 }) {
   const colors = {
     blue:   { bg: 'bg-blue-600/15',   hover: 'hover:border-blue-500/30 hover:bg-blue-500/5',   badge: 'bg-blue-500/10 text-blue-500'   },
     green:  { bg: 'bg-green-600/15',  hover: 'hover:border-green-500/30 hover:bg-green-500/5',  badge: 'bg-green-500/10 text-green-500'  },
     purple: { bg: 'bg-purple-600/15', hover: 'hover:border-purple-500/30 hover:bg-purple-500/5', badge: 'bg-purple-500/10 text-purple-500' },
+    amber:  { bg: 'bg-amber-600/15',  hover: 'hover:border-amber-500/30 hover:bg-amber-500/5',  badge: 'bg-amber-500/10 text-amber-500'  },
   }[color];
 
   return (

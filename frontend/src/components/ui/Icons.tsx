@@ -482,3 +482,12 @@ export function MatchIcon({ className = '', size = 24, strokeWidth = 1.8 }: Icon
     </svg>
   );
 }
+
+export function CrosswordIcon({ className = '', size = 24, strokeWidth = 1.8 }: IconProps) {
+  return (
+    <svg width={size} height={size} className={className} {...base(strokeWidth)}>
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M9 3v18M3 9h18M15 9v12M3 15h12"/>
+    </svg>
+  );
+}
