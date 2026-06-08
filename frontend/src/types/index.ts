@@ -11,7 +11,7 @@ export type VideoQuality =
   | 'highres';
 
 export type TranscriptFontSize = 'sm' | 'md' | 'lg' | 'xl';
-export type TranscriptHighlightMode = 'sentence' | 'word';
+export type TranscriptHighlightMode = 'sentence' | 'word' | 'smart';
 
 export interface User {
   id: string;
@@ -71,6 +71,113 @@ export interface WordDefinition {
   example: string;
 }
 
+export interface AIGrammarBreakdownItem {
+  label: string;
+  value: string;
+}
+
+export interface AIMeaningItem {
+  rank: number;
+  arabic: string;
+  english_simple: string;
+  english_advanced: string;
+  context: string;
+  register: string;
+}
+
+export interface AIGrammarAnalysis {
+  summary: string;
+  base_form: string;
+  form_type: string;
+  tense: string;
+  aspect: string;
+  voice: string;
+  sentence_type: string;
+  subject: string;
+  verb: string;
+  object: string;
+  number: string;
+  comparison_type: string;
+  irregularity: string;
+  used_with: string[];
+  notes: string[];
+  inflected_forms: Record<string, string>;
+  breakdown: AIGrammarBreakdownItem[];
+}
+
+export interface AIRelationItem {
+  term: string;
+  short_definition: string;
+  commonness: string;
+}
+
+export interface AIExampleItem {
+  english: string;
+  arabic: string;
+  difficulty: CEFRLevel;
+  register: string;
+  focus: string;
+}
+
+export interface AICommonPhraseItem {
+  expression: string;
+  meaning: string;
+  translation: string;
+  example: string;
+}
+
+export interface AIPhrasalVerbItem {
+  phrasal_verb: string;
+  meaning: string;
+  translation: string;
+  example: string;
+}
+
+export interface AICollocationItem {
+  expression: string;
+  pattern: string;
+  meaning: string;
+  translation: string;
+}
+
+export interface AIWordFamilyItem {
+  term: string;
+  part_of_speech: string;
+  meaning: string;
+}
+
+export interface AICommonMistakeItem {
+  mistake: string;
+  correction: string;
+  explanation: string;
+}
+
+export interface AIEntryPayload {
+  term: string;
+  language?: string;
+  entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
+  translation?: string;
+  pronunciation?: string;
+  part_of_speech?: string;
+  part_of_speech_explanation?: string;
+  cefr_level?: CEFRLevel;
+  frequency_score?: number;
+  frequency_label?: string;
+  meanings?: AIMeaningItem[];
+  word_explanation?: string;
+  grammar_analysis?: AIGrammarAnalysis;
+  example_details?: AIExampleItem[];
+  synonym_details?: AIRelationItem[];
+  antonym_details?: AIRelationItem[];
+  collocation_details?: AICollocationItem[];
+  common_phrases?: AICommonPhraseItem[];
+  phrasal_verbs?: AIPhrasalVerbItem[];
+  word_family?: AIWordFamilyItem[];
+  common_mistakes?: AICommonMistakeItem[];
+  teaching_notes?: string[];
+  confidence?: number;
+}
+
 export interface Word {
   id: string;
   word: string;
@@ -94,6 +201,8 @@ export interface Word {
   difficulty_score?: number;
   priority_score?: number;
   frequency?: number;
+  ai_enriched?: boolean;
+  _ai_entry?: AIEntryPayload;
 }
 
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
@@ -116,6 +225,7 @@ export interface SavedWord {
   grammar_notes?: string;
   collocations?: string[];
   conjugations?: Record<string, string>;
+  root_form?: string;
   related_words?: string[];
   entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
   difficulty_score?: number;
@@ -139,6 +249,8 @@ export interface SavedWord {
   next_review?: string;
   last_reviewed?: string;
   created_at?: string;
+  ai_enriched?: boolean;
+  _ai_entry?: AIEntryPayload;
 }
 
 export interface PlayerState {

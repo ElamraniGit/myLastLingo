@@ -118,6 +118,7 @@ class DatabaseManager:
                 how_to_use TEXT DEFAULT '[]',
                 usage_notes TEXT DEFAULT '',
                 grammar_notes TEXT DEFAULT '',
+                ai_payload TEXT DEFAULT '',
                 entry_type TEXT DEFAULT 'word',
                 difficulty_score REAL DEFAULT 0.5,
                 priority_score REAL DEFAULT 0.5,
@@ -341,6 +342,7 @@ class DatabaseManager:
             "collocations":     "ALTER TABLE words ADD COLUMN collocations TEXT DEFAULT '[]'",
             "usage_notes":      "ALTER TABLE words ADD COLUMN usage_notes TEXT DEFAULT ''",
             "grammar_notes":    "ALTER TABLE words ADD COLUMN grammar_notes TEXT DEFAULT ''",
+            "ai_payload":       "ALTER TABLE words ADD COLUMN ai_payload TEXT DEFAULT ''",
             "entry_type":       "ALTER TABLE words ADD COLUMN entry_type TEXT DEFAULT 'word'",
             "difficulty_score": "ALTER TABLE words ADD COLUMN difficulty_score REAL DEFAULT 0.5",
             "priority_score":   "ALTER TABLE words ADD COLUMN priority_score REAL DEFAULT 0.5",
@@ -434,6 +436,8 @@ class DatabaseManager:
         data["definitions"] = self._decode_json_field(data.get("definitions"), [])
         data["how_to_use"] = self._decode_json_field(data.get("how_to_use"), [])
         data["tags"] = self._decode_json_field(data.get("tags"), [])
+        data["ai_payload"] = self._decode_json_field(data.get("ai_payload"), {})
+        data["_ai_entry"] = data.get("ai_payload") or {}
         data["favorite"] = bool(data.get("favorite", 0))
         try:
             data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
@@ -467,7 +471,7 @@ class DatabaseManager:
             w.meaning_ar, w.meaning_en, w.level, w.examples,
             w.synonyms, w.antonyms, w.conjugations, w.related_words,
             w.collocations, w.definitions, w.how_to_use, w.usage_notes,
-            w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+            w.grammar_notes, w.ai_payload, w.entry_type, w.difficulty_score, w.priority_score,
             COALESCE(v.title, '') as source_video_title,
             COALESCE(v.channel, '') as source_video_channel
         """
@@ -747,8 +751,8 @@ class DatabaseManager:
                     (id, word, pronunciation, part_of_speech, level, meaning_ar, meaning_en,
                      examples, synonyms, antonyms, root_form, conjugations, related_words,
                      collocations, definitions, how_to_use, usage_notes, grammar_notes,
-                     entry_type, difficulty_score, priority_score, frequency, ai_enriched)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     ai_payload, entry_type, difficulty_score, priority_score, frequency, ai_enriched)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     word_data.get("id"),
@@ -769,6 +773,7 @@ class DatabaseManager:
                     json.dumps(word_data.get("how_to_use", []), ensure_ascii=False),
                     word_data.get("usage_notes", ""),
                     word_data.get("grammar_notes", ""),
+                    json.dumps(word_data.get("ai_payload") or word_data.get("_ai_entry") or {}, ensure_ascii=False),
                     word_data.get("entry_type", "word"),
                     float(word_data.get("difficulty_score", 0.5) or 0.5),
                     float(word_data.get("priority_score", 0.5) or 0.5),
@@ -793,7 +798,9 @@ class DatabaseManager:
                 data["collocations"] = self._decode_json_field(data.get("collocations"), [])
                 data["definitions"]  = self._decode_json_field(data.get("definitions"), [])
                 data["how_to_use"]   = self._decode_json_field(data.get("how_to_use"), [])
-                data["ai_enriched"]  = bool(data.get("ai_enriched", 0))
+                data["ai_payload"]    = self._decode_json_field(data.get("ai_payload"), {})
+                data["_ai_entry"]     = data.get("ai_payload") or {}
+                data["ai_enriched"]   = bool(data.get("ai_enriched", 0))
                 try:
                     data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
                 except (TypeError, ValueError):
@@ -861,7 +868,7 @@ class DatabaseManager:
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
                        w.collocations, w.definitions, w.how_to_use, w.usage_notes,
-                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+                       w.grammar_notes, w.ai_payload, w.entry_type, w.difficulty_score, w.priority_score,
                        COALESCE(v.title, '') as source_video_title,
                        COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw
@@ -1049,7 +1056,7 @@ class DatabaseManager:
                        w.meaning_ar, w.meaning_en, w.level, w.examples,
                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
                        w.collocations, w.definitions, w.how_to_use, w.usage_notes,
-                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+                       w.grammar_notes, w.ai_payload, w.entry_type, w.difficulty_score, w.priority_score,
                        COALESCE(v.title, '') as source_video_title,
                        COALESCE(v.channel, '') as source_video_channel
                 FROM saved_words sw

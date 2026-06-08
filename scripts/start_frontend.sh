@@ -1,6 +1,6 @@
 #!/bin/bash
 # ================================================================
-# LinguaLearn — Start Frontend (production or dev)
+# LinguaLearn — Start Frontend (production, dev, or fast mobile mode)
 # ================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,8 +11,10 @@ cd "$PROJECT_ROOT/frontend"
 export PORT="${LINGUALEARN_FRONTEND_PORT:-3000}"
 
 DEV_MODE=false
+FAST_MODE=false
 for arg in "$@"; do
-  [ "$arg" = "--dev" ] && DEV_MODE=true
+  [ "$arg" = "--dev" ]  && DEV_MODE=true
+  [ "$arg" = "--fast" ] && FAST_MODE=true && DEV_MODE=true
 done
 
 # ── Kill old processes ───────────────────────────────────────────
@@ -27,7 +29,11 @@ sleep 1
 # ── Ensure node_modules ─────────────────────────────────────────
 if [ ! -d "node_modules" ]; then
   echo "📦 Installing dependencies..."
-  npm install
+  if [ -f "package-lock.json" ]; then
+    npm ci --prefer-offline --no-audit --no-fund || npm install --prefer-offline --no-audit --no-fund
+  else
+    npm install --prefer-offline --no-audit --no-fund
+  fi
 fi
 chmod +x node_modules/.bin/* 2>/dev/null || true
 
@@ -39,12 +45,23 @@ elif uname -o 2>/dev/null | grep -qi "android"; then
 fi
 
 if [ "$IS_TERMUX_ANDROID" = true ] && [ "$DEV_MODE" = false ]; then
-  echo "⚠️  Termux/Android detected — forcing frontend to DEV mode (production build unsupported)."
+  echo "⚠️  Termux/Android detected — forcing frontend to MOBILE FAST mode (production build unsupported)."
   DEV_MODE=true
+  FAST_MODE=true
+fi
+
+export NEXT_TELEMETRY_DISABLED=1
+export NODE_CHANNEL_SERIALIZATION=json
+if [ "$FAST_MODE" = true ]; then
+  export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1024}"
 fi
 
 if [ "$DEV_MODE" = true ]; then
-  echo "🌐 Starting frontend (DEV) on http://127.0.0.1:${PORT}"
+  if [ "$FAST_MODE" = true ]; then
+    echo "🌐 Starting frontend (MOBILE FAST) on http://127.0.0.1:${PORT}"
+  else
+    echo "🌐 Starting frontend (DEV) on http://127.0.0.1:${PORT}"
+  fi
   exec npx next dev -H 127.0.0.1 -p "$PORT"
 fi
 

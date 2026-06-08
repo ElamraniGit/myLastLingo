@@ -3,8 +3,9 @@
 # LinguaLearn — Start Everything
 # =================================================================
 # Usage:
-#   ./scripts/start_all.sh          → dev mode
-#   ./scripts/start_all.sh --prod   → production mode
+#   ./scripts/start_all.sh                → dev mode
+#   ./scripts/start_all.sh --fast         → fast mobile-safe mode
+#   ./scripts/start_all.sh --prod         → production mode
 #   ./scripts/start_all.sh --prod --rebuild  → force rebuild
 # =================================================================
 
@@ -21,9 +22,11 @@ cd "$PROJECT_ROOT"
 DEV_FLAG="--dev"
 MODE="DEVELOPMENT"
 FORCE_REBUILD=false
+FAST_FLAG=""
 for arg in "$@"; do
-  [ "$arg" = "--prod" ]    && DEV_FLAG="" && MODE="PRODUCTION"
-  [ "$arg" = "--dev" ]     && DEV_FLAG="--dev" && MODE="DEVELOPMENT"
+  [ "$arg" = "--prod" ]    && DEV_FLAG="" && MODE="PRODUCTION" && FAST_FLAG=""
+  [ "$arg" = "--dev" ]     && DEV_FLAG="--dev" && MODE="DEVELOPMENT" && FAST_FLAG=""
+  [ "$arg" = "--fast" ]    && DEV_FLAG="--dev" && MODE="MOBILE FAST" && FAST_FLAG="--fast"
   [ "$arg" = "--rebuild" ] && FORCE_REBUILD=true
 done
 
@@ -39,9 +42,10 @@ fi
 # on a build that will fail and then fall back anyway.
 if [ "$IS_TERMUX_ANDROID" = true ] && [ -z "$DEV_FLAG" ]; then
   echo -e "${YELLOW}⚠️  Termux/Android detected — production Next.js build is unsupported on this platform.${NC}"
-  echo -e "${YELLOW}   Switching to DEVELOPMENT mode automatically.${NC}"
+  echo -e "${YELLOW}   Switching to MOBILE FAST mode automatically.${NC}"
   DEV_FLAG="--dev"
-  MODE="DEVELOPMENT"
+  MODE="MOBILE FAST"
+  FAST_FLAG="--fast"
 fi
 
 echo -e "${BLUE}"
@@ -182,9 +186,15 @@ fi
 echo ""
 
 # ── Start frontend ───────────────────────────────────────────────
-FMODE=$( [ -z "$DEV_FLAG" ] && echo "PRODUCTION ⚡" || echo "DEVELOPMENT 🔧" )
+if [ -z "$DEV_FLAG" ]; then
+  FMODE="PRODUCTION ⚡"
+elif [ -n "$FAST_FLAG" ]; then
+  FMODE="MOBILE FAST ⚡"
+else
+  FMODE="DEVELOPMENT 🔧"
+fi
 echo -e "${GREEN}🚀 Starting frontend ($FMODE)...${NC}"
-bash "$SCRIPT_DIR/start_frontend.sh" $DEV_FLAG &
+bash "$SCRIPT_DIR/start_frontend.sh" $DEV_FLAG $FAST_FLAG &
 FRONTEND_PID=$!
 
 sleep 4

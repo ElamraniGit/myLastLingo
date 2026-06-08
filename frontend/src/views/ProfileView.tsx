@@ -604,12 +604,13 @@ function SettingsTab() {
         <div className="flex items-center justify-between">
           <div>
             <span className="text-sm text-body">Subtitle highlight</span>
-            <p className="text-xs text-muted">Choose sentence-level smooth sync or word-level precision</p>
+            <p className="text-xs text-muted">Smart uses word highlight when timings are reliable, otherwise falls back to sentence sync</p>
           </div>
           <div className="flex gap-1">
             {([
               { id: 'sentence' as const, label: 'Sentence' },
               { id: 'word' as const, label: 'Word' },
+              { id: 'smart' as const, label: 'Smart' },
             ]).map(({ id, label }) => (
               <button
                 key={id}

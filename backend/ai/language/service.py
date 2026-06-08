@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import aiohttp
 
 from .cache import LanguageCache
-from .normalizer import cache_key, empty_entry, normalize_ai_response, normalize_multisource
+from .normalizer import cache_key, empty_entry, infer_entry_type, normalize_ai_response, normalize_multisource
 from .prompts import LOOKUP_SYSTEM_PROMPT, build_lookup_user_prompt
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,8 @@ class LanguageAIService:
         term: str,
         groq_key: Optional[str] = None,
         *,
+        sentence: str = "",
+        context: str = "",
         force_refresh: bool = False,
     ) -> Dict[str, Any]:
         clean = (term or "").strip()
@@ -59,7 +61,7 @@ class LanguageAIService:
                 return cached
 
         if groq_key:
-            ai_entry = await self._lookup_with_groq(clean, groq_key)
+            ai_entry = await self._lookup_with_groq(clean, groq_key, sentence=sentence, context=context)
             if ai_entry:
                 await self.cache.set(key, clean.lower(), ai_entry, groq_used=True)
                 return ai_entry
@@ -74,8 +76,15 @@ class LanguageAIService:
             return cached
         return empty_entry(clean)
 
-    async def lookup_phrase(self, phrase: str, groq_key: Optional[str] = None) -> Dict[str, Any]:
-        return await self.lookup(phrase, groq_key)
+    async def lookup_phrase(
+        self,
+        phrase: str,
+        groq_key: Optional[str] = None,
+        *,
+        sentence: str = "",
+        context: str = "",
+    ) -> Dict[str, Any]:
+        return await self.lookup(phrase, groq_key, sentence=sentence, context=context)
 
     async def _lookup_fallback(self, term: str) -> Optional[Dict[str, Any]]:
         try:
@@ -90,15 +99,30 @@ class LanguageAIService:
             logger.debug("Fallback language lookup failed for %r: %s", term, exc)
             return None
 
-    async def _lookup_with_groq(self, term: str, groq_key: str) -> Optional[Dict[str, Any]]:
+    async def _lookup_with_groq(
+        self,
+        term: str,
+        groq_key: str,
+        *,
+        sentence: str = "",
+        context: str = "",
+    ) -> Optional[Dict[str, Any]]:
         payload = {
             "model": GROQ_MODEL,
             "messages": [
                 {"role": "system", "content": LOOKUP_SYSTEM_PROMPT},
-                {"role": "user", "content": build_lookup_user_prompt(term)},
+                {
+                    "role": "user",
+                    "content": build_lookup_user_prompt(
+                        term,
+                        sentence=sentence,
+                        context=context,
+                        inferred_type=infer_entry_type(term),
+                    ),
+                },
             ],
-            "temperature": 0.2,
-            "max_tokens": 900,
+            "temperature": 0.28,
+            "max_tokens": 2200,
             "response_format": {"type": "json_object"},
         }
         try:

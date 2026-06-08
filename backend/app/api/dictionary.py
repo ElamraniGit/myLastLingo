@@ -43,10 +43,14 @@ db_manager = None
 
 class LookupRequest(BaseModel):
     word: str          # kept as 'word' for backwards compat — accepts phrases too
+    sentence: str = ""
+    context: str = ""
 
 
 class PhraseRequest(BaseModel):
     phrase: str
+    sentence: str = ""
+    context: str = ""
 
 
 # ── Groq key helper ───────────────────────────────────────────────────────────
@@ -89,40 +93,106 @@ def _svc():
 def _to_legacy(entry: dict) -> dict:
     """
     Convert unified LanguageEntry schema → legacy 'words' table schema.
-    Allows existing UI components to work without changes.
+    Allows existing UI components to work without changes while exposing the
+    full structured AI payload under `_ai_entry` for future UI upgrades.
     """
-    defs      = entry.get("definitions", [])
-    main_def  = defs[0]["text"] if defs else ""
-    defs_list = [{"part_of_speech": entry.get("part_of_speech",""), "definition": d["text"], "example": ""} for d in defs]
+    meanings = entry.get("meanings") or []
+    defs = entry.get("definitions") or []
+    example_details = entry.get("example_details") or []
+    synonym_details = entry.get("synonym_details") or []
+    antonym_details = entry.get("antonym_details") or []
+    collocation_details = entry.get("collocation_details") or []
+    word_family = entry.get("word_family") or []
+    grammar_analysis = entry.get("grammar_analysis") or {}
+    teaching_notes = entry.get("teaching_notes") or []
+    common_mistakes = entry.get("common_mistakes") or []
+
+    main_def = ""
+    if meanings:
+        main_def = (meanings[0].get("english_simple") or meanings[0].get("english_advanced") or "").strip()
+    if not main_def and defs:
+        main_def = (defs[0].get("text") or "").strip()
+
+    defs_list = []
+    for item in defs:
+        text = str((item or {}).get("text") or "").strip()
+        if not text:
+            continue
+        defs_list.append({
+            "part_of_speech": entry.get("part_of_speech", ""),
+            "definition": text,
+            "example": "",
+        })
+
+    examples = entry.get("examples") or []
+    if not examples:
+        examples = [str((item or {}).get("english") or "").strip() for item in example_details]
+        examples = [item for item in examples if item]
+
+    synonyms = entry.get("synonyms") or [str((item or {}).get("term") or "").strip() for item in synonym_details]
+    antonyms = entry.get("antonyms") or [str((item or {}).get("term") or "").strip() for item in antonym_details]
+    collocations = entry.get("collocations") or [str((item or {}).get("expression") or "").strip() for item in collocation_details]
+
+    how_to_use = []
+    word_explanation = str(entry.get("word_explanation") or "").strip()
+    if word_explanation:
+        how_to_use.append(word_explanation)
+    usage_notes = str(entry.get("usage_notes") or "").strip()
+    if usage_notes and usage_notes not in how_to_use:
+        how_to_use.append(usage_notes)
+    for note in teaching_notes:
+        note_text = str(note or "").strip()
+        if note_text and note_text not in how_to_use:
+            how_to_use.append(note_text)
+        if len(how_to_use) >= 4:
+            break
+
+    grammar_note_parts = []
+    if str(entry.get("grammar_notes") or "").strip():
+        grammar_note_parts.append(str(entry.get("grammar_notes") or "").strip())
+    if str(grammar_analysis.get("summary") or "").strip() and str(grammar_analysis.get("summary") or "").strip() not in grammar_note_parts:
+        grammar_note_parts.append(str(grammar_analysis.get("summary") or "").strip())
+    for note in (grammar_analysis.get("notes") or []):
+        note_text = str(note or "").strip()
+        if note_text and note_text not in grammar_note_parts:
+            grammar_note_parts.append(note_text)
+        if len(grammar_note_parts) >= 4:
+            break
+    grammar_notes = " ".join(grammar_note_parts).strip()
+
+    related_words = entry.get("related_words") or []
+    if not related_words:
+        related_words = [str((item or {}).get("term") or "").strip() for item in word_family]
+        related_words = [item for item in related_words if item]
+
+    conjugations = grammar_analysis.get("inflected_forms") or {}
+    root_form = str(grammar_analysis.get("base_form") or entry.get("term") or "").strip()
 
     return {
-        "word":           entry.get("term", ""),
-        "pronunciation":  entry.get("pronunciation", ""),
-        "part_of_speech": entry.get("part_of_speech", ""),
-        "level":          entry.get("cefr_level", "B1"),
-        "meaning_ar":     entry.get("translation", ""),
-        "meaning_en":     main_def,
-        "definitions":    defs_list,
-        "how_to_use":     [entry["usage_notes"]] if entry.get("usage_notes") else [],
-        "grammar_notes":  [entry["grammar_notes"]] if entry.get("grammar_notes") else [],
-        "examples":       entry.get("examples", []),
-        "synonyms":       entry.get("synonyms", []),
-        "antonyms":       entry.get("antonyms", []),
-        "collocations":   entry.get("collocations", []),
-        "related_words":  entry.get("related_words", []),
-        "collocations":   entry.get("collocations", []),
-        "usage_notes":    entry.get("usage_notes", ""),
-        "grammar_notes":  entry.get("grammar_notes", ""),
+        "word":             entry.get("term", ""),
+        "pronunciation":    entry.get("pronunciation", ""),
+        "part_of_speech":   entry.get("part_of_speech", ""),
+        "level":            entry.get("cefr_level", "B1"),
+        "meaning_ar":       entry.get("translation", ""),
+        "meaning_en":       main_def,
+        "definitions":      defs_list,
+        "how_to_use":       how_to_use,
+        "grammar_notes":    grammar_notes,
+        "examples":         examples[:10],
+        "synonyms":         [item for item in synonyms if item][:10],
+        "antonyms":         [item for item in antonyms if item][:10],
+        "collocations":     [item for item in collocations if item][:8],
+        "related_words":    [item for item in related_words if item][:10],
+        "usage_notes":      usage_notes,
         "difficulty_score": entry.get("learning_difficulty", 0.5),
         "priority_score":   entry.get("priority_score", 0.5),
-        "entry_type":     entry.get("entry_type", "word"),
-        "conjugations":   {},
-        "root_form":      entry.get("term", ""),
-        "frequency":      1,
-        "ai_enriched":    entry.get("ai_generated", False),
-        "confidence":     entry.get("confidence", 0.0),
-        # Keep full entry accessible
-        "_ai_entry":      entry,
+        "entry_type":       entry.get("entry_type", "word"),
+        "conjugations":     conjugations,
+        "root_form":        root_form,
+        "frequency":        entry.get("frequency_score", 1),
+        "ai_enriched":      entry.get("ai_generated", False),
+        "confidence":       entry.get("confidence", 0.0),
+        "_ai_entry":        entry,
     }
 
 
@@ -145,7 +215,7 @@ async def lookup_word(
     groq_key = await _get_groq_key(user_id)
 
     try:
-        entry = await _svc().lookup(term, groq_key)
+        entry = await _svc().lookup(term, groq_key, sentence=request.sentence, context=request.context)
     except Exception as e:
         logger.error(f"Lookup failed for '{term}': {e}", exc_info=True)
         raise HTTPException(500, "Language lookup failed")
@@ -170,7 +240,7 @@ async def lookup_phrase(
     groq_key = await _get_groq_key(user_id)
 
     try:
-        entry = await _svc().lookup_phrase(phrase, groq_key)
+        entry = await _svc().lookup_phrase(phrase, groq_key, sentence=request.sentence, context=request.context)
     except Exception as e:
         logger.error(f"Phrase lookup failed for '{phrase}': {e}", exc_info=True)
         raise HTTPException(500, "Phrase lookup failed")

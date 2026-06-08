@@ -1,0 +1,1862 @@
+From ad5548530775f3b7e976fd7b3888a35ab15e6513 Mon Sep 17 00:00:00 2001
+From: Arena AI Agent <agent@arena.local>
+Date: Sun, 7 Jun 2026 06:34:38 +0000
+Subject: [PATCH] refactor: unify language AI layer and harden app security
+
+---
+ .github/workflows/ci.yml               |   2 +-
+ backend/ai/groq_language_service.py    | 460 ++-----------------------
+ backend/ai/language/__init__.py        |  14 +
+ backend/ai/language/cache.py           |  78 +++++
+ backend/ai/language/models.py          |  42 +++
+ backend/ai/language/normalizer.py      | 177 ++++++++++
+ backend/ai/language/prompts.py         |  36 ++
+ backend/ai/language/service.py         | 143 ++++++++
+ backend/app/api/auth.py                |  68 +++-
+ backend/app/api/chat.py                |   5 +-
+ backend/app/api/dictionary.py          |   9 +-
+ backend/app/api/player.py              |  22 +-
+ backend/app/api/transcripts.py         |  17 +-
+ backend/app/api/videos.py              |   2 +-
+ backend/app/api/vocabulary.py          | 121 +++++--
+ backend/app/db/database.py             |  59 +++-
+ frontend/src/hooks/useVideoPlayer.ts   |  43 ++-
+ frontend/src/pages/_app.tsx            |  38 +-
+ frontend/src/types/index.ts            |  15 +
+ frontend/src/views/CoreLibraryView.tsx |   1 +
+ 20 files changed, 834 insertions(+), 518 deletions(-)
+ create mode 100644 backend/ai/language/__init__.py
+ create mode 100644 backend/ai/language/cache.py
+ create mode 100644 backend/ai/language/models.py
+ create mode 100644 backend/ai/language/normalizer.py
+ create mode 100644 backend/ai/language/prompts.py
+ create mode 100644 backend/ai/language/service.py
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a942408..f38d3ef 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -22,7 +22,7 @@ jobs:
+       - name: Install dependencies
+         run: |
+           python -m pip install --upgrade pip
+-          pip install -r requirements-dev.txt
++          pip install -r requirements.txt -r requirements-dev.txt
+ 
+       - name: Run tests
+         run: pytest -q
+diff --git a/backend/ai/groq_language_service.py b/backend/ai/groq_language_service.py
+index fc5374a..a882077 100644
+--- a/backend/ai/groq_language_service.py
++++ b/backend/ai/groq_language_service.py
+@@ -1,440 +1,24 @@
++"""Backward-compatible wrapper for the unified language AI architecture.
++
++Historically the application imported `ai.groq_language_service`. The actual
++implementation now lives in `ai.language.*` so the AI stack is separated into:
++- prompt layer
++- normalization layer
++- cache layer
++- orchestration/service layer
+ """
+-GroqLanguageService — Central AI Language Intelligence Layer
+-=============================================================
+ 
+-This is the Single Source of Truth for all linguistic content in LinguaLearn.
+-
+-Architecture:
+-  ┌─────────────────────────────────────────────────────┐
+-  │              Application Layer                      │
+-  │  (dictionary.py, vocabulary.py, SelectionToolbar)   │
+-  └─────────────────┬───────────────────────────────────┘
+-                    │ all requests
+-                    ▼
+-  ┌─────────────────────────────────────────────────────┐
+-  │           GroqLanguageService                        │
+-  │  1. Check SQLite cache → return instantly if hit    │
+-  │  2. Call Groq API → get unified LanguageEntry       │
+-  │  3. Store in cache → future hits are instant        │
+-  └─────────────────┬───────────────────────────────────┘
+-                    │
+-                    ▼
+-  ┌─────────────────────────────────────────────────────┐
+-  │            Groq (llama-3.3-70b-versatile)            │
+-  │  Single call → complete LanguageEntry JSON          │
+-  └─────────────────────────────────────────────────────┘
+-
+-Fallback chain (when Groq unavailable):
+-  1. Groq (primary)
+-  2. SQLite cached entry (stale-ok offline)
+-  3. Basic heuristic entry (structural scaffolding)
+-
+-Supports: single words, phrasal verbs, idioms, expressions, sentences.
+-"""
+-
+-from __future__ import annotations
+-
+-import json
+-import hashlib
+-import logging
+-import asyncio
+-from typing import Any, Dict, Optional
+-from datetime import datetime
+-
+-import aiohttp
+-
+-logger = logging.getLogger(__name__)
+-
+-# ── Constants ─────────────────────────────────────────────────────────────────
+-
+-GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions"
+-GROQ_MODEL  = "llama-3.3-70b-versatile"
+-TIMEOUT     = aiohttp.ClientTimeout(total=30)
+-
+-# ── Unified Schema ────────────────────────────────────────────────────────────
+-#
+-# Every response from GroqLanguageService conforms to this schema.
+-# All application features (WordPopup, Flashcards, Quiz, Review,
+-# VocabularyView, WordDetailView) consume this single structure.
+-#
+-# {
+-#   "term":           str   — the original input (word/phrase/idiom)
+-#   "language":       str   — always "en" for now
+-#   "translation":    str   — Arabic translation (contextual, not literal)
+-#   "pronunciation":  str   — IPA phonetic transcription
+-#   "part_of_speech": str   — noun | verb | adjective | adverb | phrase | idiom | …
+-#   "cefr_level":     str   — A1 | A2 | B1 | B2 | C1 | C2
+-#   "definitions": [        — ordered from most common to least
+-#     {
+-#       "text":    str       — clear, learner-friendly definition
+-#       "context": str       — usage context label (formal, informal, business…)
+-#     }
+-#   ]
+-#   "examples": [str]       — 3 natural, native-speaker sentences
+-#   "synonyms":  [str]      — up to 8 synonyms
+-#   "antonyms":  [str]      — up to 6 antonyms
+-#   "collocations": [str]   — common multi-word expressions
+-#   "usage_notes":   str    — practical tip: register, grammar pattern, common mistake
+-#   "grammar_notes": str    — grammar explanation (verb forms, uncountable, etc.)
+-#   "related_words": [str]  — semantically related words
+-#   "confidence":    float  — model confidence (0.0–1.0)
+-#   "ai_generated":  bool   — true when data came from Groq
+-#   "cached_at":     str    — ISO timestamp of when it was cached
+-# }
+-
+-SYSTEM_PROMPT = """\
+-You are LinguaLearn AI, an expert English language assistant for Arabic-speaking learners.
+-You provide comprehensive, accurate, learner-friendly linguistic data.
+-
+-Given any English input (word, phrase, idiom, expression, or sentence fragment),
+-respond ONLY with a valid JSON object matching this exact schema:
+-
+-{
+-  "term": "the exact input you received",
+-  "language": "en",
+-  "translation": "الترجمة العربية الدقيقة في السياق الصحيح — ليست ترجمة حرفية",
+-  "pronunciation": "/IPA transcription here/",
+-  "part_of_speech": "noun|verb|adjective|adverb|phrase|idiom|expression|sentence",
+-  "cefr_level": "A1|A2|B1|B2|C1|C2",
+-  "definitions": [
+-    {
+-      "text": "Clear, simple definition. No jargon. No circular definitions.",
+-      "context": "general|formal|informal|business|academic|colloquial|technical"
+-    }
+-  ],
+-  "examples": [
+-    "First natural sentence using the term exactly as given.",
+-    "Second example in a different context.",
+-    "Third example showing advanced or nuanced usage."
+-  ],
+-  "synonyms": ["synonym1", "synonym2", "synonym3"],
+-  "antonyms": ["antonym1", "antonym2"],
+-  "collocations": [
+-    "common phrase with the word",
+-    "another common collocation",
+-    "verb + noun pattern",
+-    "adjective + noun pattern"
+-  ],
+-  "usage_notes": "One practical tip: register (formal/informal), common learner mistake, or key grammar pattern. Max 30 words.",
+-  "grammar_notes": "Grammar explanation: irregular forms, countability, prepositions that follow, verb patterns, etc.",
+-  "related_words": ["related1", "related2", "related3"],
+-  "confidence": 0.95
+-}
+-
+-STRICT RULES:
+-1. Return ONLY the JSON object. No markdown fences, no explanations, no extra text.
+-2. translation: must be natural Arabic, not word-for-word. Show the meaning in context.
+-3. pronunciation: use standard IPA. For multi-word phrases, show stressed form.
+-4. definitions: always an array. Provide at least 1, up to 4 definitions.
+-5. examples: all 3 must naturally contain the exact term. Vary the contexts.
+-6. synonyms/antonyms: empty array [] if none apply. Never null.
+-7. collocations: real, frequent multi-word patterns. Empty array if input is a sentence.
+-8. cefr_level: estimate based on term frequency and complexity.
+-9. confidence: 1.0 for common words, lower for rare terms or ambiguous phrases.
+-10. For idioms/phrases: part_of_speech = "phrase" or "idiom".
+-"""
+-
+-
+-def _cache_key(term: str) -> str:
+-    """Deterministic cache key from the term."""
+-    return hashlib.sha256(term.lower().strip().encode()).hexdigest()[:24]
+-
+-
+-def _empty_entry(term: str) -> Dict[str, Any]:
+-    """Minimal structural entry when nothing is available."""
+-    return {
+-        "term":           term,
+-        "language":       "en",
+-        "translation":    "",
+-        "pronunciation":  "",
+-        "part_of_speech": "unknown",
+-        "cefr_level":     "B1",
+-        "definitions":    [],
+-        "examples":       [],
+-        "synonyms":       [],
+-        "antonyms":       [],
+-        "collocations":   [],
+-        "usage_notes":    "",
+-        "grammar_notes":  "",
+-        "related_words":  [],
+-        "confidence":     0.0,
+-        "ai_generated":   False,
+-        "cached_at":      datetime.utcnow().isoformat(),
+-    }
+-
+-
+-def _validate_and_clean(raw: Dict[str, Any], term: str) -> Dict[str, Any]:
+-    """Ensure all required fields exist and have correct types."""
+-    entry = _empty_entry(term)
+-
+-    entry["term"]           = raw.get("term", term) or term
+-    entry["language"]       = "en"
+-    entry["translation"]    = str(raw.get("translation", "")).strip()
+-    entry["pronunciation"]  = str(raw.get("pronunciation", "")).strip()
+-    entry["part_of_speech"] = str(raw.get("part_of_speech", "unknown")).strip()
+-    entry["cefr_level"]     = str(raw.get("cefr_level", "B1")).strip()
+-    entry["usage_notes"]    = str(raw.get("usage_notes", "")).strip()
+-    entry["grammar_notes"]  = str(raw.get("grammar_notes", "")).strip()
+-    entry["confidence"]     = float(raw.get("confidence", 0.8))
+-    entry["ai_generated"]   = True
+-    entry["cached_at"]      = datetime.utcnow().isoformat()
+-
+-    # Validate cefr_level
+-    if entry["cefr_level"] not in {"A1","A2","B1","B2","C1","C2"}:
+-        entry["cefr_level"] = "B1"
+-
+-    # List fields — ensure they are lists of strings
+-    for field in ("synonyms", "antonyms", "related_words"):
+-        val = raw.get(field, [])
+-        entry[field] = [str(x) for x in val if x][:10] if isinstance(val, list) else []
+-
+-    entry["collocations"] = [str(x) for x in raw.get("collocations", []) if x][:8] \
+-        if isinstance(raw.get("collocations"), list) else []
+-
+-    # Examples — must contain term
+-    raw_examples = raw.get("examples", [])
+-    if isinstance(raw_examples, list):
+-        entry["examples"] = [str(x) for x in raw_examples if x][:5]
+-    else:
+-        entry["examples"] = []
+-
+-    # Definitions — array of {text, context}
+-    raw_defs = raw.get("definitions", [])
+-    if isinstance(raw_defs, list):
+-        clean_defs = []
+-        for d in raw_defs[:4]:
+-            if isinstance(d, dict):
+-                clean_defs.append({
+-                    "text":    str(d.get("text", "")).strip(),
+-                    "context": str(d.get("context", "general")).strip(),
+-                })
+-            elif isinstance(d, str) and d.strip():
+-                clean_defs.append({"text": d.strip(), "context": "general"})
+-        entry["definitions"] = clean_defs
+-    else:
+-        entry["definitions"] = []
+-
+-    return entry
+-
+-
+-# ══════════════════════════════════════════════════════════════════════════════
+-# GroqLanguageService
+-# ══════════════════════════════════════════════════════════════════════════════
+-
+-class GroqLanguageService:
+-    """
+-    Central AI language intelligence service.
+-
+-    Usage:
+-        service = GroqLanguageService(db_manager)
+-        entry   = await service.lookup("make a decision", groq_key)
+-        # entry is a fully validated LanguageEntry dict
+-
+-    All lookup results are cached in the 'ai_language_cache' SQLite table.
+-    Subsequent lookups for the same term return instantly from cache.
+-    """
+-
+-    def __init__(self, db_manager):
+-        self.db = db_manager
+-        self._ensure_table_task: Optional[asyncio.Task] = None
+-
+-    async def ensure_table(self):
+-        """Create the cache table if it doesn't exist (idempotent)."""
+-        async with self.db.get_connection() as conn:
+-            await conn.execute("""
+-                CREATE TABLE IF NOT EXISTS ai_language_cache (
+-                    cache_key    TEXT PRIMARY KEY,
+-                    term         TEXT NOT NULL,
+-                    data_json    TEXT NOT NULL,
+-                    groq_used    INTEGER DEFAULT 0,
+-                    lookup_count INTEGER DEFAULT 0,
+-                    created_at   TEXT,
+-                    updated_at   TEXT
+-                )
+-            """)
+-            await conn.execute(
+-                "CREATE INDEX IF NOT EXISTS idx_alc_term ON ai_language_cache(term)"
+-            )
+-
+-    # ── Public API ────────────────────────────────────────────────────────────
+-
+-    async def lookup(
+-        self,
+-        term: str,
+-        groq_key: Optional[str] = None,
+-        force_refresh: bool = False,
+-    ) -> Dict[str, Any]:
+-        """
+-        Look up any English term (word, phrase, idiom).
+-
+-        Flow:
+-          1. Cache hit  → return immediately
+-          2. Groq call  → validate → cache → return
+-          3. Fallback   → empty structural entry
+-        """
+-        term = term.strip()
+-        if not term:
+-            return _empty_entry("")
+-
+-        key = _cache_key(term)
+-
+-        # ── 1. Cache hit ──────────────────────────────────────────────────────
+-        if not force_refresh:
+-            cached = await self._get_cached(key)
+-            if cached:
+-                await self._bump_count(key)
+-                return cached
+-
+-        # ── 2. Groq call ──────────────────────────────────────────────────────
+-        if groq_key:
+-            entry = await self._call_groq(term, groq_key)
+-            if entry:
+-                await self._save_cache(key, term, entry, groq_used=True)
+-                return entry
+-
+-        # ── 3. Return structural fallback (offline / no key) ──────────────────
+-        existing = await self._get_cached(key)
+-        if existing:
+-            return existing
+-
+-        fallback = _empty_entry(term)
+-        # Don't cache the fallback — it has no real data
+-        return fallback
+-
+-    async def lookup_phrase(
+-        self,
+-        phrase: str,
+-        groq_key: Optional[str] = None,
+-    ) -> Dict[str, Any]:
+-        """
+-        Look up a multi-word phrase or sentence fragment.
+-        Identical to lookup() — the model handles all input types.
+-        """
+-        return await self.lookup(phrase, groq_key)
+-
+-    async def get_cached(self, term: str) -> Optional[Dict[str, Any]]:
+-        """Return cached entry or None — never calls Groq."""
+-        return await self._get_cached(_cache_key(term))
+-
+-    async def invalidate(self, term: str) -> None:
+-        """Remove a term from cache — next lookup will re-fetch."""
+-        key = _cache_key(term)
+-        async with self.db.get_connection() as conn:
+-            await conn.execute(
+-                "DELETE FROM ai_language_cache WHERE cache_key = ?", (key,)
+-            )
+-
+-    # ── Internal helpers ──────────────────────────────────────────────────────
+-
+-    async def _get_cached(self, key: str) -> Optional[Dict[str, Any]]:
+-        try:
+-            async with self.db.get_connection() as conn:
+-                async with conn.execute(
+-                    "SELECT data_json FROM ai_language_cache WHERE cache_key = ?",
+-                    (key,),
+-                ) as cur:
+-                    row = await cur.fetchone()
+-            if row:
+-                return json.loads(dict(row)["data_json"])
+-        except Exception as e:
+-            logger.debug(f"Cache read error: {e}")
+-        return None
+-
+-    async def _save_cache(
+-        self, key: str, term: str, entry: Dict[str, Any], groq_used: bool = False
+-    ) -> None:
+-        try:
+-            now = datetime.utcnow().isoformat()
+-            async with self.db.get_connection() as conn:
+-                await conn.execute(
+-                    """INSERT INTO ai_language_cache
+-                       (cache_key, term, data_json, groq_used, lookup_count, created_at, updated_at)
+-                       VALUES (?, ?, ?, ?, 1, ?, ?)
+-                       ON CONFLICT(cache_key) DO UPDATE SET
+-                         data_json    = excluded.data_json,
+-                         groq_used    = excluded.groq_used,
+-                         lookup_count = lookup_count + 1,
+-                         updated_at   = excluded.updated_at""",
+-                    (key, term, json.dumps(entry, ensure_ascii=False),
+-                     1 if groq_used else 0, now, now),
+-                )
+-        except Exception as e:
+-            logger.debug(f"Cache write error: {e}")
+-
+-    async def _bump_count(self, key: str) -> None:
+-        try:
+-            async with self.db.get_connection() as conn:
+-                await conn.execute(
+-                    "UPDATE ai_language_cache SET lookup_count = lookup_count + 1 WHERE cache_key = ?",
+-                    (key,),
+-                )
+-        except Exception:
+-            pass
+-
+-    async def _call_groq(
+-        self, term: str, groq_key: str
+-    ) -> Optional[Dict[str, Any]]:
+-        """Call Groq and return a validated LanguageEntry or None."""
+-        payload = {
+-            "model":           GROQ_MODEL,
+-            "messages": [
+-                {"role": "system", "content": SYSTEM_PROMPT},
+-                {"role": "user",   "content": f"Look up: {term}"},
+-            ],
+-            "temperature":     0.2,
+-            "max_tokens":      800,
+-            "response_format": {"type": "json_object"},
+-        }
+-        try:
+-            async with aiohttp.ClientSession() as session:
+-                async with session.post(
+-                    GROQ_URL,
+-                    json=payload,
+-                    headers={
+-                        "Authorization": f"Bearer {groq_key.strip()}",
+-                        "Content-Type":  "application/json",
+-                    },
+-                    timeout=TIMEOUT,
+-                ) as resp:
+-                    if resp.status == 429:
+-                        logger.info(f"Groq rate-limited for '{term}'")
+-                        return None
+-                    if resp.status == 401:
+-                        logger.warning("Invalid Groq API key")
+-                        return None
+-                    if resp.status != 200:
+-                        logger.debug(f"Groq {resp.status} for '{term}'")
+-                        return None
+-                    result = await resp.json()
+-
+-            content = result["choices"][0]["message"]["content"]
+-            raw     = json.loads(content)
+-            return _validate_and_clean(raw, term)
+-
+-        except json.JSONDecodeError as e:
+-            logger.debug(f"Groq JSON parse error for '{term}': {e}")
+-        except Exception as e:
+-            logger.debug(f"Groq call failed for '{term}': {e}")
+-        return None
+-
+-
+-# ── Singleton accessor (used by all API endpoints) ────────────────────────────
+-
+-_service_instance: Optional[GroqLanguageService] = None
+-
+-
+-def get_service(db_manager=None) -> GroqLanguageService:
+-    """Return the singleton GroqLanguageService, initialising if needed."""
+-    global _service_instance
+-    if _service_instance is None:
+-        if db_manager is None:
+-            raise RuntimeError("GroqLanguageService not yet initialised — pass db_manager")
+-        _service_instance = GroqLanguageService(db_manager)
+-    return _service_instance
+-
+-
+-def init_service(db_manager) -> GroqLanguageService:
+-    """Initialise the singleton. Call once from main.py lifespan."""
+-    global _service_instance
+-    _service_instance = GroqLanguageService(db_manager)
+-    return _service_instance
++from ai.language.normalizer import cache_key as _cache_key
++from ai.language.normalizer import empty_entry as _empty_entry
++from ai.language.normalizer import normalize_ai_response as _validate_and_clean
++from ai.language.service import LanguageAIService as GroqLanguageService
++from ai.language.service import get_service, init_service
++
++__all__ = [
++    "GroqLanguageService",
++    "get_service",
++    "init_service",
++    "_cache_key",
++    "_empty_entry",
++    "_validate_and_clean",
++]
+diff --git a/backend/ai/language/__init__.py b/backend/ai/language/__init__.py
+new file mode 100644
+index 0000000..020f63a
+--- /dev/null
++++ b/backend/ai/language/__init__.py
+@@ -0,0 +1,14 @@
++"""Unified language AI architecture for LinguaLearn.
++
++Layers:
++- models.py      → canonical language entry schema
++- prompts.py     → provider prompts
++- normalizer.py  → validation + normalization
++- cache.py       → SQLite cache access
++- service.py     → orchestration / provider fallback
++"""
++
++from .models import LanguageEntry
++from .service import LanguageAIService, get_service, init_service
++
++__all__ = ["LanguageEntry", "LanguageAIService", "get_service", "init_service"]
+diff --git a/backend/ai/language/cache.py b/backend/ai/language/cache.py
+new file mode 100644
+index 0000000..be9e82d
+--- /dev/null
++++ b/backend/ai/language/cache.py
+@@ -0,0 +1,78 @@
++from __future__ import annotations
++
++import json
++import logging
++from datetime import datetime
++from typing import Any, Dict, Optional
++
++logger = logging.getLogger(__name__)
++
++
++class LanguageCache:
++    def __init__(self, db_manager):
++        self.db = db_manager
++
++    async def ensure_table(self) -> None:
++        async with self.db.get_connection() as conn:
++            await conn.execute(
++                """
++                CREATE TABLE IF NOT EXISTS ai_language_cache (
++                    cache_key    TEXT PRIMARY KEY,
++                    term         TEXT NOT NULL,
++                    data_json    TEXT NOT NULL,
++                    groq_used    INTEGER DEFAULT 0,
++                    lookup_count INTEGER DEFAULT 0,
++                    created_at   TEXT,
++                    updated_at   TEXT
++                )
++                """
++            )
++            await conn.execute("CREATE INDEX IF NOT EXISTS idx_alc_term ON ai_language_cache(term)")
++
++    async def get(self, key: str) -> Optional[Dict[str, Any]]:
++        try:
++            async with self.db.get_connection() as conn:
++                async with conn.execute(
++                    "SELECT data_json FROM ai_language_cache WHERE cache_key = ?",
++                    (key,),
++                ) as cur:
++                    row = await cur.fetchone()
++            return json.loads(dict(row)["data_json"]) if row else None
++        except Exception as exc:
++            logger.debug("Language cache read failed: %s", exc)
++            return None
++
++    async def set(self, key: str, term: str, entry: Dict[str, Any], *, groq_used: bool) -> None:
++        now = datetime.utcnow().isoformat()
++        try:
++            async with self.db.get_connection() as conn:
++                await conn.execute(
++                    """
++                    INSERT INTO ai_language_cache
++                        (cache_key, term, data_json, groq_used, lookup_count, created_at, updated_at)
++                    VALUES (?, ?, ?, ?, 1, ?, ?)
++                    ON CONFLICT(cache_key) DO UPDATE SET
++                        term = excluded.term,
++                        data_json = excluded.data_json,
++                        groq_used = excluded.groq_used,
++                        lookup_count = lookup_count + 1,
++                        updated_at = excluded.updated_at
++                    """,
++                    (key, term, json.dumps(entry, ensure_ascii=False), 1 if groq_used else 0, now, now),
++                )
++        except Exception as exc:
++            logger.debug("Language cache write failed: %s", exc)
++
++    async def bump(self, key: str) -> None:
++        try:
++            async with self.db.get_connection() as conn:
++                await conn.execute(
++                    "UPDATE ai_language_cache SET lookup_count = lookup_count + 1 WHERE cache_key = ?",
++                    (key,),
++                )
++        except Exception:
++            pass
++
++    async def invalidate(self, key: str) -> None:
++        async with self.db.get_connection() as conn:
++            await conn.execute("DELETE FROM ai_language_cache WHERE cache_key = ?", (key,))
+diff --git a/backend/ai/language/models.py b/backend/ai/language/models.py
+new file mode 100644
+index 0000000..8015959
+--- /dev/null
++++ b/backend/ai/language/models.py
+@@ -0,0 +1,42 @@
++from __future__ import annotations
++
++from datetime import datetime
++from typing import List, Literal
++
++from pydantic import BaseModel, Field
++
++CEFRLevel = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
++EntryType = Literal["word", "phrase", "expression", "idiom", "sentence"]
++
++
++class DefinitionItem(BaseModel):
++    text: str = ""
++    context: str = "general"
++
++
++class LanguageEntry(BaseModel):
++    term: str
++    normalized_term: str = ""
++    language: str = "en"
++    entry_type: EntryType = "word"
++    translation: str = ""
++    pronunciation: str = ""
++    part_of_speech: str = "unknown"
++    cefr_level: CEFRLevel = "B1"
++    definitions: List[DefinitionItem] = Field(default_factory=list)
++    examples: List[str] = Field(default_factory=list)
++    synonyms: List[str] = Field(default_factory=list)
++    antonyms: List[str] = Field(default_factory=list)
++    collocations: List[str] = Field(default_factory=list)
++    usage_notes: str = ""
++    grammar_notes: str = ""
++    related_words: List[str] = Field(default_factory=list)
++    learning_difficulty: float = 0.5
++    priority_score: float = 0.5
++    confidence: float = 0.0
++    source: str = "fallback"
++    ai_generated: bool = False
++    cached_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
++
++    def to_cache_dict(self) -> dict:
++        return self.model_dump(mode="json")
+diff --git a/backend/ai/language/normalizer.py b/backend/ai/language/normalizer.py
+new file mode 100644
+index 0000000..630cb00
+--- /dev/null
++++ b/backend/ai/language/normalizer.py
+@@ -0,0 +1,177 @@
++from __future__ import annotations
++
++import hashlib
++from datetime import datetime
++from typing import Any, Dict, Iterable, List
++
++from .models import DefinitionItem, LanguageEntry
++
++_VALID_CEFR = {"A1", "A2", "B1", "B2", "C1", "C2"}
++
++
++def cache_key(term: str) -> str:
++    return hashlib.sha256((term or "").lower().strip().encode()).hexdigest()[:24]
++
++
++def infer_entry_type(term: str) -> str:
++    value = (term or "").strip()
++    if not value:
++        return "word"
++    lowered = value.lower()
++    token_count = len([t for t in value.split() if t])
++    if token_count >= 6 or value.endswith((".", "!", "?")):
++        return "sentence"
++    if any(mark in lowered for mark in ["kick the bucket", "piece of cake", "break the ice"]):
++        return "idiom"
++    if token_count >= 3:
++        return "expression"
++    if token_count == 2:
++        return "phrase"
++    return "word"
++
++
++def _clean_list(values: Any, *, limit: int = 10) -> List[str]:
++    if not isinstance(values, list):
++        return []
++    seen = set()
++    out: List[str] = []
++    for item in values:
++        text = str(item or "").strip()
++        if not text:
++            continue
++        key = text.lower()
++        if key in seen:
++            continue
++        seen.add(key)
++        out.append(text)
++        if len(out) >= limit:
++            break
++    return out
++
++
++def _clean_definitions(values: Any) -> List[DefinitionItem]:
++    if not isinstance(values, list):
++        return []
++    items: List[DefinitionItem] = []
++    for raw in values[:4]:
++        if isinstance(raw, dict):
++            text = str(raw.get("text", "")).strip()
++            if not text:
++                continue
++            items.append(DefinitionItem(text=text, context=str(raw.get("context", "general")).strip() or "general"))
++        else:
++            text = str(raw or "").strip()
++            if text:
++                items.append(DefinitionItem(text=text, context="general"))
++    return items
++
++
++def _clamp_float(value: Any, default: float, minimum: float = 0.0, maximum: float = 1.0) -> float:
++    try:
++        parsed = float(value)
++    except (TypeError, ValueError):
++        parsed = default
++    return max(minimum, min(maximum, parsed))
++
++
++def _estimate_priority(entry: Dict[str, Any], inferred_type: str) -> float:
++    level_weight = {
++        "A1": 0.95,
++        "A2": 0.88,
++        "B1": 0.76,
++        "B2": 0.62,
++        "C1": 0.48,
++        "C2": 0.34,
++    }.get(entry.get("cefr_level", "B1"), 0.6)
++    richness = 0.0
++    richness += min(len(entry.get("definitions", [])), 4) * 0.05
++    richness += min(len(entry.get("examples", [])), 3) * 0.04
++    richness += 0.08 if inferred_type == "word" else 0.0
++    richness += 0.05 if entry.get("translation") else 0.0
++    richness -= _clamp_float(entry.get("learning_difficulty"), 0.5) * 0.12
++    return round(max(0.0, min(1.0, level_weight + richness)), 2)
++
++
++def empty_entry(term: str) -> Dict[str, Any]:
++    entry = LanguageEntry(
++        term=(term or "").strip(),
++        normalized_term=(term or "").strip().lower(),
++        entry_type=infer_entry_type(term),
++        learning_difficulty=0.5,
++        priority_score=0.5,
++        source="fallback",
++    )
++    return entry.to_cache_dict()
++
++
++def normalize_ai_response(raw: Dict[str, Any], term: str) -> Dict[str, Any]:
++    inferred_type = infer_entry_type(term)
++    entry = empty_entry(term)
++    entry.update({
++        "term": str(raw.get("term") or term).strip() or term,
++        "normalized_term": (term or "").strip().lower(),
++        "translation": str(raw.get("translation", "")).strip(),
++        "pronunciation": str(raw.get("pronunciation", "")).strip(),
++        "part_of_speech": str(raw.get("part_of_speech", "unknown")).strip() or "unknown",
++        "entry_type": str(raw.get("entry_type", inferred_type)).strip() or inferred_type,
++        "usage_notes": str(raw.get("usage_notes", "")).strip(),
++        "grammar_notes": str(raw.get("grammar_notes", "")).strip(),
++        "cefr_level": str(raw.get("cefr_level", "B1")).strip(),
++        "definitions": [d.model_dump() for d in _clean_definitions(raw.get("definitions", []))],
++        "examples": _clean_list(raw.get("examples", []), limit=5),
++        "synonyms": _clean_list(raw.get("synonyms", []), limit=10),
++        "antonyms": _clean_list(raw.get("antonyms", []), limit=8),
++        "collocations": _clean_list(raw.get("collocations", []), limit=8),
++        "related_words": _clean_list(raw.get("related_words", []), limit=10),
++        "learning_difficulty": _clamp_float(raw.get("learning_difficulty"), 0.5),
++        "priority_score": _clamp_float(raw.get("priority_score"), 0.6),
++        "confidence": _clamp_float(raw.get("confidence"), 0.8),
++        "source": "groq",
++        "ai_generated": True,
++        "cached_at": datetime.utcnow().isoformat(),
++    })
++    if entry["cefr_level"] not in _VALID_CEFR:
++        entry["cefr_level"] = "B1"
++    if entry["entry_type"] not in {"word", "phrase", "expression", "idiom", "sentence"}:
++        entry["entry_type"] = inferred_type
++    if not entry["priority_score"]:
++        entry["priority_score"] = _estimate_priority(entry, inferred_type)
++    return entry
++
++
++def normalize_multisource(word_data: Dict[str, Any], term: str) -> Dict[str, Any]:
++    inferred_type = infer_entry_type(term)
++    definitions = []
++    for item in (word_data.get("definitions") or [])[:4]:
++        text = str((item or {}).get("definition", "")).strip()
++        if text:
++            definitions.append({
++                "text": text,
++                "context": str((item or {}).get("part_of_speech", "general") or "general"),
++            })
++
++    entry = empty_entry(term)
++    entry.update({
++        "term": term,
++        "normalized_term": term.lower().strip(),
++        "entry_type": inferred_type,
++        "translation": str(word_data.get("meaning_ar", "")).strip(),
++        "pronunciation": str(word_data.get("pronunciation", "")).strip(),
++        "part_of_speech": str(word_data.get("part_of_speech", "unknown")).strip() or "unknown",
++        "cefr_level": str(word_data.get("level", "B1")).strip() if str(word_data.get("level", "B1")).strip() in _VALID_CEFR else "B1",
++        "definitions": definitions,
++        "examples": _clean_list(word_data.get("examples", []), limit=5),
++        "synonyms": _clean_list(word_data.get("synonyms", []), limit=10),
++        "antonyms": _clean_list(word_data.get("antonyms", []), limit=8),
++        "collocations": _clean_list(word_data.get("collocations") or word_data.get("related_words", []), limit=8),
++        "usage_notes": " ".join(_clean_list(word_data.get("how_to_use", []), limit=2)).strip(),
++        "grammar_notes": str(word_data.get("grammar_notes", "")).strip(),
++        "related_words": _clean_list(word_data.get("related_words", []), limit=10),
++        "learning_difficulty": _clamp_float(word_data.get("difficulty_score"), 0.45),
++        "confidence": 0.62,
++        "source": "multi_source",
++        "ai_generated": False,
++        "cached_at": datetime.utcnow().isoformat(),
++    })
++    entry["priority_score"] = _estimate_priority(entry, inferred_type)
++    return entry
+diff --git a/backend/ai/language/prompts.py b/backend/ai/language/prompts.py
+new file mode 100644
+index 0000000..e36995e
+--- /dev/null
++++ b/backend/ai/language/prompts.py
+@@ -0,0 +1,36 @@
++LOOKUP_SYSTEM_PROMPT = """\
++You are LinguaLearn AI, an expert English language assistant for Arabic-speaking learners.
++Return ONLY valid JSON matching this schema:
++{
++  "term": "exact input",
++  "language": "en",
++  "entry_type": "word|phrase|expression|idiom|sentence",
++  "translation": "natural Arabic translation in context",
++  "pronunciation": "/IPA/",
++  "part_of_speech": "noun|verb|adjective|adverb|phrase|idiom|expression|sentence|...",
++  "cefr_level": "A1|A2|B1|B2|C1|C2",
++  "definitions": [{"text": "clear learner-friendly definition", "context": "general|formal|informal|business|academic|colloquial|technical"}],
++  "examples": ["three natural example sentences using the exact term"],
++  "synonyms": ["..."],
++  "antonyms": ["..."],
++  "collocations": ["..."],
++  "usage_notes": "brief practical note for learners",
++  "grammar_notes": "brief grammar explanation",
++  "related_words": ["..."],
++  "learning_difficulty": 0.0,
++  "priority_score": 0.0,
++  "confidence": 0.0
++}
++
++Rules:
++1. JSON only. No markdown.
++2. Give 1-4 definitions, max 5 examples.
++3. `learning_difficulty` and `priority_score` must be floats from 0.0 to 1.0.
++4. Use empty arrays instead of null.
++5. Estimate CEFR from real learner usefulness, not rarity alone.
++6. For phrases/idioms, `entry_type` must not be "word".
++"""
++
++
++def build_lookup_user_prompt(term: str) -> str:
++    return f"Provide a learner-ready language entry for: {term}"
+diff --git a/backend/ai/language/service.py b/backend/ai/language/service.py
+new file mode 100644
+index 0000000..d62cce9
+--- /dev/null
++++ b/backend/ai/language/service.py
+@@ -0,0 +1,143 @@
++from __future__ import annotations
++
++import json
++import logging
++from typing import Any, Dict, Optional
++
++import aiohttp
++
++from .cache import LanguageCache
++from .normalizer import cache_key, empty_entry, normalize_ai_response, normalize_multisource
++from .prompts import LOOKUP_SYSTEM_PROMPT, build_lookup_user_prompt
++
++logger = logging.getLogger(__name__)
++
++GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
++GROQ_MODEL = "llama-3.3-70b-versatile"
++TIMEOUT = aiohttp.ClientTimeout(total=30)
++
++
++class LanguageAIService:
++    """Central language intelligence orchestration layer.
++
++    Flow:
++    1. Read-through SQLite cache
++    2. Groq provider (optional, per-user key)
++    3. Multi-source deterministic fallback
++    4. Structural empty entry
++    """
++
++    def __init__(self, db_manager):
++        self.db = db_manager
++        self.cache = LanguageCache(db_manager)
++
++    async def ensure_table(self) -> None:
++        await self.cache.ensure_table()
++
++    async def get_cached(self, term: str) -> Optional[Dict[str, Any]]:
++        return await self.cache.get(cache_key(term))
++
++    async def invalidate(self, term: str) -> None:
++        await self.cache.invalidate(cache_key(term))
++
++    async def lookup(
++        self,
++        term: str,
++        groq_key: Optional[str] = None,
++        *,
++        force_refresh: bool = False,
++    ) -> Dict[str, Any]:
++        clean = (term or "").strip()
++        if not clean:
++            return empty_entry("")
++        key = cache_key(clean)
++
++        if not force_refresh:
++            cached = await self.cache.get(key)
++            if cached:
++                await self.cache.bump(key)
++                return cached
++
++        if groq_key:
++            ai_entry = await self._lookup_with_groq(clean, groq_key)
++            if ai_entry:
++                await self.cache.set(key, clean.lower(), ai_entry, groq_used=True)
++                return ai_entry
++
++        fallback = await self._lookup_fallback(clean)
++        if fallback:
++            await self.cache.set(key, clean.lower(), fallback, groq_used=False)
++            return fallback
++
++        cached = await self.cache.get(key)
++        if cached:
++            return cached
++        return empty_entry(clean)
++
++    async def lookup_phrase(self, phrase: str, groq_key: Optional[str] = None) -> Dict[str, Any]:
++        return await self.lookup(phrase, groq_key)
++
++    async def _lookup_fallback(self, term: str) -> Optional[Dict[str, Any]]:
++        try:
++            from ai.dictionary.service import DictionaryService
++
++            svc = DictionaryService()
++            word_data = await svc.lookup(term)
++            if not word_data:
++                return None
++            return normalize_multisource(word_data, term)
++        except Exception as exc:
++            logger.debug("Fallback language lookup failed for %r: %s", term, exc)
++            return None
++
++    async def _lookup_with_groq(self, term: str, groq_key: str) -> Optional[Dict[str, Any]]:
++        payload = {
++            "model": GROQ_MODEL,
++            "messages": [
++                {"role": "system", "content": LOOKUP_SYSTEM_PROMPT},
++                {"role": "user", "content": build_lookup_user_prompt(term)},
++            ],
++            "temperature": 0.2,
++            "max_tokens": 900,
++            "response_format": {"type": "json_object"},
++        }
++        try:
++            async with aiohttp.ClientSession(timeout=TIMEOUT) as session:
++                async with session.post(
++                    GROQ_URL,
++                    json=payload,
++                    headers={
++                        "Authorization": f"Bearer {groq_key.strip()}",
++                        "Content-Type": "application/json",
++                    },
++                ) as resp:
++                    if resp.status in {401, 429}:
++                        logger.info("Groq lookup unavailable for %r (status=%s)", term, resp.status)
++                        return None
++                    if resp.status != 200:
++                        logger.debug("Groq lookup failed for %r (status=%s)", term, resp.status)
++                        return None
++                    result = await resp.json()
++            content = result["choices"][0]["message"]["content"]
++            return normalize_ai_response(json.loads(content), term)
++        except Exception as exc:
++            logger.debug("Groq language lookup failed for %r: %s", term, exc)
++            return None
++
++
++_service_instance: Optional[LanguageAIService] = None
++
++
++def get_service(db_manager=None) -> LanguageAIService:
++    global _service_instance
++    if _service_instance is None:
++        if db_manager is None:
++            raise RuntimeError("LanguageAIService not initialised")
++        _service_instance = LanguageAIService(db_manager)
++    return _service_instance
++
++
++def init_service(db_manager) -> LanguageAIService:
++    global _service_instance
++    _service_instance = LanguageAIService(db_manager)
++    return _service_instance
+diff --git a/backend/app/api/auth.py b/backend/app/api/auth.py
+index 349c9ae..4df955c 100644
+--- a/backend/app/api/auth.py
++++ b/backend/app/api/auth.py
+@@ -1,6 +1,6 @@
+ """
+ Authentication API for LinguaLearn.
+-Local-first auth: bcrypt password hashing, JWT tokens stored in SQLite.
++Local-first auth: PBKDF2 password hashing, signed local tokens stored in SQLite.
+ No external auth services required. Works fully offline on Termux.
+ """
+ 
+@@ -274,6 +274,40 @@ async def create_auth_tables(conn: aiosqlite.Connection):
+     await conn.commit()
+ 
+ 
++def _project_root():
++    from pathlib import Path
++    return Path(__file__).resolve().parent.parent.parent.parent
++
++
++def _delete_avatar_file(user_id: str) -> None:
++    avatar_dir = _project_root() / "data" / "avatars"
++    for old_file in avatar_dir.glob(f"{user_id}.*"):
++        try:
++            old_file.unlink()
++        except Exception:
++            pass
++
++
++async def _purge_user_library(conn: aiosqlite.Connection, user_id: str) -> None:
++    """Delete user-owned library records and downloaded media files."""
++    async with conn.execute("SELECT id FROM videos WHERE user_id = ?", (user_id,)) as cur:
++        video_ids = [dict(r)["id"] for r in await cur.fetchall()]
++
++    for video_id in video_ids:
++        try:
++            path = _project_root() / "data" / "downloads" / f"{video_id}.mp4"
++            if path.exists():
++                path.unlink()
++        except Exception:
++            pass
++
++    if video_ids:
++        for video_id in video_ids:
++            await conn.execute("DELETE FROM videos WHERE id = ? AND user_id = ?", (video_id, user_id))
++
++    await conn.execute("DELETE FROM text_sources WHERE user_id = ?", (user_id,))
++
++
+ # ─── Routes ───────────────────────────────────────────────────────────────────
+ 
+ @router.post("/register")
+@@ -377,6 +411,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
+         "email": user.get("email"),
+         "display_name": user.get("display_name"),
+         "avatar_color": user.get("avatar_color", "#3b82f6"),
++        "avatar_url": user.get("avatar_url"),
+         "streak_days": user.get("streak_days", 0),
+         "created_at": user.get("created_at"),
+         "last_login": user.get("last_login"),
+@@ -401,18 +436,22 @@ async def update_profile(
+         params = []
+ 
+         if req.display_name is not None:
++            display_name = req.display_name.strip()[:80]
+             updates.append("display_name = ?")
+-            params.append(req.display_name.strip())
++            params.append(display_name)
+ 
+         if req.email is not None:
++            email = (req.email or "").strip().lower()
++            if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
++                raise HTTPException(status_code=400, detail="Invalid email address")
+             # Check email not taken
+             async with conn.execute(
+-                "SELECT id FROM users WHERE email = ? AND id != ?", (req.email, user_id)
++                "SELECT id FROM users WHERE email = ? AND id != ?", (email or None, user_id)
+             ) as cur2:
+-                if await cur2.fetchone():
++                if email and await cur2.fetchone():
+                     raise HTTPException(status_code=409, detail="Email already in use")
+             updates.append("email = ?")
+-            params.append(req.email)
++            params.append(email or None)
+ 
+         if req.avatar_color is not None:
+             # Basic hex colour validation
+@@ -501,18 +540,21 @@ async def delete_account(
+             raise HTTPException(401, "Incorrect password")
+ 
+         # Delete all user data (cascade handles word_reviews via FK)
++        await _purge_user_library(conn, user_id)
+         for sql in [
+-            "DELETE FROM saved_words    WHERE user_id = ?",
+-            "DELETE FROM chat_messages  WHERE user_id = ?",
+-            "DELETE FROM user_xp        WHERE user_id = ?",
+-            "DELETE FROM xp_log         WHERE user_id = ?",
+-            "DELETE FROM text_sources   WHERE user_id = ?",
++            "DELETE FROM saved_words        WHERE user_id = ?",
++            "DELETE FROM chat_messages      WHERE user_id = ?",
++            "DELETE FROM user_xp            WHERE user_id = ?",
++            "DELETE FROM xp_log             WHERE user_id = ?",
++            "DELETE FROM user_core_progress WHERE user_id = ?",
++            "DELETE FROM core_word_reviews  WHERE user_id = ?",
+         ]:
+             await conn.execute(sql, (user_id,))
+ 
+         # Delete account last
+         await conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+ 
++    _delete_avatar_file(user_id)
+     return {"message": "Account deleted"}
+ 
+ 
+@@ -527,6 +569,12 @@ async def clear_vocabulary(current_user: dict = Depends(get_current_user)):
+         await conn.execute(
+             "DELETE FROM saved_words WHERE user_id = ?", (user_id,)
+         )
++        await conn.execute(
++            "DELETE FROM user_core_progress WHERE user_id = ?", (user_id,)
++        )
++        await conn.execute(
++            "DELETE FROM core_word_reviews WHERE user_id = ?", (user_id,)
++        )
+         await conn.execute(
+             "DELETE FROM user_xp    WHERE user_id = ?", (user_id,)
+         )
+diff --git a/backend/app/api/chat.py b/backend/app/api/chat.py
+index 17b4ca8..38573b9 100644
+--- a/backend/app/api/chat.py
++++ b/backend/app/api/chat.py
+@@ -331,9 +331,8 @@ async def send_message_stream(
+         event_generator(),
+         media_type="text/event-stream",
+         headers={
+-            "Cache-Control":               "no-cache",
+-            "X-Accel-Buffering":           "no",
+-            "Access-Control-Allow-Origin": "*",
++            "Cache-Control": "no-cache",
++            "X-Accel-Buffering": "no",
+         },
+     )
+ 
+diff --git a/backend/app/api/dictionary.py b/backend/app/api/dictionary.py
+index d6136fc..a2643e3 100644
+--- a/backend/app/api/dictionary.py
++++ b/backend/app/api/dictionary.py
+@@ -110,6 +110,12 @@ def _to_legacy(entry: dict) -> dict:
+         "antonyms":       entry.get("antonyms", []),
+         "collocations":   entry.get("collocations", []),
+         "related_words":  entry.get("related_words", []),
++        "collocations":   entry.get("collocations", []),
++        "usage_notes":    entry.get("usage_notes", ""),
++        "grammar_notes":  entry.get("grammar_notes", ""),
++        "difficulty_score": entry.get("learning_difficulty", 0.5),
++        "priority_score":   entry.get("priority_score", 0.5),
++        "entry_type":     entry.get("entry_type", "word"),
+         "conjugations":   {},
+         "root_form":      entry.get("term", ""),
+         "frequency":      1,
+@@ -140,9 +146,6 @@ async def lookup_word(
+ 
+     try:
+         entry = await _svc().lookup(term, groq_key)
+-        # If no AI data and no Groq key, fall back to multi-source pipeline
+-        if not entry.get("ai_generated") and not groq_key:
+-            entry = await _fallback_lookup(term, entry)
+     except Exception as e:
+         logger.error(f"Lookup failed for '{term}': {e}", exc_info=True)
+         raise HTTPException(500, "Language lookup failed")
+diff --git a/backend/app/api/player.py b/backend/app/api/player.py
+index 238d592..dfa816b 100644
+--- a/backend/app/api/player.py
++++ b/backend/app/api/player.py
+@@ -18,7 +18,7 @@ from datetime import datetime
+ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, Depends
+ from pydantic import BaseModel
+ 
+-from backend.app.api.auth import get_current_user, _verify_token
++from backend.app.api.auth import get_current_user, _verify_token, _token_version_ok
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -43,6 +43,16 @@ def _safe_video_path(video_id: str) -> Path:
+     return target
+ 
+ 
++async def _assert_video_access(video_id: str, user_id: str) -> Dict[str, Any]:
++    video = await db_manager.get_video(video_id)
++    if not video:
++        raise HTTPException(status_code=404, detail="Video not found")
++    owner = video.get("user_id") or ""
++    if owner and owner != user_id:
++        raise HTTPException(status_code=404, detail="Video not found")
++    return video
++
++
+ # Bug #11 fix: key = unique session_id, value = (websocket, video_id)
+ active_connections: Dict[str, tuple] = {}
+ 
+@@ -65,6 +75,7 @@ async def update_player_state(
+ ):
+     """Update and save player state (scoped to the current user)."""
+     uid = current_user["sub"]
++    await _assert_video_access(state.video_id, uid)
+     async with db_manager.get_connection() as conn:
+         # FIX-SEC-3: scope session by (video_id, user_id) so two users watching
+         # the same YouTube video don't overwrite each other's resume position.
+@@ -104,6 +115,7 @@ async def get_player_state(
+     current_user: dict = Depends(get_current_user),
+ ):
+     """Get saved player state for a video (scoped to the current user)."""
++    await _assert_video_access(video_id, current_user["sub"])
+     async with db_manager.get_connection() as conn:
+         async with conn.execute(
+             "SELECT * FROM sessions WHERE video_id = ? AND user_id = ?",
+@@ -183,10 +195,16 @@ async def websocket_sync(
+         return
+ 
+     payload = _verify_token(token)
+-    if not payload:
++    if not payload or not await _token_version_ok(payload):
+         await websocket.close(code=4001, reason="Invalid or expired token")
+         return
+ 
++    try:
++        await _assert_video_access(video_id, payload.get("sub", ""))
++    except HTTPException:
++        await websocket.close(code=4404, reason="Video not found")
++        return
++
+     await websocket.accept()
+ 
+     # Unique key per connection, not per video
+diff --git a/backend/app/api/transcripts.py b/backend/app/api/transcripts.py
+index 82bbfde..cbbfdd9 100644
+--- a/backend/app/api/transcripts.py
++++ b/backend/app/api/transcripts.py
+@@ -35,6 +35,16 @@ db_manager = None
+ whisper_service = None
+ 
+ 
++async def _assert_video_access(video_id: str, user_id: str) -> Dict[str, Any]:
++    video = await db_manager.get_video(video_id)
++    if not video:
++        raise HTTPException(status_code=404, detail="Video not found")
++    owner = video.get("user_id") or ""
++    if owner and owner != user_id:
++        raise HTTPException(status_code=404, detail="Video not found")
++    return video
++
++
+ def _ensure_whisper_dependencies() -> None:
+     """Validate optional Whisper dependencies before queuing background task."""
+     try:
+@@ -71,9 +81,7 @@ async def extract_transcript(
+ ):
+     """Extract transcript from YouTube video (captions or Whisper)."""
+ 
+-    video = await db_manager.get_video(video_id)
+-    if not video:
+-        raise HTTPException(status_code=404, detail="Video not found")
++    video = await _assert_video_access(video_id, current_user["sub"])
+ 
+     # Return cached transcript only if it actually has segments (a status-only
+     # placeholder row, e.g. 'processing', must not be treated as ready).
+@@ -673,6 +681,7 @@ async def get_transcript_status(
+ 
+     Returns: {status: idle|processing|ready|error, error, segment_count}
+     """
++    await _assert_video_access(video_id, current_user["sub"])
+     return await db_manager.get_transcript_status(video_id, language)
+ 
+ 
+@@ -683,6 +692,7 @@ async def get_transcript(
+     current_user: dict = Depends(get_current_user),
+ ):
+     """Get transcript for a video."""
++    await _assert_video_access(video_id, current_user["sub"])
+     transcript = await db_manager.get_transcript(video_id, language)
+     # A status-only placeholder row (no segments) is not a usable transcript.
+     if not transcript or not transcript.get("segments"):
+@@ -699,6 +709,7 @@ async def get_transcript_segments(
+     current_user: dict = Depends(get_current_user),
+ ):
+     """Get transcript segments, optionally filtered by time range."""
++    await _assert_video_access(video_id, current_user["sub"])
+     transcript = await db_manager.get_transcript(video_id, language)
+     if not transcript:
+         raise HTTPException(status_code=404, detail="Transcript not found")
+diff --git a/backend/app/api/videos.py b/backend/app/api/videos.py
+index 82a86a7..7382780 100644
+--- a/backend/app/api/videos.py
++++ b/backend/app/api/videos.py
+@@ -123,7 +123,7 @@ async def process_video(input_data: VideoURLInput, background_tasks: BackgroundT
+         raise
+     except Exception as e:
+         logger.error(f"Error processing video: {e}", exc_info=True)
+-        raise HTTPException(status_code=500, detail=str(e))
++        raise HTTPException(status_code=500, detail="Failed to process video")
+ 
+ 
+ @router.get("/list")
+diff --git a/backend/app/api/vocabulary.py b/backend/app/api/vocabulary.py
+index ed7eac3..4b14bf5 100644
+--- a/backend/app/api/vocabulary.py
++++ b/backend/app/api/vocabulary.py
+@@ -20,6 +20,43 @@ router = APIRouter()
+ db_manager = None
+ 
+ 
++async def _get_groq_key(user_id: str) -> Optional[str]:
++    if not db_manager or not user_id:
++        return None
++    try:
++        async with db_manager.get_connection() as conn:
++            async with conn.execute(
++                "SELECT groq_api_key FROM users WHERE id = ?", (user_id,)
++            ) as cursor:
++                row = await cursor.fetchone()
++        if row:
++            key = (dict(row).get("groq_api_key") or "").strip()
++            return key or None
++    except Exception:
++        return None
++    return None
++
++
++async def _lookup_or_build_word_entry(word: str, user_id: str) -> Dict[str, Any]:
++    from ai.language.service import get_service
++
++    cached = await db_manager.get_word(word)
++    if cached:
++        return cached
++
++    groq_key = await _get_groq_key(user_id)
++    try:
++        entry = await get_service(db_manager).lookup(word, groq_key)
++        word_data = _language_entry_to_word_record(entry)
++    except Exception as exc:
++        logger.warning("Unified language lookup failed for %r: %s", word, exc)
++        word_data = _make_basic_entry(word)
++
++    word_data.setdefault("id", str(uuid.uuid4()))
++    await db_manager.add_word(word_data)
++    return word_data
++
++
+ async def _assert_owns_saved_word(saved_id: str, user_id: str) -> None:
+     """
+     FIX-SEC-2 (IDOR): Verify the saved word belongs to the current user before
+@@ -78,22 +115,7 @@ async def save_word(request: SaveWordRequest, current_user: dict = Depends(get_c
+     if not word:
+         raise HTTPException(status_code=400, detail="Word cannot be empty")
+ 
+-    word_data = await db_manager.get_word(word)
+-    if not word_data:
+-        try:
+-            from ai.dictionary.service import DictionaryService
+-            svc = DictionaryService()
+-            word_data = await svc.lookup(word)
+-            if word_data:
+-                word_data["id"] = str(uuid.uuid4())
+-                await db_manager.add_word(word_data)
+-            else:
+-                word_data = _make_basic_entry(word)
+-                await db_manager.add_word(word_data)
+-        except Exception as e:
+-            logger.warning(f"Dictionary lookup failed, using basic entry: {e}")
+-            word_data = _make_basic_entry(word)
+-            await db_manager.add_word(word_data)
++    word_data = await _lookup_or_build_word_entry(word, current_user["sub"])
+ 
+     async with db_manager.get_connection() as conn:
+         async with conn.execute(
+@@ -498,17 +520,7 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
+             failed += 1
+             continue
+         try:
+-            word_data = await db_manager.get_word(word)
+-            if not word_data:
+-                try:
+-                    from ai.dictionary.service import DictionaryService
+-                    svc = DictionaryService()
+-                    word_data = await svc.lookup(word) or _make_basic_entry(word)
+-                    word_data.setdefault("id", str(uuid.uuid4()))
+-                    await db_manager.add_word(word_data)
+-                except Exception:
+-                    word_data = _make_basic_entry(word)
+-                    await db_manager.add_word(word_data)
++            word_data = await _lookup_or_build_word_entry(word, uid)
+ 
+             # Skip if the user already has this word
+             async with db_manager.get_connection() as conn:
+@@ -531,6 +543,53 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
+     return {"message": "Import complete", "added": added, "skipped": skipped, "failed": failed}
+ 
+ 
++def _language_entry_to_word_record(entry: Dict[str, Any]) -> Dict[str, Any]:
++    definitions = entry.get("definitions") or []
++    primary_definition = ""
++    mapped_definitions = []
++    for item in definitions:
++        text = str((item or {}).get("text", "")).strip()
++        if not text:
++            continue
++        if not primary_definition:
++            primary_definition = text
++        mapped_definitions.append({
++            "part_of_speech": entry.get("part_of_speech", "unknown"),
++            "definition": text,
++            "example": "",
++        })
++
++    usage_notes = str(entry.get("usage_notes", "")).strip()
++    grammar_notes = str(entry.get("grammar_notes", "")).strip()
++    difficulty = float(entry.get("learning_difficulty", 0.5) or 0.5)
++    priority = float(entry.get("priority_score", 0.5) or 0.5)
++
++    return {
++        "id": str(uuid.uuid4()),
++        "word": (entry.get("term") or "").lower().strip(),
++        "pronunciation": entry.get("pronunciation", ""),
++        "part_of_speech": entry.get("part_of_speech", "unknown"),
++        "level": entry.get("cefr_level", "B1"),
++        "meaning_ar": entry.get("translation", ""),
++        "meaning_en": primary_definition,
++        "definitions": mapped_definitions,
++        "how_to_use": [usage_notes] if usage_notes else [],
++        "usage_notes": usage_notes,
++        "grammar_notes": grammar_notes,
++        "examples": entry.get("examples", []),
++        "synonyms": entry.get("synonyms", []),
++        "antonyms": entry.get("antonyms", []),
++        "collocations": entry.get("collocations", []),
++        "conjugations": {},
++        "related_words": entry.get("related_words", []),
++        "entry_type": entry.get("entry_type", "word"),
++        "difficulty_score": difficulty,
++        "priority_score": priority,
++        "frequency": max(1, round(priority * 100)),
++        "ai_enriched": bool(entry.get("ai_generated")),
++    }
++
++
+ def _make_basic_entry(word: str) -> Dict[str, Any]:
+     return {
+         "id": str(uuid.uuid4()),
+@@ -540,11 +599,19 @@ def _make_basic_entry(word: str) -> Dict[str, Any]:
+         "level": "B1",
+         "meaning_ar": "",
+         "meaning_en": f'Definition not available locally for "{word}"',
++        "definitions": [],
++        "how_to_use": [],
++        "usage_notes": "",
++        "grammar_notes": "",
+         "examples": [],
+         "synonyms": [],
+         "antonyms": [],
++        "collocations": [],
+         "conjugations": {},
+         "related_words": [],
++        "entry_type": "word",
++        "difficulty_score": 0.5,
++        "priority_score": 0.5,
+         "frequency": 1,
+     }
+ 
+diff --git a/backend/app/db/database.py b/backend/app/db/database.py
+index 62327bd..ff81285 100644
+--- a/backend/app/db/database.py
++++ b/backend/app/db/database.py
+@@ -113,6 +113,15 @@ class DatabaseManager:
+                 root_form TEXT,
+                 conjugations TEXT,
+                 related_words TEXT,
++                collocations TEXT DEFAULT '[]',
++                definitions TEXT DEFAULT '[]',
++                how_to_use TEXT DEFAULT '[]',
++                usage_notes TEXT DEFAULT '',
++                grammar_notes TEXT DEFAULT '',
++                entry_type TEXT DEFAULT 'word',
++                difficulty_score REAL DEFAULT 0.5,
++                priority_score REAL DEFAULT 0.5,
++                ai_enriched INTEGER DEFAULT 0,
+                 frequency INTEGER DEFAULT 0,
+                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+             )
+@@ -326,9 +335,15 @@ class DatabaseManager:
+             word_columns = {dict(r)["name"] for r in wrows}
+ 
+         word_migrations = {
+-            "definitions":  "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
+-            "how_to_use":   "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
+-            "ai_enriched":  "ALTER TABLE words ADD COLUMN ai_enriched INTEGER DEFAULT 0",
++            "definitions":      "ALTER TABLE words ADD COLUMN definitions TEXT DEFAULT '[]'",
++            "how_to_use":       "ALTER TABLE words ADD COLUMN how_to_use TEXT DEFAULT '[]'",
++            "ai_enriched":      "ALTER TABLE words ADD COLUMN ai_enriched INTEGER DEFAULT 0",
++            "collocations":     "ALTER TABLE words ADD COLUMN collocations TEXT DEFAULT '[]'",
++            "usage_notes":      "ALTER TABLE words ADD COLUMN usage_notes TEXT DEFAULT ''",
++            "grammar_notes":    "ALTER TABLE words ADD COLUMN grammar_notes TEXT DEFAULT ''",
++            "entry_type":       "ALTER TABLE words ADD COLUMN entry_type TEXT DEFAULT 'word'",
++            "difficulty_score": "ALTER TABLE words ADD COLUMN difficulty_score REAL DEFAULT 0.5",
++            "priority_score":   "ALTER TABLE words ADD COLUMN priority_score REAL DEFAULT 0.5",
+         }
+         for col, sql in word_migrations.items():
+             if col not in word_columns:
+@@ -415,8 +430,19 @@ class DatabaseManager:
+         data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
+         data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
+         data["related_words"] = self._decode_json_field(data.get("related_words"), [])
++        data["collocations"] = self._decode_json_field(data.get("collocations"), [])
++        data["definitions"] = self._decode_json_field(data.get("definitions"), [])
++        data["how_to_use"] = self._decode_json_field(data.get("how_to_use"), [])
+         data["tags"] = self._decode_json_field(data.get("tags"), [])
+         data["favorite"] = bool(data.get("favorite", 0))
++        try:
++            data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
++        except (TypeError, ValueError):
++            data["difficulty_score"] = 0.5
++        try:
++            data["priority_score"] = float(data.get("priority_score", 0.5) or 0.5)
++        except (TypeError, ValueError):
++            data["priority_score"] = 0.5
+         return data
+ 
+     def _build_saved_words_query(
+@@ -440,6 +466,8 @@ class DatabaseManager:
+             sw.*, w.word, w.pronunciation, w.part_of_speech,
+             w.meaning_ar, w.meaning_en, w.level, w.examples,
+             w.synonyms, w.antonyms, w.conjugations, w.related_words,
++            w.collocations, w.definitions, w.how_to_use, w.usage_notes,
++            w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+             COALESCE(v.title, '') as source_video_title,
+             COALESCE(v.channel, '') as source_video_channel
+         """
+@@ -718,8 +746,9 @@ class DatabaseManager:
+                 INSERT OR REPLACE INTO words
+                     (id, word, pronunciation, part_of_speech, level, meaning_ar, meaning_en,
+                      examples, synonyms, antonyms, root_form, conjugations, related_words,
+-                     definitions, how_to_use, frequency, ai_enriched)
+-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
++                     collocations, definitions, how_to_use, usage_notes, grammar_notes,
++                     entry_type, difficulty_score, priority_score, frequency, ai_enriched)
++                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 """,
+                 (
+                     word_data.get("id"),
+@@ -735,8 +764,14 @@ class DatabaseManager:
+                     word_data.get("root_form", ""),
+                     json.dumps(word_data.get("conjugations", {}), ensure_ascii=False),
+                     json.dumps(word_data.get("related_words", []), ensure_ascii=False),
++                    json.dumps(word_data.get("collocations", []), ensure_ascii=False),
+                     json.dumps(word_data.get("definitions", []), ensure_ascii=False),
+                     json.dumps(word_data.get("how_to_use", []), ensure_ascii=False),
++                    word_data.get("usage_notes", ""),
++                    word_data.get("grammar_notes", ""),
++                    word_data.get("entry_type", "word"),
++                    float(word_data.get("difficulty_score", 0.5) or 0.5),
++                    float(word_data.get("priority_score", 0.5) or 0.5),
+                     word_data.get("frequency", 0),
+                     1 if word_data.get("ai_enriched") else 0,
+                 ),
+@@ -755,9 +790,18 @@ class DatabaseManager:
+                 data["antonyms"] = self._decode_json_field(data.get("antonyms"), [])
+                 data["conjugations"] = self._decode_json_field(data.get("conjugations"), {})
+                 data["related_words"] = self._decode_json_field(data.get("related_words"), [])
++                data["collocations"] = self._decode_json_field(data.get("collocations"), [])
+                 data["definitions"]  = self._decode_json_field(data.get("definitions"), [])
+                 data["how_to_use"]   = self._decode_json_field(data.get("how_to_use"), [])
+                 data["ai_enriched"]  = bool(data.get("ai_enriched", 0))
++                try:
++                    data["difficulty_score"] = float(data.get("difficulty_score", 0.5) or 0.5)
++                except (TypeError, ValueError):
++                    data["difficulty_score"] = 0.5
++                try:
++                    data["priority_score"] = float(data.get("priority_score", 0.5) or 0.5)
++                except (TypeError, ValueError):
++                    data["priority_score"] = 0.5
+                 return data
+ 
+     # =========================================================================
+@@ -816,6 +860,8 @@ class DatabaseManager:
+                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
+                        w.meaning_ar, w.meaning_en, w.level, w.examples,
+                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
++                       w.collocations, w.definitions, w.how_to_use, w.usage_notes,
++                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+                        COALESCE(v.title, '') as source_video_title,
+                        COALESCE(v.channel, '') as source_video_channel
+                 FROM saved_words sw
+@@ -1002,6 +1048,8 @@ class DatabaseManager:
+                 SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
+                        w.meaning_ar, w.meaning_en, w.level, w.examples,
+                        w.synonyms, w.antonyms, w.conjugations, w.related_words,
++                       w.collocations, w.definitions, w.how_to_use, w.usage_notes,
++                       w.grammar_notes, w.entry_type, w.difficulty_score, w.priority_score,
+                        COALESCE(v.title, '') as source_video_title,
+                        COALESCE(v.channel, '') as source_video_channel
+                 FROM saved_words sw
+@@ -1017,6 +1065,7 @@ class DatabaseManager:
+                         ELSE 3
+                     END,
+                     COALESCE(sw.favorite, 0) DESC,
++                    COALESCE(w.priority_score, 0.5) DESC,
+                     COALESCE(sw.lapses, 0) DESC,
+                     {due_expr} ASC,
+                     sw.created_at ASC
+diff --git a/frontend/src/hooks/useVideoPlayer.ts b/frontend/src/hooks/useVideoPlayer.ts
+index 4e9cadc..c7859be 100644
+--- a/frontend/src/hooks/useVideoPlayer.ts
++++ b/frontend/src/hooks/useVideoPlayer.ts
+@@ -16,6 +16,12 @@ import type { TranscriptSegment, VideoQuality } from '@/types';
+ const sharedPlayerRef: { current: any } = { current: null };
+ let transcriptProbeVideoId: string | null = null;
+ let sessionRestoreVideoId: string | null = null;
++let lastPersistedVideoId: string | null = null;
++let lastPersistedPosition = -1;
++
++const SYNC_INTERVAL_MS = 120;
++const SESSION_PERSIST_INTERVAL_MS = 20000;
++const MIN_PERSIST_DELTA_SECONDS = 2.5;
+ 
+ const VIDEO_QUALITY_ORDER: VideoQuality[] = [
+   'auto',
+@@ -119,6 +125,8 @@ export function useVideoPlayer() {
+       loop_end: undefined,
+       quality: defaultVideoQuality,
+     });
++    lastPersistedVideoId = currentVideo.id;
++    lastPersistedPosition = 0;
+     setCurrentTime(0);
+     restoredSeekForVideoRef.current = null;
+   }, [currentVideo?.id, defaultSpeed, defaultVideoQuality, updatePlayerState, setCurrentTime]);
+@@ -147,6 +155,8 @@ export function useVideoPlayer() {
+           volume: safeVolume,
+           quality: useAppStore.getState().playerState.quality ?? defaultVideoQuality,
+         });
++        lastPersistedVideoId = currentVideo.id;
++        lastPersistedPosition = safePosition;
+         setCurrentTime(safePosition);
+         restoredSeekForVideoRef.current = null;
+ 
+@@ -405,30 +415,41 @@ export function useVideoPlayer() {
+ 
+   const onEnded = useCallback(() => updatePlayerState({ playing: false }), [updatePlayerState]);
+ 
+-  // High-frequency sync loop for accurate word highlighting.
++  // High-frequency sync loop for accurate word highlighting without polling at
++  // 25fps. 120ms keeps highlighting responsive while cutting battery / CPU use.
+   useEffect(() => {
+     if (!currentVideo || !playerState.playing) return;
+     const iv = setInterval(() => {
+       const current = Number(playerRef.current?.getCurrentTime?.());
+       if (Number.isFinite(current)) syncPlaybackState(current);
+-    }, 40);
++    }, SYNC_INTERVAL_MS);
+     return () => clearInterval(iv);
+   }, [currentVideo?.id, playerState.playing, playerRef, syncPlaybackState]);
+ 
+   useEffect(() => {
+     if (!currentVideo || !playerState.playing) return;
+-    let watchMinutes = 0;
++    let watchTicks = 0;
+     const iv = setInterval(() => {
+-      playerApi.saveState({
+-        ...playerStateRef.current,
+-        video_id: currentVideo.id,
+-      }).catch(() => {});
+-      // Award XP every ~60s of watching (4 x 15s intervals)
+-      watchMinutes++;
+-      if (watchMinutes % 4 === 0) {
++      const snapshot = playerStateRef.current;
++      const position = Number(snapshot.position || 0);
++      const videoChanged = lastPersistedVideoId !== currentVideo.id;
++      const movedEnough = Math.abs(position - lastPersistedPosition) >= MIN_PERSIST_DELTA_SECONDS;
++
++      if (videoChanged || movedEnough) {
++        playerApi.saveState({
++          ...snapshot,
++          video_id: currentVideo.id,
++        }).catch(() => {});
++        lastPersistedVideoId = currentVideo.id;
++        lastPersistedPosition = position;
++      }
++
++      // Award XP roughly once per minute of active watching.
++      watchTicks++;
++      if (watchTicks % 3 === 0) {
+         awardXP('watch_minute');
+       }
+-    }, 15000);
++    }, SESSION_PERSIST_INTERVAL_MS);
+     return () => clearInterval(iv);
+   }, [currentVideo?.id, playerState.playing]);
+ 
+diff --git a/frontend/src/pages/_app.tsx b/frontend/src/pages/_app.tsx
+index 0c5e826..a36aaa3 100644
+--- a/frontend/src/pages/_app.tsx
++++ b/frontend/src/pages/_app.tsx
+@@ -7,6 +7,7 @@ import '@/styles/globals.css';
+ import React, { useEffect, useRef, useState } from 'react';
+ import type { AppProps } from 'next/app';
+ import Head from 'next/head';
++import dynamic from 'next/dynamic';
+ import { useRouter } from 'next/router';
+ import { useStore } from '@/store/appStore';
+ import { authApi, tokenStore } from '@/lib/api';
+@@ -16,26 +17,35 @@ import OfflineBanner from '@/components/common/OfflineBanner';
+ import NotificationCenter from '@/components/common/NotificationCenter';
+ import { useNotifications } from '@/hooks/useNotifications';
+ import { warmUpTTS } from '@/lib/tts';
+-import LoginPage from '@/components/auth/LoginPage';
+-import RegisterPage from '@/components/auth/RegisterPage';
+-import PlayerView from '@/views/PlayerView';
+-import VocabularyView from '@/views/VocabularyView';
+-import ReviewView from '@/views/ReviewView';
+-import ProfileView from '@/views/ProfileView';
+-import LibraryView from '@/views/LibraryView';
+-import ChatView from '@/views/ChatView';
+-import TextReaderView from '@/views/TextReaderView';
+-import StatsView from '@/views/StatsView';
+-import OnboardingView from '@/views/OnboardingView';
+-import WordDetailView from '@/views/WordDetailView';
+-import CoreLibraryView from '@/views/CoreLibraryView';
+-import WordPopup from '@/components/dictionary/WordPopup';
+ 
+ function NotificationsBootstrap() {
+   useNotifications();
+   return null;
+ }
+ 
++function PageLoader() {
++  return (
++    <div className="flex items-center justify-center py-10 text-sm text-muted">
++      Loading…
++    </div>
++  );
++}
++
++const LoginPage = dynamic(() => import('@/components/auth/LoginPage'), { loading: () => <PageLoader /> });
++const RegisterPage = dynamic(() => import('@/components/auth/RegisterPage'), { loading: () => <PageLoader /> });
++const PlayerView = dynamic(() => import('@/views/PlayerView'), { loading: () => <PageLoader /> });
++const VocabularyView = dynamic(() => import('@/views/VocabularyView'), { loading: () => <PageLoader /> });
++const ReviewView = dynamic(() => import('@/views/ReviewView'), { loading: () => <PageLoader /> });
++const ProfileView = dynamic(() => import('@/views/ProfileView'), { loading: () => <PageLoader /> });
++const LibraryView = dynamic(() => import('@/views/LibraryView'), { loading: () => <PageLoader /> });
++const ChatView = dynamic(() => import('@/views/ChatView'), { loading: () => <PageLoader /> });
++const TextReaderView = dynamic(() => import('@/views/TextReaderView'), { loading: () => <PageLoader /> });
++const StatsView = dynamic(() => import('@/views/StatsView'), { loading: () => <PageLoader /> });
++const OnboardingView = dynamic(() => import('@/views/OnboardingView'), { loading: () => <PageLoader /> });
++const WordDetailView = dynamic(() => import('@/views/WordDetailView'), { loading: () => <PageLoader /> });
++const CoreLibraryView = dynamic(() => import('@/views/CoreLibraryView'), { loading: () => <PageLoader /> });
++const WordPopup = dynamic(() => import('@/components/dictionary/WordPopup'), { ssr: false });
++
+ export default function App({ Component, pageProps }: AppProps) {
+   const router = useRouter();
+ 
+diff --git a/frontend/src/types/index.ts b/frontend/src/types/index.ts
+index 1ea6438..28d902f 100644
+--- a/frontend/src/types/index.ts
++++ b/frontend/src/types/index.ts
+@@ -18,6 +18,7 @@ export interface User {
+   email?: string;
+   display_name: string;
+   avatar_color: string;
++  avatar_url?: string | null;
+   streak_days: number;
+   created_at?: string;
+   last_login?: string;
+@@ -79,12 +80,18 @@ export interface Word {
+   meaning_en: string;
+   definitions?: WordDefinition[];
+   how_to_use?: string[];
++  usage_notes?: string;
++  grammar_notes?: string | string[];
+   examples: string[];
+   synonyms: string[];
+   antonyms: string[];
++  collocations?: string[];
+   root_form?: string;
+   conjugations?: Record<string, string>;
+   related_words?: string[];
++  entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
++  difficulty_score?: number;
++  priority_score?: number;
+   frequency?: number;
+ }
+ 
+@@ -102,8 +109,16 @@ export interface SavedWord {
+   examples?: string[];
+   synonyms?: string[];
+   antonyms?: string[];
++  definitions?: WordDefinition[];
++  how_to_use?: string[];
++  usage_notes?: string;
++  grammar_notes?: string;
++  collocations?: string[];
+   conjugations?: Record<string, string>;
+   related_words?: string[];
++  entry_type?: 'word' | 'phrase' | 'expression' | 'idiom' | 'sentence';
++  difficulty_score?: number;
++  priority_score?: number;
+   video_id?: string;
+   source_video_title?: string;
+   source_video_channel?: string;
+diff --git a/frontend/src/views/CoreLibraryView.tsx b/frontend/src/views/CoreLibraryView.tsx
+index 255e2e3..5378d40 100644
+--- a/frontend/src/views/CoreLibraryView.tsx
++++ b/frontend/src/views/CoreLibraryView.tsx
+@@ -35,6 +35,7 @@ interface CoreWord {
+   antonyms?: string[];
+   collocations?: string[];
+   example?: string;
++  ease_factor?: number;
+   progress?: {
+     status: 'new' | 'learning' | 'reviewing' | 'learned';
+     ease_factor: number;
+-- 
+2.47.3
+

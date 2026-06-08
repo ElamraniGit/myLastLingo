@@ -24,10 +24,10 @@ interface Props {
 }
 
 // All phrase lookups go through the backend Groq service — no direct external API calls
-async function fetchPhraseData(text: string): Promise<{ translation: string; definition: string }> {
+async function fetchPhraseData(text: string, sentence = ''): Promise<{ translation: string; definition: string }> {
   try {
     const { dictionaryApi } = await import('@/lib/api');
-    const result = await dictionaryApi.lookupPhrase(text);
+    const result = await dictionaryApi.lookupPhrase(text, sentence);
     return {
       translation: result?.meaning_ar || '',
       definition:  result?.meaning_en || (result?.definitions?.[0]?.definition ?? ''),
@@ -63,10 +63,10 @@ export default function SelectionToolbar({ phrase, sentence, onClose, videoId }:
   useEffect(() => {
     if (!isMultiWord) return;
     setPhraseInfo({ translation: '', definition: '', loading: true });
-    fetchPhraseData(phrase).then(({ translation, definition }) => {
+    fetchPhraseData(phrase, sentence).then(({ translation, definition }) => {
       setPhraseInfo({ translation, definition, loading: false });
     });
-  }, [phrase, isMultiWord]);
+  }, [phrase, sentence, isMultiWord]);
 
   // ── Look up ───────────────────────────────────────────────────────────────
   const handleLookup = useCallback(async () => {

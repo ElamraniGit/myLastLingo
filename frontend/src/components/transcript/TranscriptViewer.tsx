@@ -17,7 +17,7 @@ import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react'
 import { useStore } from '@/store/appStore';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useDictionary } from '@/hooks/useDictionary';
-import type { TranscriptSegment, WordTiming, TranscriptFontSize } from '@/types';
+import type { TranscriptSegment, WordTiming, TranscriptFontSize, TranscriptHighlightMode } from '@/types';
 import { buildSavedMatchMap } from '@/lib/savedWordMatching';
 import { Button } from '@/components/ui/Button';
 import SelectionToolbar from '@/components/common/SelectionToolbar';
@@ -46,6 +46,72 @@ function getActiveWordIndex(words: WordTiming[], t: number): number {
     if (d < bd) { bd = d; best = i; }
   }
   return best;
+}
+
+function normalizeWordText(word: string): string {
+  return word.replace(/[^\w'-]/g, '').trim();
+}
+
+function hasReliableWordTimings(seg: TranscriptSegment): boolean {
+  const words = (seg.words ?? []).filter(w => normalizeWordText(w.word).length > 0);
+  const segDuration = seg.end - seg.start;
+
+  if (words.length < 2 || !isFinite(seg.start) || !isFinite(seg.end) || segDuration <= 0.35) {
+    return false;
+  }
+
+  let coverage = 0;
+  let overlap = 0;
+  let prevEnd = seg.start;
+
+  for (const word of words) {
+    if (!isFinite(word.start) || !isFinite(word.end) || word.end <= word.start) {
+      return false;
+    }
+
+    if (word.start < seg.start - 0.2 || word.end > seg.end + 0.2) {
+      return false;
+    }
+
+    overlap += Math.max(0, prevEnd - word.start);
+    coverage += Math.max(0, Math.min(word.end, seg.end) - Math.max(word.start, seg.start));
+    prevEnd = Math.max(prevEnd, word.end);
+  }
+
+  const firstWord = words[0];
+  const lastWord = words[words.length - 1];
+  const boundarySlack = Math.max(0.45, segDuration * 0.4);
+  if (firstWord.start - seg.start > boundarySlack || seg.end - lastWord.end > boundarySlack) {
+    return false;
+  }
+
+  if (coverage / segDuration < 0.45) {
+    return false;
+  }
+
+  if (overlap > segDuration * 0.35) {
+    return false;
+  }
+
+  const probabilities = words
+    .map(word => word.probability)
+    .filter((value): value is number => typeof value === 'number' && isFinite(value));
+
+  if (probabilities.length >= Math.ceil(words.length / 2)) {
+    const avgProbability = probabilities.reduce((sum, value) => sum + value, 0) / probabilities.length;
+    if (avgProbability < 0.45) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function resolveHighlightMode(seg: TranscriptSegment, preferredMode: TranscriptHighlightMode): 'sentence' | 'word' {
+  if (preferredMode === 'smart') {
+    return hasReliableWordTimings(seg) ? 'word' : 'sentence';
+  }
+  return preferredMode;
 }
 
 function wordElAt(x: number, y: number, container: HTMLElement): HTMLElement | null {
@@ -302,8 +368,9 @@ export default function TranscriptViewer() {
         onTouchCancel={onScrollTouchEnd}
       >
         {transcript.segments.map((seg, segListIndex) => {
-          const isActive   = playerState.current_segment === seg.index;
-          const activeWord = transcriptHighlightMode === 'word'
+          const isActive = playerState.current_segment === seg.index;
+          const segmentHighlightMode = resolveHighlightMode(seg, transcriptHighlightMode);
+          const activeWord = segmentHighlightMode === 'word'
             ? getActiveWordIndex(seg.words ?? [], currentTime)
             : -1;
           const segSel     = selRange?.si === seg.index ? selRange : null;
@@ -321,9 +388,9 @@ export default function TranscriptViewer() {
               <p className={`${fs} leading-loose pl-1`} style={{ direction: 'ltr', textAlign: 'left' }}>
                 {(seg.words?.length ? seg.words : seg.text.split(' ').map(w => ({ word: w } as WordTiming))).map((wt, wi) => {
                   const word  = typeof wt === 'object' ? wt.word : wt;
-                  const clean = word.replace(/[^\w'-]/g, '').trim();
+                  const clean = normalizeWordText(word);
                   const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
-                  const isCur = transcriptHighlightMode === 'word' && seg.words?.length ? activeWord === wi : false;
+                  const isCur = segmentHighlightMode === 'word' && seg.words?.length ? activeWord === wi : false;
                   const suppressSavedHighlight = !!segSel;
                   const isSavedPhrase = !suppressSavedHighlight && !!savedMatch?.phraseIndexes.has(wi);
                   const isSavedWord = !suppressSavedHighlight && !!savedMatch?.singleWordIndexes.has(wi);

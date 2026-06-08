@@ -64,7 +64,7 @@ export function useDictionary() {
     try {
       if (navigator.onLine) {
         // Online: fetch from server, cache result
-        const data = await dictionaryApi.lookup(clean);
+        const data = await dictionaryApi.lookup(clean, sentence);
         await cacheWord(data);
         setSelectedWord(data);
         setWordPopupOpen(true);

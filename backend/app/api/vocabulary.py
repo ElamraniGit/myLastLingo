@@ -37,7 +37,12 @@ async def _get_groq_key(user_id: str) -> Optional[str]:
     return None
 
 
-async def _lookup_or_build_word_entry(word: str, user_id: str) -> Dict[str, Any]:
+async def _lookup_or_build_word_entry(
+    word: str,
+    user_id: str,
+    sentence: str = "",
+    context: str = "",
+) -> Dict[str, Any]:
     from ai.language.service import get_service
 
     cached = await db_manager.get_word(word)
@@ -46,7 +51,7 @@ async def _lookup_or_build_word_entry(word: str, user_id: str) -> Dict[str, Any]
 
     groq_key = await _get_groq_key(user_id)
     try:
-        entry = await get_service(db_manager).lookup(word, groq_key)
+        entry = await get_service(db_manager).lookup(word, groq_key, sentence=sentence, context=context)
         word_data = _language_entry_to_word_record(entry)
     except Exception as exc:
         logger.warning("Unified language lookup failed for %r: %s", word, exc)
@@ -115,7 +120,7 @@ async def save_word(request: SaveWordRequest, current_user: dict = Depends(get_c
     if not word:
         raise HTTPException(status_code=400, detail="Word cannot be empty")
 
-    word_data = await _lookup_or_build_word_entry(word, current_user["sub"])
+    word_data = await _lookup_or_build_word_entry(word, current_user["sub"], request.sentence, request.context)
 
     async with db_manager.get_connection() as conn:
         async with conn.execute(
@@ -520,7 +525,7 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
             failed += 1
             continue
         try:
-            word_data = await _lookup_or_build_word_entry(word, uid)
+            word_data = await _lookup_or_build_word_entry(word, uid, item.sentence, item.context)
 
             # Skip if the user already has this word
             async with db_manager.get_connection() as conn:
@@ -544,8 +549,20 @@ async def import_vocabulary(request: ImportRequest, current_user: dict = Depends
 
 
 def _language_entry_to_word_record(entry: Dict[str, Any]) -> Dict[str, Any]:
+    meanings = entry.get("meanings") or []
     definitions = entry.get("definitions") or []
+    example_details = entry.get("example_details") or []
+    synonym_details = entry.get("synonym_details") or []
+    antonym_details = entry.get("antonym_details") or []
+    collocation_details = entry.get("collocation_details") or []
+    word_family = entry.get("word_family") or []
+    grammar_analysis = entry.get("grammar_analysis") or {}
+    teaching_notes = entry.get("teaching_notes") or []
+
     primary_definition = ""
+    if meanings:
+        primary_definition = str((meanings[0] or {}).get("english_simple") or (meanings[0] or {}).get("english_advanced") or "").strip()
+
     mapped_definitions = []
     for item in definitions:
         text = str((item or {}).get("text", "")).strip()
@@ -559,10 +576,65 @@ def _language_entry_to_word_record(entry: Dict[str, Any]) -> Dict[str, Any]:
             "example": "",
         })
 
+    examples = entry.get("examples") or [
+        str((item or {}).get("english") or "").strip()
+        for item in example_details
+    ]
+    examples = [item for item in examples if item][:10]
+
+    synonyms = entry.get("synonyms") or [
+        str((item or {}).get("term") or "").strip()
+        for item in synonym_details
+    ]
+    synonyms = [item for item in synonyms if item][:10]
+
+    antonyms = entry.get("antonyms") or [
+        str((item or {}).get("term") or "").strip()
+        for item in antonym_details
+    ]
+    antonyms = [item for item in antonyms if item][:10]
+
+    collocations = entry.get("collocations") or [
+        str((item or {}).get("expression") or "").strip()
+        for item in collocation_details
+    ]
+    collocations = [item for item in collocations if item][:8]
+
+    related_words = entry.get("related_words") or [
+        str((item or {}).get("term") or "").strip()
+        for item in word_family
+    ]
+    related_words = [item for item in related_words if item][:10]
+
     usage_notes = str(entry.get("usage_notes", "")).strip()
-    grammar_notes = str(entry.get("grammar_notes", "")).strip()
+    how_to_use = []
+    if str(entry.get("word_explanation") or "").strip():
+        how_to_use.append(str(entry.get("word_explanation") or "").strip())
+    if usage_notes and usage_notes not in how_to_use:
+        how_to_use.append(usage_notes)
+    for note in teaching_notes:
+        note_text = str(note or "").strip()
+        if note_text and note_text not in how_to_use:
+            how_to_use.append(note_text)
+        if len(how_to_use) >= 4:
+            break
+
+    grammar_note_parts = []
+    if str(entry.get("grammar_notes") or "").strip():
+        grammar_note_parts.append(str(entry.get("grammar_notes") or "").strip())
+    if str(grammar_analysis.get("summary") or "").strip() and str(grammar_analysis.get("summary") or "").strip() not in grammar_note_parts:
+        grammar_note_parts.append(str(grammar_analysis.get("summary") or "").strip())
+    for note in (grammar_analysis.get("notes") or []):
+        note_text = str(note or "").strip()
+        if note_text and note_text not in grammar_note_parts:
+            grammar_note_parts.append(note_text)
+        if len(grammar_note_parts) >= 4:
+            break
+    grammar_notes = " ".join(grammar_note_parts).strip()
+
     difficulty = float(entry.get("learning_difficulty", 0.5) or 0.5)
     priority = float(entry.get("priority_score", 0.5) or 0.5)
+    frequency = int(entry.get("frequency_score") or max(1, round(priority * 100)))
 
     return {
         "id": str(uuid.uuid4()),
@@ -573,20 +645,22 @@ def _language_entry_to_word_record(entry: Dict[str, Any]) -> Dict[str, Any]:
         "meaning_ar": entry.get("translation", ""),
         "meaning_en": primary_definition,
         "definitions": mapped_definitions,
-        "how_to_use": [usage_notes] if usage_notes else [],
+        "how_to_use": how_to_use,
         "usage_notes": usage_notes,
         "grammar_notes": grammar_notes,
-        "examples": entry.get("examples", []),
-        "synonyms": entry.get("synonyms", []),
-        "antonyms": entry.get("antonyms", []),
-        "collocations": entry.get("collocations", []),
-        "conjugations": {},
-        "related_words": entry.get("related_words", []),
+        "examples": examples,
+        "synonyms": synonyms,
+        "antonyms": antonyms,
+        "collocations": collocations,
+        "conjugations": grammar_analysis.get("inflected_forms") or {},
+        "related_words": related_words,
         "entry_type": entry.get("entry_type", "word"),
         "difficulty_score": difficulty,
         "priority_score": priority,
-        "frequency": max(1, round(priority * 100)),
+        "frequency": max(1, min(100, frequency)),
         "ai_enriched": bool(entry.get("ai_generated")),
+        "root_form": str(grammar_analysis.get("base_form") or entry.get("term") or "").strip(),
+        "ai_payload": entry,
     }
 
 
