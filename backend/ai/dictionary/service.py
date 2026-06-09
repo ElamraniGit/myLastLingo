@@ -28,6 +28,52 @@ logger = logging.getLogger(__name__)
 _TIMEOUT  = aiohttp.ClientTimeout(total=8)
 _HEADERS  = {"User-Agent": "Mozilla/5.0 LinguaLearn/1.0"}
 
+# ── Arabic-translation validation ───────────────────────────────────────────────
+import re as _re
+
+# MyMemory (and similar free endpoints) frequently return English warning strings
+# instead of a translation when rate-limited or when no match is found. These must
+# never be saved as an "Arabic translation".
+_MYMEMORY_JUNK = (
+    "mymemory warning",
+    "you used all available free translations",
+    "translated.net",
+    "please contact us",
+    "invalid",
+    "quota",
+    "no query specified",
+)
+# Arabic letters only — excludes the decorative tatweel (U+0640) and standalone
+# diacritics so a lone kashida doesn't count as a "translation".
+_ARABIC_CHAR = _re.compile(r"[\u0621-\u063A\u0641-\u064A\u0750-\u077F]")
+
+
+def _is_valid_arabic(text: str) -> bool:
+    """
+    True only if `text` is a usable Arabic translation:
+      - non-empty after stripping
+      - contains Arabic script
+      - is mostly Arabic (rejects English passthrough / mixed junk)
+      - is not a known provider warning/error string
+    """
+    if not text:
+        return False
+    t = text.strip()
+    if not t:
+        return False
+    low = t.lower()
+    if any(j in low for j in _MYMEMORY_JUNK):
+        return False
+    arabic_chars = len(_ARABIC_CHAR.findall(t))
+    if arabic_chars == 0:
+        return False
+    # Require Arabic letters to dominate the alphabetic content so an English
+    # word with a stray Arabic char (or vice-versa) is rejected.
+    latin_chars = len(_re.findall(r"[A-Za-z]", t))
+    if latin_chars > arabic_chars:
+        return False
+    return True
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # DictionaryService
@@ -243,10 +289,13 @@ class DictionaryService:
                     if seg and isinstance(seg, list) and seg[0]:
                         primary += str(seg[0])
 
+            primary = (primary or "").strip()
             if not primary or primary.lower() == word.lower():
                 return ""
-
-            return primary.strip()
+            # Only accept genuine Arabic output.
+            if not _is_valid_arabic(primary):
+                return ""
+            return primary
         except Exception:
             return ""
 
@@ -260,9 +309,11 @@ class DictionaryService:
                         return ""
                     data = await r.json()
 
-            tr = data.get("responseData", {}).get("translatedText", "")
-            if tr and tr.lower() != word.lower():
-                return tr.strip()
+            tr = (data.get("responseData", {}).get("translatedText", "") or "").strip()
+            # MyMemory returns English warnings / passthrough when rate-limited or
+            # when no match exists — reject anything that isn't real Arabic.
+            if tr and tr.lower() != word.lower() and _is_valid_arabic(tr):
+                return tr
             return ""
         except Exception:
             return ""
