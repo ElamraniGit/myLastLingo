@@ -451,6 +451,27 @@ export const coreApi = {
   },
 };
 
+export interface SentenceFeedback {
+  correct: boolean;
+  uses_word: boolean;
+  score: number;
+  corrected: string;
+  feedback: string;
+  grammar_notes: string[];
+  naturalness: 'natural' | 'understandable' | 'unnatural';
+  tip: string;
+}
+
+export const practiceApi = {
+  /** Submit a user-written sentence for AI evaluation. */
+  checkSentence: (word: string, sentence: string, meaning?: string) =>
+    req<SentenceFeedback>('/practice/check-sentence', {
+      method: 'POST',
+      body: { word, sentence, meaning: meaning || '' },
+      timeout: 35000,
+    }),
+};
+
 export const healthApi = {
   check: async () => {
     const res = await fetch(`${BACKEND_ORIGIN}/health`);

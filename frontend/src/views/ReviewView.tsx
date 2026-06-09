@@ -19,7 +19,8 @@ import SectionCard from '@/components/common/SectionCard';
 import StatTile from '@/components/common/StatTile';
 import ActionTile from '@/components/common/ActionTile';
 import EmptyState from '@/components/common/EmptyState';
-import { xpApi } from '@/lib/api';
+import { xpApi, practiceApi } from '@/lib/api';
+import type { SentenceFeedback } from '@/lib/api';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
 import * as sfx from '@/lib/sfx';
@@ -78,7 +79,7 @@ function filterPlayable(words: SavedWord[]): SavedWord[] {
 /* ─────────────────────────────────────────────────────────────────
    TYPES
 ───────────────────────────────────────────────────────────────── */
-type Tab         = 'cards' | 'quiz' | 'games';
+type Tab         = 'cards' | 'quiz' | 'write' | 'games';
 type QuizType    = 'definition' | 'fillblank' | 'word';
 type GameMode    = 'menu' | 'spelling' | 'scramble' | 'matching' | 'crossword';
 type SessionSize = 5 | 10 | 20 | 40;
@@ -249,7 +250,7 @@ export default function ReviewView() {
                     <span className="text-sm font-bold text-orange-500">{streakData.streak_days}</span>
                   </div>
                 )}
-                {tab !== 'games' && (
+                {(tab === 'cards' || tab === 'quiz') && (
                   <button
                     onClick={() => setShowSettings(v => !v)}
                     className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${showSettings ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-card text-muted hover:text-body'}`}
@@ -262,7 +263,7 @@ export default function ReviewView() {
               </div>
             )}
           >
-            {showSettings && tab !== 'games' && (
+            {showSettings && (tab === 'cards' || tab === 'quiz') && (
               <SectionCard className="mb-4 animate-fade-in" bodyClassName="space-y-4">
                 <div>
                   <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Session size</p>
@@ -306,6 +307,7 @@ export default function ReviewView() {
               {([
                 { id: 'cards' as Tab, label: 'Cards', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
                 { id: 'quiz'  as Tab, label: 'Quiz', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
+                { id: 'write' as Tab, label: 'Write', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
                 { id: 'games' as Tab, label: 'Games', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
               ]).map(t => (
                 <button
@@ -324,7 +326,7 @@ export default function ReviewView() {
               ))}
             </div>
 
-            {tab !== 'games' && total > 0 && (
+            {(tab === 'cards' || tab === 'quiz') && total > 0 && (
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-muted">{done} / {total}</span>
@@ -402,6 +404,11 @@ export default function ReviewView() {
               onReload={() => reload()}
               onSpeak={() => current && speak(current.word)}
             />
+          )}
+
+          {/* ════════ WRITE TAB ════════ */}
+          {tab === 'write' && (
+            <WriteTab playable={playable} loading={loading} setPage={setPage} />
           )}
 
           {/* ════════ GAMES TAB ════════ */}
@@ -671,6 +678,189 @@ function QuizTab({
           Hear the word
         </button>
       )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   WRITE TAB — production practice: write a sentence, get AI feedback
+───────────────────────────────────────────────────────────────── */
+function WriteTab({ playable, loading, setPage }: {
+  playable: SavedWord[]; loading: boolean; setPage: (p: any) => void;
+}) {
+  // A stable shuffled queue of words to practise.
+  const queue = useMemo(() => {
+    const pool = playable.filter(w => w.meaning_en);
+    return shuffle(pool);
+  }, [playable]);
+
+  const [idx, setIdx]           = useState(0);
+  const [sentence, setSentence] = useState('');
+  const [checking, setChecking] = useState(false);
+  const [result, setResult]     = useState<SentenceFeedback | null>(null);
+  const [error, setError]       = useState('');
+  const [doneCount, setDoneCount] = useState(0);
+
+  const word = queue[idx % Math.max(1, queue.length)];
+
+  const reset = useCallback(() => { setSentence(''); setResult(null); setError(''); }, []);
+
+  const next = useCallback(() => {
+    reset();
+    setIdx(i => i + 1);
+  }, [reset]);
+
+  const check = useCallback(async () => {
+    if (!word || checking) return;
+    const text = sentence.trim();
+    if (text.length < 2) { setError('Please write a sentence first.'); return; }
+    setChecking(true); setError('');
+    try {
+      const fb = await practiceApi.checkSentence(word.word, text, word.meaning_en || '');
+      setResult(fb);
+      // Award XP for a genuine, correct production using the word.
+      if (fb.uses_word && fb.correct) {
+        setDoneCount(c => c + 1);
+        sfx.correct();
+        // Scale XP a little with quality; capped on the server side anyway.
+        awardXP('game_correct', fb.score >= 85 ? 6 : 4);
+      } else {
+        sfx.tap();
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Could not check your sentence. Try again.');
+    } finally {
+      setChecking(false);
+    }
+  }, [word, sentence, checking]);
+
+  if (loading) return (
+    <div className="space-y-3 animate-fade-in">
+      {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
+    </div>
+  );
+
+  if (queue.length === 0) return (
+    <EmptyState
+      icon={<svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>}
+      title="No words to practise yet"
+      description="Save some words with English definitions, then come back to write sentences."
+      action={<button onClick={() => setPage('library')} className="btn-primary px-6 py-3 rounded-2xl text-sm">Go to Library</button>}
+      className="animate-fade-in"
+    />
+  );
+
+  const naturalnessColor =
+    result?.naturalness === 'natural' ? 'text-green-400'
+    : result?.naturalness === 'unnatural' ? 'text-red-400' : 'text-amber-400';
+
+  return (
+    <div className="space-y-4 animate-fade-in">
+
+      {/* Prompt card */}
+      <div className="bg-card border border-default rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-semibold text-muted uppercase tracking-wide">Write a sentence using</span>
+          <span className="text-xs text-faint">{doneCount} done</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="text-2xl font-black text-heading">{word.word}</h2>
+          <button onClick={() => ttsSpeak(word.word, { rate: 0.85 })} aria-label="Listen"
+            className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 active:scale-95 flex items-center justify-center transition-all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/>
+            </svg>
+          </button>
+        </div>
+        {word.meaning_en && <p className="text-sm text-muted mt-1">{word.meaning_en}</p>}
+        {word.meaning_ar && (
+          <p className="text-sm text-muted mt-0.5" style={{ direction: 'rtl' }}>{word.meaning_ar}</p>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="bg-card border border-default rounded-2xl p-4">
+        <textarea
+          value={sentence}
+          onChange={e => setSentence(e.target.value)}
+          disabled={checking || !!result}
+          rows={3}
+          maxLength={500}
+          placeholder={`Write your own sentence using "${word.word}"…`}
+          className="w-full bg-elevated border border-default rounded-xl px-3 py-2.5 text-sm text-body outline-none focus:border-blue-500/50 resize-none disabled:opacity-70"
+        />
+        {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+
+        {!result ? (
+          <button onClick={check} disabled={checking}
+            className="w-full btn-primary py-3 rounded-xl text-sm mt-3 disabled:opacity-60">
+            {checking ? 'Checking…' : 'Check my sentence'}
+          </button>
+        ) : (
+          <button onClick={next} className="w-full btn-primary py-3 rounded-xl text-sm mt-3">
+            Next word →
+          </button>
+        )}
+      </div>
+
+      {/* Feedback */}
+      {result && (
+        <div className={`bg-card border rounded-2xl p-5 space-y-3 animate-fade-in ${
+          result.uses_word && result.correct ? 'border-green-500/30' : 'border-amber-500/30'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{result.uses_word && result.correct ? '✅' : '✍️'}</span>
+            <div className="flex-1">
+              <div className="text-sm font-bold text-heading">
+                {result.uses_word && result.correct ? 'Great sentence!' : "Let's improve it"}
+              </div>
+              {!result.uses_word && (
+                <div className="text-xs text-amber-500">The word wasn't used clearly.</div>
+              )}
+            </div>
+            {result.score > 0 && (
+              <div className="text-right">
+                <div className="text-lg font-black text-heading">{result.score}</div>
+                <div className="text-[10px] text-faint">/ 100</div>
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm text-body">{result.feedback}</p>
+
+          {result.corrected && result.corrected.trim().toLowerCase() !== sentence.trim().toLowerCase() && (
+            <div className="bg-elevated rounded-xl p-3">
+              <div className="text-xs font-semibold text-muted mb-1">Suggested version</div>
+              <p className="text-sm text-green-400">{result.corrected}</p>
+            </div>
+          )}
+
+          {result.grammar_notes.length > 0 && (
+            <div>
+              <div className="text-xs font-semibold text-muted mb-1">Notes</div>
+              <ul className="space-y-1">
+                {result.grammar_notes.map((n, i) => (
+                  <li key={i} className="text-xs text-body flex gap-1.5">
+                    <span className="text-amber-500">•</span><span>{n}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-xs pt-1 border-t border-subtle">
+            <span className="text-muted">Naturalness: <span className={`font-semibold ${naturalnessColor}`}>{result.naturalness}</span></span>
+          </div>
+
+          {result.tip && (
+            <p className="text-xs text-muted bg-blue-500/8 rounded-lg p-2.5">💡 {result.tip}</p>
+          )}
+        </div>
+      )}
+
+      <p className="text-center text-xs text-faint">
+        AI feedback uses your Groq key (Settings). Production practice builds real fluency.
+      </p>
     </div>
   );
 }
