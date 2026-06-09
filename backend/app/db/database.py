@@ -546,32 +546,27 @@ class DatabaseManager:
 
     async def seed_core_words(self):
         """
-        Load Core English 3000 word list from JSON seed file if not already seeded.
-        Runs on startup — idempotent (skips if data already present).
+        Load the built-in vocabulary into the shared core_words table.
+
+        Idempotent and *additive*:
+          1. Seeds the base Core English 3000 list once (when the table is empty).
+          2. Always tops up from supplementary packs (e.g. b2_extra_words.json),
+             inserting only words that don't already exist. This lets us ship new
+             curated sets to existing installs without wiping anything — new words
+             simply appear on the next startup.
         """
-        import os, json as _json, uuid as _uuid
+        import json as _json, uuid as _uuid
         from pathlib import Path
 
-        seed_path = Path("backend/data/core3000_words.json")
-        if not seed_path.exists():
-            logger.warning("Core 3000 seed file not found: %s", seed_path)
-            return
+        base_path  = Path("backend/data/core3000_words.json")
+        extra_paths = [Path("backend/data/b2_extra_words.json")]
 
-        async with self.get_connection() as conn:
-            async with conn.execute("SELECT COUNT(*) FROM core_words") as cur:
-                count = (await cur.fetchone())[0]
-            if count > 0:
-                logger.info(f"Core 3000 already seeded ({count} words) — skipping")
-                return
-
-            with open(seed_path, encoding="utf-8") as f:
-                words = _json.load(f)
-
+        async def _insert_words(conn, words) -> int:
             inserted = 0
             for w in words:
                 wid = str(_uuid.uuid4())
                 try:
-                    await conn.execute(
+                    cur = await conn.execute(
                         """INSERT OR IGNORE INTO core_words
                            (id, word, pronunciation, part_of_speech, level, freq_rank,
                             meaning_en, meaning_ar, synonyms, antonyms, collocations,
@@ -594,11 +589,41 @@ class DatabaseManager:
                             self._level_to_difficulty(w.get("level", "B1")),
                         ),
                     )
-                    inserted += 1
+                    # rowcount is 1 when a row was actually inserted (not ignored)
+                    inserted += cur.rowcount if cur.rowcount and cur.rowcount > 0 else 0
                 except Exception as e:
                     logger.debug(f"Skipping word '{w.get('word')}': {e}")
+            return inserted
 
-            logger.info(f"Core 3000 seeded: {inserted} words inserted")
+        async with self.get_connection() as conn:
+            async with conn.execute("SELECT COUNT(*) FROM core_words") as cur:
+                count = (await cur.fetchone())[0]
+
+            # 1. Base list — only when the table is empty.
+            if count == 0:
+                if base_path.exists():
+                    with open(base_path, encoding="utf-8") as f:
+                        base_words = _json.load(f)
+                    n = await _insert_words(conn, base_words)
+                    logger.info(f"Core base seeded: {n} words inserted")
+                else:
+                    logger.warning("Core base seed file not found: %s", base_path)
+            else:
+                logger.info(f"Core base already present ({count} words) — skipping base seed")
+
+            # 2. Supplementary packs — always run (insert-or-ignore is cheap & idempotent).
+            for path in extra_paths:
+                if not path.exists():
+                    continue
+                try:
+                    with open(path, encoding="utf-8") as f:
+                        extra_words = _json.load(f)
+                    n = await _insert_words(conn, extra_words)
+                    if n > 0:
+                        logger.info(f"Core pack '{path.name}': {n} new words added")
+                except Exception as e:
+                    logger.warning(f"Failed to load core pack {path}: {e}")
+
 
     @staticmethod
     def _level_to_difficulty(level: str) -> float:

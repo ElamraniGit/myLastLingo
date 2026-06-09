@@ -1,0 +1,2197 @@
+[
+ {
+  "word": "accomplish",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2001,
+  "meaning_en": "to succeed in doing or completing something",
+  "meaning_ar": "يُنجِز",
+  "pronunciation": "əˈkʌmplɪʃ",
+  "synonyms": [
+   "achieve",
+   "complete",
+   "attain",
+   "fulfil"
+  ],
+  "antonyms": [
+   "fail",
+   "abandon"
+  ],
+  "collocations": [
+   "accomplish a goal",
+   "accomplish a task",
+   "accomplish a lot"
+  ],
+  "example": "She accomplished everything she set out to do."
+ },
+ {
+  "word": "anticipate",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2005,
+  "meaning_en": "to expect or predict something before it happens",
+  "meaning_ar": "يتوقّع / يترقّب",
+  "pronunciation": "ænˈtɪsɪpeɪt",
+  "synonyms": [
+   "expect",
+   "foresee",
+   "predict",
+   "await"
+  ],
+  "antonyms": [
+   "overlook"
+  ],
+  "collocations": [
+   "anticipate problems",
+   "anticipate demand",
+   "eagerly anticipate"
+  ],
+  "example": "We anticipate strong sales this year."
+ },
+ {
+  "word": "apparent",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2006,
+  "meaning_en": "clearly seen or understood; obvious",
+  "meaning_ar": "واضح / ظاهر",
+  "pronunciation": "əˈpærənt",
+  "synonyms": [
+   "obvious",
+   "evident",
+   "clear",
+   "plain"
+  ],
+  "antonyms": [
+   "unclear",
+   "hidden"
+  ],
+  "collocations": [
+   "for no apparent reason",
+   "it became apparent",
+   "apparent success"
+  ],
+  "example": "It soon became apparent that he was lying."
+ },
+ {
+  "word": "assess",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2008,
+  "meaning_en": "to judge or evaluate the quality or value of something",
+  "meaning_ar": "يُقيّم",
+  "pronunciation": "əˈses",
+  "synonyms": [
+   "evaluate",
+   "judge",
+   "appraise",
+   "gauge"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "assess the situation",
+   "assess risk",
+   "carefully assess"
+  ],
+  "example": "Teachers assess students' progress regularly."
+ },
+ {
+  "word": "assume",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2009,
+  "meaning_en": "to accept that something is true without proof",
+  "meaning_ar": "يفترض",
+  "pronunciation": "əˈsjuːm",
+  "synonyms": [
+   "suppose",
+   "presume",
+   "take for granted"
+  ],
+  "antonyms": [
+   "verify",
+   "prove"
+  ],
+  "collocations": [
+   "assume responsibility",
+   "let's assume",
+   "wrongly assume"
+  ],
+  "example": "I assumed you already knew the news."
+ },
+ {
+  "word": "attribute",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2010,
+  "meaning_en": "to say that something is caused by a particular thing",
+  "meaning_ar": "يَعزو / يُرجِع إلى",
+  "pronunciation": "əˈtrɪbjuːt",
+  "synonyms": [
+   "credit",
+   "ascribe",
+   "assign"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "attribute success to",
+   "attribute the change to",
+   "attributed to"
+  ],
+  "example": "She attributes her success to hard work."
+ },
+ {
+  "word": "consistent",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2014,
+  "meaning_en": "always behaving or happening in the same way",
+  "meaning_ar": "ثابت / متّسق",
+  "pronunciation": "kənˈsɪstənt",
+  "synonyms": [
+   "steady",
+   "stable",
+   "uniform",
+   "reliable"
+  ],
+  "antonyms": [
+   "inconsistent",
+   "erratic"
+  ],
+  "collocations": [
+   "consistent results",
+   "consistent with",
+   "remain consistent"
+  ],
+  "example": "Her performance has been consistent all season."
+ },
+ {
+  "word": "contemporary",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2015,
+  "meaning_en": "belonging to the present time; modern",
+  "meaning_ar": "معاصر",
+  "pronunciation": "kənˈtemprəri",
+  "synonyms": [
+   "modern",
+   "current",
+   "present-day"
+  ],
+  "antonyms": [
+   "ancient",
+   "traditional"
+  ],
+  "collocations": [
+   "contemporary art",
+   "contemporary society",
+   "contemporary issues"
+  ],
+  "example": "The museum features contemporary art."
+ },
+ {
+  "word": "convey",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2017,
+  "meaning_en": "to communicate or express an idea or feeling",
+  "meaning_ar": "يَنقُل / يُوصِل (فكرة)",
+  "pronunciation": "kənˈveɪ",
+  "synonyms": [
+   "communicate",
+   "express",
+   "transmit",
+   "relay"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "convey a message",
+   "convey meaning",
+   "convey emotion"
+  ],
+  "example": "Words can't convey how grateful I am."
+ },
+ {
+  "word": "deliberate",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2019,
+  "meaning_en": "done on purpose; intentional",
+  "meaning_ar": "متعمَّد / مقصود",
+  "pronunciation": "dɪˈlɪbərət",
+  "synonyms": [
+   "intentional",
+   "planned",
+   "conscious"
+  ],
+  "antonyms": [
+   "accidental",
+   "unintentional"
+  ],
+  "collocations": [
+   "a deliberate attempt",
+   "deliberate choice",
+   "deliberate act"
+  ],
+  "example": "It was a deliberate attempt to mislead us."
+ },
+ {
+  "word": "diminish",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2021,
+  "meaning_en": "to become or make smaller or less",
+  "meaning_ar": "يتناقص / يُقلّل",
+  "pronunciation": "dɪˈmɪnɪʃ",
+  "synonyms": [
+   "decrease",
+   "reduce",
+   "lessen",
+   "decline"
+  ],
+  "antonyms": [
+   "increase",
+   "grow"
+  ],
+  "collocations": [
+   "diminish over time",
+   "gradually diminish",
+   "diminish the risk"
+  ],
+  "example": "Her enthusiasm diminished as the day went on."
+ },
+ {
+  "word": "distinguish",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2022,
+  "meaning_en": "to recognize the difference between things",
+  "meaning_ar": "يُميّز بين",
+  "pronunciation": "dɪˈstɪŋɡwɪʃ",
+  "synonyms": [
+   "differentiate",
+   "tell apart",
+   "discern"
+  ],
+  "antonyms": [
+   "confuse"
+  ],
+  "collocations": [
+   "distinguish between",
+   "hard to distinguish",
+   "distinguish from"
+  ],
+  "example": "It's hard to distinguish the twins."
+ },
+ {
+  "word": "diverse",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2023,
+  "meaning_en": "showing a great deal of variety; very different",
+  "meaning_ar": "متنوّع",
+  "pronunciation": "daɪˈvɜːs",
+  "synonyms": [
+   "varied",
+   "assorted",
+   "different"
+  ],
+  "antonyms": [
+   "uniform",
+   "similar"
+  ],
+  "collocations": [
+   "a diverse range",
+   "culturally diverse",
+   "diverse community"
+  ],
+  "example": "The city has a diverse population."
+ },
+ {
+  "word": "eliminate",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2025,
+  "meaning_en": "to completely remove or get rid of something",
+  "meaning_ar": "يُزيل / يستبعد",
+  "pronunciation": "ɪˈlɪmɪneɪt",
+  "synonyms": [
+   "remove",
+   "eradicate",
+   "get rid of"
+  ],
+  "antonyms": [
+   "add",
+   "include"
+  ],
+  "collocations": [
+   "eliminate waste",
+   "eliminate the need",
+   "completely eliminate"
+  ],
+  "example": "We aim to eliminate errors in the process."
+ },
+ {
+  "word": "emphasize",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2027,
+  "meaning_en": "to give special importance to something",
+  "meaning_ar": "يُؤكّد / يُشدّد على",
+  "pronunciation": "ˈemfəsaɪz",
+  "synonyms": [
+   "stress",
+   "highlight",
+   "underline"
+  ],
+  "antonyms": [
+   "downplay"
+  ],
+  "collocations": [
+   "emphasize the importance",
+   "strongly emphasize",
+   "emphasize that"
+  ],
+  "example": "He emphasized the need for caution."
+ },
+ {
+  "word": "encounter",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2028,
+  "meaning_en": "to experience or meet something, often unexpectedly",
+  "meaning_ar": "يُصادف / يُواجه",
+  "pronunciation": "ɪnˈkaʊntə",
+  "synonyms": [
+   "face",
+   "meet",
+   "come across",
+   "experience"
+  ],
+  "antonyms": [
+   "avoid"
+  ],
+  "collocations": [
+   "encounter problems",
+   "encounter difficulties",
+   "first encounter"
+  ],
+  "example": "We encountered several problems along the way."
+ },
+ {
+  "word": "ensure",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2030,
+  "meaning_en": "to make certain that something happens",
+  "meaning_ar": "يَضمن / يَكفل",
+  "pronunciation": "ɪnˈʃʊə",
+  "synonyms": [
+   "guarantee",
+   "make sure",
+   "secure"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "ensure safety",
+   "ensure that",
+   "help ensure"
+  ],
+  "example": "Please ensure the door is locked."
+ },
+ {
+  "word": "exceed",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2032,
+  "meaning_en": "to be greater than a number or limit",
+  "meaning_ar": "يَتجاوز / يَفوق",
+  "pronunciation": "ɪkˈsiːd",
+  "synonyms": [
+   "surpass",
+   "go beyond",
+   "top"
+  ],
+  "antonyms": [
+   "fall short"
+  ],
+  "collocations": [
+   "exceed expectations",
+   "exceed the limit",
+   "far exceed"
+  ],
+  "example": "The results exceeded our expectations."
+ },
+ {
+  "word": "exhibit",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2033,
+  "meaning_en": "to show a quality, feeling, or behaviour",
+  "meaning_ar": "يُظهِر / يُبدي",
+  "pronunciation": "ɪɡˈzɪbɪt",
+  "synonyms": [
+   "display",
+   "show",
+   "demonstrate"
+  ],
+  "antonyms": [
+   "hide",
+   "conceal"
+  ],
+  "collocations": [
+   "exhibit signs",
+   "exhibit behaviour",
+   "publicly exhibit"
+  ],
+  "example": "The patient exhibited unusual symptoms."
+ },
+ {
+  "word": "feasible",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2036,
+  "meaning_en": "possible to do easily or conveniently",
+  "meaning_ar": "قابل للتطبيق / ممكن",
+  "pronunciation": "ˈfiːzəbl",
+  "synonyms": [
+   "possible",
+   "practical",
+   "viable",
+   "achievable"
+  ],
+  "antonyms": [
+   "impossible",
+   "impractical"
+  ],
+  "collocations": [
+   "a feasible plan",
+   "economically feasible",
+   "technically feasible"
+  ],
+  "example": "Is it feasible to finish by Friday?"
+ },
+ {
+  "word": "inevitable",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2040,
+  "meaning_en": "certain to happen and impossible to avoid",
+  "meaning_ar": "حتمي / لا مفر منه",
+  "pronunciation": "ɪnˈevɪtəbl",
+  "synonyms": [
+   "unavoidable",
+   "certain",
+   "inescapable"
+  ],
+  "antonyms": [
+   "avoidable",
+   "preventable"
+  ],
+  "collocations": [
+   "inevitable consequence",
+   "seemed inevitable",
+   "the inevitable result"
+  ],
+  "example": "Change is inevitable in any organization."
+ },
+ {
+  "word": "notion",
+  "pos": "noun",
+  "level": "B2",
+  "freq": 2044,
+  "meaning_en": "an idea, belief, or understanding of something",
+  "meaning_ar": "فكرة / تصوّر",
+  "pronunciation": "ˈnəʊʃn",
+  "synonyms": [
+   "idea",
+   "concept",
+   "belief",
+   "impression"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "the notion that",
+   "a vague notion",
+   "reject the notion"
+  ],
+  "example": "I have no notion of what he meant."
+ },
+ {
+  "word": "persist",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2046,
+  "meaning_en": "to continue firmly despite difficulty",
+  "meaning_ar": "يُثابر / يستمر",
+  "pronunciation": "pəˈsɪst",
+  "synonyms": [
+   "continue",
+   "persevere",
+   "carry on"
+  ],
+  "antonyms": [
+   "quit",
+   "stop"
+  ],
+  "collocations": [
+   "persist in",
+   "problems persist",
+   "persist with"
+  ],
+  "example": "If symptoms persist, see a doctor."
+ },
+ {
+  "word": "prominent",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2048,
+  "meaning_en": "important, well-known, or easily noticed",
+  "meaning_ar": "بارز / مرموق",
+  "pronunciation": "ˈprɒmɪnənt",
+  "synonyms": [
+   "notable",
+   "famous",
+   "leading",
+   "conspicuous"
+  ],
+  "antonyms": [
+   "obscure",
+   "minor"
+  ],
+  "collocations": [
+   "a prominent role",
+   "prominent figure",
+   "prominent position"
+  ],
+  "example": "She is a prominent figure in science."
+ },
+ {
+  "word": "reluctant",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2049,
+  "meaning_en": "unwilling and hesitant to do something",
+  "meaning_ar": "متردد / مُحجِم",
+  "pronunciation": "rɪˈlʌktənt",
+  "synonyms": [
+   "unwilling",
+   "hesitant",
+   "loath"
+  ],
+  "antonyms": [
+   "eager",
+   "willing"
+  ],
+  "collocations": [
+   "reluctant to",
+   "reluctant agreement",
+   "somewhat reluctant"
+  ],
+  "example": "He was reluctant to admit his mistake."
+ },
+ {
+  "word": "reveal",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2050,
+  "meaning_en": "to make something known that was secret or hidden",
+  "meaning_ar": "يَكشف / يُفصِح",
+  "pronunciation": "rɪˈviːl",
+  "synonyms": [
+   "disclose",
+   "show",
+   "expose",
+   "uncover"
+  ],
+  "antonyms": [
+   "hide",
+   "conceal"
+  ],
+  "collocations": [
+   "reveal the truth",
+   "reveal details",
+   "reveal that"
+  ],
+  "example": "The investigation revealed serious problems."
+ },
+ {
+  "word": "subsequent",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2052,
+  "meaning_en": "coming after something else in time",
+  "meaning_ar": "لاحق / تالٍ",
+  "pronunciation": "ˈsʌbsɪkwənt",
+  "synonyms": [
+   "following",
+   "later",
+   "ensuing"
+  ],
+  "antonyms": [
+   "previous",
+   "prior"
+  ],
+  "collocations": [
+   "subsequent events",
+   "in subsequent years",
+   "subsequent to"
+  ],
+  "example": "The error was fixed in a subsequent update."
+ },
+ {
+  "word": "sufficient",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2053,
+  "meaning_en": "as much as is needed; enough",
+  "meaning_ar": "كافٍ",
+  "pronunciation": "səˈfɪʃnt",
+  "synonyms": [
+   "enough",
+   "adequate",
+   "ample"
+  ],
+  "antonyms": [
+   "insufficient",
+   "inadequate"
+  ],
+  "collocations": [
+   "sufficient evidence",
+   "sufficient time",
+   "more than sufficient"
+  ],
+  "example": "We don't have sufficient evidence to decide."
+ },
+ {
+  "word": "undertake",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2054,
+  "meaning_en": "to commit to and begin doing a task",
+  "meaning_ar": "يَتعهّد بـ / يَشرع في",
+  "pronunciation": "ˌʌndəˈteɪk",
+  "synonyms": [
+   "take on",
+   "begin",
+   "commit to",
+   "tackle"
+  ],
+  "antonyms": [
+   "abandon"
+  ],
+  "collocations": [
+   "undertake a project",
+   "undertake research",
+   "undertake responsibility"
+  ],
+  "example": "The team undertook a major research project."
+ },
+ {
+  "word": "vital",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2055,
+  "meaning_en": "absolutely necessary; essential",
+  "meaning_ar": "حيوي / ضروري",
+  "pronunciation": "ˈvaɪtl",
+  "synonyms": [
+   "essential",
+   "crucial",
+   "critical",
+   "key"
+  ],
+  "antonyms": [
+   "unimportant",
+   "trivial"
+  ],
+  "collocations": [
+   "vital role",
+   "vital information",
+   "absolutely vital"
+  ],
+  "example": "Water is vital for survival."
+ },
+ {
+  "word": "widespread",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2056,
+  "meaning_en": "existing or happening in many places or among many people",
+  "meaning_ar": "واسع الانتشار",
+  "pronunciation": "ˈwaɪdspred",
+  "synonyms": [
+   "extensive",
+   "prevalent",
+   "common"
+  ],
+  "antonyms": [
+   "rare",
+   "limited"
+  ],
+  "collocations": [
+   "widespread support",
+   "widespread damage",
+   "become widespread"
+  ],
+  "example": "The new app gained widespread popularity."
+ },
+ {
+  "word": "account for",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3001,
+  "meaning_en": "to be the explanation or cause of something",
+  "meaning_ar": "يُفسّر / يُمثّل (نسبة)",
+  "pronunciation": "əˈkaʊnt fɔː",
+  "synonyms": [
+   "explain",
+   "justify",
+   "make up"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "account for the difference",
+   "accounts for 30%",
+   "hard to account for"
+  ],
+  "example": "How do you account for the sudden change?"
+ },
+ {
+  "word": "bring about",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3002,
+  "meaning_en": "to cause something to happen",
+  "meaning_ar": "يُحدِث / يُسبّب",
+  "pronunciation": "brɪŋ əˈbaʊt",
+  "synonyms": [
+   "cause",
+   "produce",
+   "trigger"
+  ],
+  "antonyms": [
+   "prevent"
+  ],
+  "collocations": [
+   "bring about change",
+   "bring about reform",
+   "help bring about"
+  ],
+  "example": "The reforms brought about real change."
+ },
+ {
+  "word": "carry out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3003,
+  "meaning_en": "to do or complete a task or plan",
+  "meaning_ar": "يُنفّذ",
+  "pronunciation": "ˈkæri aʊt",
+  "synonyms": [
+   "perform",
+   "conduct",
+   "execute",
+   "do"
+  ],
+  "antonyms": [
+   "abandon"
+  ],
+  "collocations": [
+   "carry out a task",
+   "carry out research",
+   "carry out orders"
+  ],
+  "example": "Scientists carried out several experiments."
+ },
+ {
+  "word": "catch up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3004,
+  "meaning_en": "to reach the same level as others after falling behind",
+  "meaning_ar": "يَلحق / يُعوّض التأخر",
+  "pronunciation": "kætʃ ʌp",
+  "synonyms": [
+   "keep up",
+   "reach",
+   "get level"
+  ],
+  "antonyms": [
+   "fall behind"
+  ],
+  "collocations": [
+   "catch up with",
+   "catch up on work",
+   "catch up later"
+  ],
+  "example": "I need to catch up on my reading."
+ },
+ {
+  "word": "come across",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3005,
+  "meaning_en": "to find or meet something by chance",
+  "meaning_ar": "يُصادف / يَعثر بالصدفة",
+  "pronunciation": "kʌm əˈkrɒs",
+  "synonyms": [
+   "find",
+   "encounter",
+   "stumble upon"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "come across a word",
+   "come across as",
+   "happened to come across"
+  ],
+  "example": "I came across an old photo yesterday."
+ },
+ {
+  "word": "come up with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3006,
+  "meaning_en": "to think of or produce an idea or plan",
+  "meaning_ar": "يَبتكر / يَطرح فكرة",
+  "pronunciation": "kʌm ʌp wɪð",
+  "synonyms": [
+   "devise",
+   "invent",
+   "think of",
+   "produce"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "come up with an idea",
+   "come up with a plan",
+   "come up with a solution"
+  ],
+  "example": "She came up with a brilliant idea."
+ },
+ {
+  "word": "cut down on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3007,
+  "meaning_en": "to reduce the amount of something",
+  "meaning_ar": "يُقلّل من",
+  "pronunciation": "kʌt daʊn ɒn",
+  "synonyms": [
+   "reduce",
+   "decrease",
+   "cut back on"
+  ],
+  "antonyms": [
+   "increase"
+  ],
+  "collocations": [
+   "cut down on sugar",
+   "cut down on spending",
+   "try to cut down on"
+  ],
+  "example": "You should cut down on caffeine."
+ },
+ {
+  "word": "deal with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3008,
+  "meaning_en": "to take action to handle a problem or situation",
+  "meaning_ar": "يَتعامل مع / يُعالج",
+  "pronunciation": "diːl wɪð",
+  "synonyms": [
+   "handle",
+   "manage",
+   "address",
+   "tackle"
+  ],
+  "antonyms": [
+   "ignore",
+   "avoid"
+  ],
+  "collocations": [
+   "deal with a problem",
+   "deal with stress",
+   "hard to deal with"
+  ],
+  "example": "He knows how to deal with difficult clients."
+ },
+ {
+  "word": "figure out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3009,
+  "meaning_en": "to understand or solve something by thinking",
+  "meaning_ar": "يَكتشف / يَفهم بالتفكير",
+  "pronunciation": "ˈfɪɡə aʊt",
+  "synonyms": [
+   "work out",
+   "solve",
+   "understand",
+   "grasp"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "figure out how",
+   "figure out a way",
+   "can't figure out"
+  ],
+  "example": "I can't figure out how this works."
+ },
+ {
+  "word": "get along with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3010,
+  "meaning_en": "to have a friendly relationship with someone",
+  "meaning_ar": "يَنسجم مع / يَتفاهم",
+  "pronunciation": "ɡet əˈlɒŋ wɪð",
+  "synonyms": [
+   "get on with",
+   "be friendly with"
+  ],
+  "antonyms": [
+   "clash with"
+  ],
+  "collocations": [
+   "get along with colleagues",
+   "get along well",
+   "hard to get along with"
+  ],
+  "example": "She gets along with everyone at work."
+ },
+ {
+  "word": "get away with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3011,
+  "meaning_en": "to escape punishment for something wrong",
+  "meaning_ar": "يُفلِت من العقاب",
+  "pronunciation": "ɡet əˈweɪ wɪð",
+  "synonyms": [
+   "escape blame",
+   "avoid punishment"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get away with it",
+   "get away with cheating",
+   "let someone get away with"
+  ],
+  "example": "He thinks he can get away with anything."
+ },
+ {
+  "word": "get over",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3012,
+  "meaning_en": "to recover from an illness, shock, or difficulty",
+  "meaning_ar": "يَتعافى / يَتجاوز",
+  "pronunciation": "ɡet ˈəʊvə",
+  "synonyms": [
+   "recover from",
+   "overcome",
+   "bounce back"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get over an illness",
+   "get over a breakup",
+   "hard to get over"
+  ],
+  "example": "It took her months to get over the flu."
+ },
+ {
+  "word": "give up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3013,
+  "meaning_en": "to stop trying; to quit something",
+  "meaning_ar": "يَستسلم / يُقلِع عن",
+  "pronunciation": "ɡɪv ʌp",
+  "synonyms": [
+   "quit",
+   "surrender",
+   "abandon",
+   "stop"
+  ],
+  "antonyms": [
+   "persist",
+   "continue"
+  ],
+  "collocations": [
+   "give up smoking",
+   "never give up",
+   "give up easily"
+  ],
+  "example": "Don't give up on your dreams."
+ },
+ {
+  "word": "go through",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3014,
+  "meaning_en": "to experience a difficult situation; to examine carefully",
+  "meaning_ar": "يَمر بـ / يُراجع بدقة",
+  "pronunciation": "ɡəʊ θruː",
+  "synonyms": [
+   "experience",
+   "endure",
+   "examine",
+   "review"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "go through a tough time",
+   "go through the details",
+   "go through hard times"
+  ],
+  "example": "She's going through a difficult time right now."
+ },
+ {
+  "word": "hold on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3015,
+  "meaning_en": "to wait for a short time; to keep gripping something",
+  "meaning_ar": "يَنتظر / يَتمسّك",
+  "pronunciation": "həʊld ɒn",
+  "synonyms": [
+   "wait",
+   "hang on",
+   "grip"
+  ],
+  "antonyms": [
+   "let go"
+  ],
+  "collocations": [
+   "hold on a second",
+   "hold on tight",
+   "please hold on"
+  ],
+  "example": "Hold on a moment, I'll be right back."
+ },
+ {
+  "word": "look forward to",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3016,
+  "meaning_en": "to feel excited about something that will happen",
+  "meaning_ar": "يَتطلّع إلى / يَترقّب بشوق",
+  "pronunciation": "lʊk ˈfɔːwəd tuː",
+  "synonyms": [
+   "anticipate",
+   "await eagerly"
+  ],
+  "antonyms": [
+   "dread"
+  ],
+  "collocations": [
+   "look forward to seeing you",
+   "really look forward to",
+   "look forward to the weekend"
+  ],
+  "example": "I'm looking forward to the holidays."
+ },
+ {
+  "word": "look into",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3017,
+  "meaning_en": "to investigate or examine something",
+  "meaning_ar": "يَتحرّى / يُحقّق في",
+  "pronunciation": "lʊk ˈɪntuː",
+  "synonyms": [
+   "investigate",
+   "examine",
+   "explore",
+   "research"
+  ],
+  "antonyms": [
+   "ignore"
+  ],
+  "collocations": [
+   "look into the matter",
+   "look into a problem",
+   "promise to look into"
+  ],
+  "example": "The manager said he'd look into the issue."
+ },
+ {
+  "word": "make up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3018,
+  "meaning_en": "to invent a story; to become friendly again after a quarrel",
+  "meaning_ar": "يَختلق / يُصالح",
+  "pronunciation": "meɪk ʌp",
+  "synonyms": [
+   "invent",
+   "fabricate",
+   "reconcile"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make up a story",
+   "make up an excuse",
+   "kiss and make up"
+  ],
+  "example": "He made up an excuse for being late."
+ },
+ {
+  "word": "pass away",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3019,
+  "meaning_en": "to die (a polite way of saying it)",
+  "meaning_ar": "يَتوفّى / يَموت",
+  "pronunciation": "pɑːs əˈweɪ",
+  "synonyms": [
+   "die",
+   "pass on",
+   "decease"
+  ],
+  "antonyms": [
+   "survive"
+  ],
+  "collocations": [
+   "pass away peacefully",
+   "sadly passed away",
+   "passed away last year"
+  ],
+  "example": "Her grandfather passed away last year."
+ },
+ {
+  "word": "point out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3020,
+  "meaning_en": "to draw attention to a fact or mistake",
+  "meaning_ar": "يُشير إلى / يُنبّه على",
+  "pronunciation": "pɔɪnt aʊt",
+  "synonyms": [
+   "indicate",
+   "highlight",
+   "note",
+   "mention"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "point out a mistake",
+   "point out that",
+   "kindly point out"
+  ],
+  "example": "She pointed out a flaw in my plan."
+ },
+ {
+  "word": "put off",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3021,
+  "meaning_en": "to postpone or delay something",
+  "meaning_ar": "يُؤجّل",
+  "pronunciation": "pʊt ɒf",
+  "synonyms": [
+   "postpone",
+   "delay",
+   "defer",
+   "reschedule"
+  ],
+  "antonyms": [
+   "bring forward"
+  ],
+  "collocations": [
+   "put off a meeting",
+   "put off until",
+   "keep putting off"
+  ],
+  "example": "They put off the meeting until next week."
+ },
+ {
+  "word": "put up with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3022,
+  "meaning_en": "to tolerate or accept something unpleasant",
+  "meaning_ar": "يَتحمّل / يَطيق",
+  "pronunciation": "pʊt ʌp wɪð",
+  "synonyms": [
+   "tolerate",
+   "endure",
+   "bear",
+   "stand"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "put up with noise",
+   "can't put up with",
+   "have to put up with"
+  ],
+  "example": "I can't put up with this noise any longer."
+ },
+ {
+  "word": "run into",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3023,
+  "meaning_en": "to meet someone unexpectedly; to encounter a problem",
+  "meaning_ar": "يُصادف / يُواجه (مشكلة)",
+  "pronunciation": "rʌn ˈɪntuː",
+  "synonyms": [
+   "bump into",
+   "encounter",
+   "meet"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "run into an old friend",
+   "run into trouble",
+   "run into difficulties"
+  ],
+  "example": "I ran into my teacher at the mall."
+ },
+ {
+  "word": "run out of",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3024,
+  "meaning_en": "to use all of something so none is left",
+  "meaning_ar": "يَنفد منه / يَستنفد",
+  "pronunciation": "rʌn aʊt ɒv",
+  "synonyms": [
+   "use up",
+   "exhaust",
+   "deplete"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "run out of time",
+   "run out of money",
+   "run out of ideas"
+  ],
+  "example": "We've run out of milk again."
+ },
+ {
+  "word": "set up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3025,
+  "meaning_en": "to start or establish something; to arrange equipment",
+  "meaning_ar": "يُؤسّس / يُجهّز",
+  "pronunciation": "set ʌp",
+  "synonyms": [
+   "establish",
+   "start",
+   "arrange",
+   "install"
+  ],
+  "antonyms": [
+   "dismantle"
+  ],
+  "collocations": [
+   "set up a business",
+   "set up a meeting",
+   "set up the equipment"
+  ],
+  "example": "They set up a new company last year."
+ },
+ {
+  "word": "sort out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3026,
+  "meaning_en": "to organize or resolve a problem",
+  "meaning_ar": "يُرتّب / يُسوّي",
+  "pronunciation": "sɔːt aʊt",
+  "synonyms": [
+   "resolve",
+   "organize",
+   "fix",
+   "arrange"
+  ],
+  "antonyms": [
+   "complicate"
+  ],
+  "collocations": [
+   "sort out a problem",
+   "sort out the mess",
+   "get it sorted out"
+  ],
+  "example": "Let's sort out this misunderstanding."
+ },
+ {
+  "word": "take after",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3027,
+  "meaning_en": "to resemble an older family member",
+  "meaning_ar": "يُشبه (أحد أفراد العائلة)",
+  "pronunciation": "teɪk ˈɑːftə",
+  "synonyms": [
+   "resemble",
+   "look like",
+   "favour"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "take after your mother",
+   "take after him",
+   "really take after"
+  ],
+  "example": "She takes after her mother in looks."
+ },
+ {
+  "word": "take on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3028,
+  "meaning_en": "to accept work or responsibility; to hire",
+  "meaning_ar": "يَتولّى / يُوظّف",
+  "pronunciation": "teɪk ɒn",
+  "synonyms": [
+   "accept",
+   "undertake",
+   "hire",
+   "assume"
+  ],
+  "antonyms": [
+   "drop"
+  ],
+  "collocations": [
+   "take on a task",
+   "take on responsibility",
+   "take on staff"
+  ],
+  "example": "He took on too much work this month."
+ },
+ {
+  "word": "take over",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3029,
+  "meaning_en": "to gain control of something",
+  "meaning_ar": "يَتولّى زمام / يَستحوذ",
+  "pronunciation": "teɪk ˈəʊvə",
+  "synonyms": [
+   "assume control",
+   "seize",
+   "acquire"
+  ],
+  "antonyms": [
+   "relinquish"
+  ],
+  "collocations": [
+   "take over a company",
+   "take over control",
+   "take over from"
+  ],
+  "example": "A larger firm took over the business."
+ },
+ {
+  "word": "turn down",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3030,
+  "meaning_en": "to refuse an offer or request; to lower volume",
+  "meaning_ar": "يَرفض / يَخفض (الصوت)",
+  "pronunciation": "tɜːn daʊn",
+  "synonyms": [
+   "refuse",
+   "reject",
+   "decline",
+   "lower"
+  ],
+  "antonyms": [
+   "accept",
+   "raise"
+  ],
+  "collocations": [
+   "turn down an offer",
+   "turn down the volume",
+   "politely turn down"
+  ],
+  "example": "She turned down the job offer."
+ },
+ {
+  "word": "turn out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3031,
+  "meaning_en": "to happen or end in a particular way",
+  "meaning_ar": "يَتبيّن / يَنتهي إلى",
+  "pronunciation": "tɜːn aʊt",
+  "synonyms": [
+   "end up",
+   "prove to be",
+   "result"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "turn out well",
+   "as it turned out",
+   "turn out to be"
+  ],
+  "example": "Everything turned out fine in the end."
+ },
+ {
+  "word": "turn up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3032,
+  "meaning_en": "to arrive or appear, often unexpectedly; to increase volume",
+  "meaning_ar": "يَحضر / يَظهر / يَرفع (الصوت)",
+  "pronunciation": "tɜːn ʌp",
+  "synonyms": [
+   "arrive",
+   "appear",
+   "show up",
+   "increase"
+  ],
+  "antonyms": [
+   "leave"
+  ],
+  "collocations": [
+   "turn up late",
+   "turn up the volume",
+   "didn't turn up"
+  ],
+  "example": "He turned up an hour late."
+ },
+ {
+  "word": "work out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3033,
+  "meaning_en": "to solve, calculate, or exercise",
+  "meaning_ar": "يَحُلّ / يَحسب / يَتمرّن",
+  "pronunciation": "wɜːk aʊt",
+  "synonyms": [
+   "solve",
+   "calculate",
+   "figure out",
+   "exercise"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "work out a problem",
+   "work out at the gym",
+   "work out the cost"
+  ],
+  "example": "Let's work out how much this will cost."
+ },
+ {
+  "word": "back up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3034,
+  "meaning_en": "to support someone; to make a copy of data",
+  "meaning_ar": "يَدعم / يَنسخ احتياطيًا",
+  "pronunciation": "bæk ʌp",
+  "synonyms": [
+   "support",
+   "reinforce",
+   "copy"
+  ],
+  "antonyms": [
+   "undermine"
+  ],
+  "collocations": [
+   "back up a claim",
+   "back up files",
+   "back me up"
+  ],
+  "example": "Always back up your important files."
+ },
+ {
+  "word": "break down",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3035,
+  "meaning_en": "to stop working; to lose emotional control",
+  "meaning_ar": "يَتعطّل / يَنهار",
+  "pronunciation": "breɪk daʊn",
+  "synonyms": [
+   "stop working",
+   "fail",
+   "collapse"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "the car broke down",
+   "break down in tears",
+   "negotiations broke down"
+  ],
+  "example": "My car broke down on the motorway."
+ },
+ {
+  "word": "call off",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3036,
+  "meaning_en": "to cancel an event or activity",
+  "meaning_ar": "يُلغي",
+  "pronunciation": "kɔːl ɒf",
+  "synonyms": [
+   "cancel",
+   "scrap",
+   "abandon"
+  ],
+  "antonyms": [
+   "arrange"
+  ],
+  "collocations": [
+   "call off a meeting",
+   "call off the search",
+   "call off the wedding"
+  ],
+  "example": "They called off the match due to rain."
+ },
+ {
+  "word": "count on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3037,
+  "meaning_en": "to rely on or depend on someone",
+  "meaning_ar": "يَعتمد على / يُعوّل على",
+  "pronunciation": "kaʊnt ɒn",
+  "synonyms": [
+   "rely on",
+   "depend on",
+   "trust"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "count on someone",
+   "you can count on me",
+   "count on support"
+  ],
+  "example": "You can always count on me."
+ },
+ {
+  "word": "end up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3038,
+  "meaning_en": "to finally be in a particular place or situation",
+  "meaning_ar": "يَنتهي به الأمر إلى",
+  "pronunciation": "end ʌp",
+  "synonyms": [
+   "wind up",
+   "finish up",
+   "turn out"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "end up alone",
+   "end up doing",
+   "end up somewhere"
+  ],
+  "example": "We ended up staying home all weekend."
+ },
+ {
+  "word": "find out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3039,
+  "meaning_en": "to discover information or a fact",
+  "meaning_ar": "يَكتشف / يَعرف",
+  "pronunciation": "faɪnd aʊt",
+  "synonyms": [
+   "discover",
+   "learn",
+   "uncover",
+   "ascertain"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "find out the truth",
+   "find out more",
+   "find out about"
+  ],
+  "example": "I need to find out what happened."
+ },
+ {
+  "word": "give in",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3040,
+  "meaning_en": "to finally agree or stop resisting",
+  "meaning_ar": "يَستسلم / يَرضخ",
+  "pronunciation": "ɡɪv ɪn",
+  "synonyms": [
+   "surrender",
+   "yield",
+   "concede",
+   "submit"
+  ],
+  "antonyms": [
+   "resist"
+  ],
+  "collocations": [
+   "give in to pressure",
+   "never give in",
+   "finally give in"
+  ],
+  "example": "After hours of arguing, he gave in."
+ },
+ {
+  "word": "keep up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3041,
+  "meaning_en": "to continue at the same level; to not fall behind",
+  "meaning_ar": "يُواكب / يُحافظ على الوتيرة",
+  "pronunciation": "kiːp ʌp",
+  "synonyms": [
+   "maintain",
+   "keep pace",
+   "sustain"
+  ],
+  "antonyms": [
+   "fall behind"
+  ],
+  "collocations": [
+   "keep up the good work",
+   "keep up with",
+   "hard to keep up"
+  ],
+  "example": "It's hard to keep up with the news."
+ },
+ {
+  "word": "pick up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3042,
+  "meaning_en": "to lift something; to collect someone; to learn casually",
+  "meaning_ar": "يَلتقط / يَصطحب / يَكتسب",
+  "pronunciation": "pɪk ʌp",
+  "synonyms": [
+   "lift",
+   "collect",
+   "fetch",
+   "learn"
+  ],
+  "antonyms": [
+   "drop"
+  ],
+  "collocations": [
+   "pick up the phone",
+   "pick up the kids",
+   "pick up a language"
+  ],
+  "example": "Can you pick me up at eight?"
+ },
+ {
+  "word": "rule out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3043,
+  "meaning_en": "to decide that something is impossible or not suitable",
+  "meaning_ar": "يَستبعد",
+  "pronunciation": "ruːl aʊt",
+  "synonyms": [
+   "exclude",
+   "eliminate",
+   "dismiss"
+  ],
+  "antonyms": [
+   "consider"
+  ],
+  "collocations": [
+   "rule out a possibility",
+   "can't rule out",
+   "rule out the option"
+  ],
+  "example": "Doctors ruled out anything serious."
+ },
+ {
+  "word": "stand out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "freq": 3044,
+  "meaning_en": "to be easily noticed; to be clearly better",
+  "meaning_ar": "يَبرز / يَتميّز",
+  "pronunciation": "stænd aʊt",
+  "synonyms": [
+   "be noticeable",
+   "excel",
+   "be prominent"
+  ],
+  "antonyms": [
+   "blend in"
+  ],
+  "collocations": [
+   "stand out from the crowd",
+   "really stand out",
+   "stand out clearly"
+  ],
+  "example": "Her talent makes her stand out."
+ },
+ {
+  "word": "adequate",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2057,
+  "meaning_en": "enough in quantity or good enough in quality",
+  "meaning_ar": "كافٍ / ملائم",
+  "pronunciation": "ˈædɪkwət",
+  "synonyms": [
+   "sufficient",
+   "enough",
+   "satisfactory"
+  ],
+  "antonyms": [
+   "inadequate",
+   "insufficient"
+  ],
+  "collocations": [
+   "adequate supply",
+   "adequate time",
+   "perfectly adequate"
+  ],
+  "example": "The room was small but adequate for one person."
+ },
+ {
+  "word": "allocate",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2058,
+  "meaning_en": "to give a share of resources for a particular purpose",
+  "meaning_ar": "يُخصّص",
+  "pronunciation": "ˈæləkeɪt",
+  "synonyms": [
+   "assign",
+   "distribute",
+   "apportion"
+  ],
+  "antonyms": [
+   "withhold"
+  ],
+  "collocations": [
+   "allocate funds",
+   "allocate resources",
+   "allocate time"
+  ],
+  "example": "The government allocated funds for new schools."
+ },
+ {
+  "word": "apparatus",
+  "pos": "noun",
+  "level": "B2",
+  "freq": 2060,
+  "meaning_en": "equipment or tools used for a particular purpose",
+  "meaning_ar": "جهاز / معدّات",
+  "pronunciation": "ˌæpəˈreɪtəs",
+  "synonyms": [
+   "equipment",
+   "device",
+   "gear"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "scientific apparatus",
+   "breathing apparatus",
+   "complex apparatus"
+  ],
+  "example": "The lab is full of expensive apparatus."
+ },
+ {
+  "word": "compile",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2061,
+  "meaning_en": "to collect information and arrange it in a list or report",
+  "meaning_ar": "يُجمّع / يُصنّف",
+  "pronunciation": "kəmˈpaɪl",
+  "synonyms": [
+   "gather",
+   "collect",
+   "assemble"
+  ],
+  "antonyms": [
+   "scatter"
+  ],
+  "collocations": [
+   "compile a list",
+   "compile data",
+   "compile a report"
+  ],
+  "example": "She compiled a list of useful websites."
+ },
+ {
+  "word": "comprise",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2062,
+  "meaning_en": "to consist of or be made up of several parts",
+  "meaning_ar": "يَتألّف من / يَشمل",
+  "pronunciation": "kəmˈpraɪz",
+  "synonyms": [
+   "consist of",
+   "contain",
+   "make up"
+  ],
+  "antonyms": [
+   "exclude"
+  ],
+  "collocations": [
+   "comprise of",
+   "is comprised of",
+   "comprises several parts"
+  ],
+  "example": "The course comprises ten units."
+ },
+ {
+  "word": "constitute",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2063,
+  "meaning_en": "to be or form part of something",
+  "meaning_ar": "يُشكّل / يُكوّن",
+  "pronunciation": "ˈkɒnstɪtjuːt",
+  "synonyms": [
+   "form",
+   "make up",
+   "represent"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "constitute a threat",
+   "constitute a majority",
+   "does not constitute"
+  ],
+  "example": "These actions constitute a serious crime."
+ },
+ {
+  "word": "displace",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2065,
+  "meaning_en": "to force something or someone out of their place",
+  "meaning_ar": "يُزيح / يُهجّر",
+  "pronunciation": "dɪsˈpleɪs",
+  "synonyms": [
+   "replace",
+   "move",
+   "uproot"
+  ],
+  "antonyms": [
+   "restore"
+  ],
+  "collocations": [
+   "displace people",
+   "be displaced",
+   "displace water"
+  ],
+  "example": "Thousands were displaced by the floods."
+ },
+ {
+  "word": "encompass",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2066,
+  "meaning_en": "to include a wide range of things",
+  "meaning_ar": "يَشمل / يَحتوي",
+  "pronunciation": "ɪnˈkʌmpəs",
+  "synonyms": [
+   "include",
+   "cover",
+   "embrace"
+  ],
+  "antonyms": [
+   "exclude"
+  ],
+  "collocations": [
+   "encompass a range",
+   "encompass everything",
+   "broadly encompass"
+  ],
+  "example": "The term encompasses many ideas."
+ },
+ {
+  "word": "endure",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2067,
+  "meaning_en": "to suffer something difficult patiently; to last",
+  "meaning_ar": "يَتحمّل / يَدوم",
+  "pronunciation": "ɪnˈdjʊə",
+  "synonyms": [
+   "bear",
+   "tolerate",
+   "withstand",
+   "last"
+  ],
+  "antonyms": [
+   "give up"
+  ],
+  "collocations": [
+   "endure hardship",
+   "endure pain",
+   "endure over time"
+  ],
+  "example": "They endured years of hardship."
+ },
+ {
+  "word": "foster",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2068,
+  "meaning_en": "to encourage the development of something",
+  "meaning_ar": "يُعزّز / يَرعى",
+  "pronunciation": "ˈfɒstə",
+  "synonyms": [
+   "encourage",
+   "promote",
+   "nurture",
+   "cultivate"
+  ],
+  "antonyms": [
+   "suppress"
+  ],
+  "collocations": [
+   "foster growth",
+   "foster cooperation",
+   "foster talent"
+  ],
+  "example": "Good teachers foster a love of learning."
+ },
+ {
+  "word": "hinder",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2069,
+  "meaning_en": "to make it difficult for something to happen",
+  "meaning_ar": "يُعيق / يُعرقل",
+  "pronunciation": "ˈhɪndə",
+  "synonyms": [
+   "hamper",
+   "obstruct",
+   "impede"
+  ],
+  "antonyms": [
+   "help",
+   "aid",
+   "facilitate"
+  ],
+  "collocations": [
+   "hinder progress",
+   "seriously hinder",
+   "hinder development"
+  ],
+  "example": "Bad weather hindered the rescue effort."
+ },
+ {
+  "word": "incentive",
+  "pos": "noun",
+  "level": "B2",
+  "freq": 2071,
+  "meaning_en": "something that encourages a person to do something",
+  "meaning_ar": "حافز",
+  "pronunciation": "ɪnˈsentɪv",
+  "synonyms": [
+   "motivation",
+   "encouragement",
+   "stimulus"
+  ],
+  "antonyms": [
+   "deterrent"
+  ],
+  "collocations": [
+   "financial incentive",
+   "provide an incentive",
+   "strong incentive"
+  ],
+  "example": "Bonuses are a good incentive to work harder."
+ },
+ {
+  "word": "intervene",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2074,
+  "meaning_en": "to become involved in a situation to change it",
+  "meaning_ar": "يَتدخّل",
+  "pronunciation": "ˌɪntəˈviːn",
+  "synonyms": [
+   "step in",
+   "interfere",
+   "mediate"
+  ],
+  "antonyms": [
+   "ignore"
+  ],
+  "collocations": [
+   "intervene in",
+   "decide to intervene",
+   "intervene directly"
+  ],
+  "example": "The teacher intervened to stop the fight."
+ },
+ {
+  "word": "notable",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2075,
+  "meaning_en": "worth attention; important or remarkable",
+  "meaning_ar": "جدير بالملاحظة / بارز",
+  "pronunciation": "ˈnəʊtəbl",
+  "synonyms": [
+   "remarkable",
+   "noteworthy",
+   "significant"
+  ],
+  "antonyms": [
+   "ordinary",
+   "unremarkable"
+  ],
+  "collocations": [
+   "a notable example",
+   "notable exception",
+   "notable achievement"
+  ],
+  "example": "With a few notable exceptions, the work was good."
+ },
+ {
+  "word": "ongoing",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2076,
+  "meaning_en": "continuing to happen; still in progress",
+  "meaning_ar": "مستمر / جارٍ",
+  "pronunciation": "ˈɒnɡəʊɪŋ",
+  "synonyms": [
+   "continuing",
+   "current",
+   "in progress"
+  ],
+  "antonyms": [
+   "finished",
+   "completed"
+  ],
+  "collocations": [
+   "ongoing process",
+   "ongoing investigation",
+   "ongoing support"
+  ],
+  "example": "The investigation is still ongoing."
+ },
+ {
+  "word": "preliminary",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2077,
+  "meaning_en": "happening before a more important action or event",
+  "meaning_ar": "تمهيدي / أوّلي",
+  "pronunciation": "prɪˈlɪmɪnəri",
+  "synonyms": [
+   "initial",
+   "introductory",
+   "early"
+  ],
+  "antonyms": [
+   "final",
+   "concluding"
+  ],
+  "collocations": [
+   "preliminary results",
+   "preliminary stage",
+   "a preliminary report"
+  ],
+  "example": "Preliminary results look very promising."
+ },
+ {
+  "word": "presume",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2078,
+  "meaning_en": "to suppose that something is true without proof",
+  "meaning_ar": "يَفترض / يَظن",
+  "pronunciation": "prɪˈzjuːm",
+  "synonyms": [
+   "assume",
+   "suppose",
+   "believe"
+  ],
+  "antonyms": [
+   "doubt"
+  ],
+  "collocations": [
+   "I presume so",
+   "presume innocence",
+   "presume that"
+  ],
+  "example": "I presume you've met before?"
+ },
+ {
+  "word": "retain",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2079,
+  "meaning_en": "to keep or continue to have something",
+  "meaning_ar": "يَحتفظ بـ / يُبقي",
+  "pronunciation": "rɪˈteɪn",
+  "synonyms": [
+   "keep",
+   "hold",
+   "preserve",
+   "maintain"
+  ],
+  "antonyms": [
+   "lose",
+   "release"
+  ],
+  "collocations": [
+   "retain control",
+   "retain information",
+   "retain customers"
+  ],
+  "example": "The town retains much of its old charm."
+ },
+ {
+  "word": "undergo",
+  "pos": "verb",
+  "level": "B2",
+  "freq": 2080,
+  "meaning_en": "to experience something, especially a change or treatment",
+  "meaning_ar": "يَخضع لـ / يَمر بـ",
+  "pronunciation": "ˌʌndəˈɡəʊ",
+  "synonyms": [
+   "experience",
+   "go through",
+   "endure"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "undergo surgery",
+   "undergo change",
+   "undergo testing"
+  ],
+  "example": "The building will undergo major repairs."
+ },
+ {
+  "word": "viable",
+  "pos": "adjective",
+  "level": "B2",
+  "freq": 2081,
+  "meaning_en": "able to work successfully; practical",
+  "meaning_ar": "قابل للتطبيق / مُجدٍ",
+  "pronunciation": "ˈvaɪəbl",
+  "synonyms": [
+   "feasible",
+   "workable",
+   "practical"
+  ],
+  "antonyms": [
+   "unworkable",
+   "impractical"
+  ],
+  "collocations": [
+   "a viable option",
+   "commercially viable",
+   "viable solution"
+  ],
+  "example": "We need a financially viable plan."
+ }
+]
