@@ -16,6 +16,7 @@ import ModalShell from '@/components/common/ModalShell';
 import { Button } from '@/components/ui/Button';
 import { awardXP } from '@/components/common/XPBar';
 import { speak as ttsSpeak } from '@/lib/tts';
+import { getSpeechRecognition, pronunciationScore, listenOnce } from '@/lib/speech';
 
 interface Props {
   word: string;
@@ -29,44 +30,8 @@ type AttemptResult = {
   correct: boolean;
 };
 
-// Check browser support
-function getSpeechRecognition(): any {
-  if (typeof window === 'undefined') return null;
-  return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
-}
-
-function normalizeWord(w: string): string {
-  return w.toLowerCase().replace(/[^a-z']/g, '').trim();
-}
-
 function calculateScore(target: string, heard: string): number {
-  const t = normalizeWord(target);
-  const h = normalizeWord(heard);
-  if (t === h) return 100;
-  if (!t || !h) return 0;
-
-  // Check if the heard text contains the target word
-  const words = heard.toLowerCase().split(/\s+/).map(w => normalizeWord(w));
-  if (words.includes(t)) return 100;
-
-  // Levenshtein distance for partial matches
-  const len = Math.max(t.length, h.length);
-  if (len === 0) return 100;
-
-  const dp: number[][] = Array.from({ length: t.length + 1 }, () => Array(h.length + 1).fill(0));
-  for (let i = 0; i <= t.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= h.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= t.length; i++) {
-    for (let j = 1; j <= h.length; j++) {
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + (t[i - 1] === h[j - 1] ? 0 : 1)
-      );
-    }
-  }
-  const distance = dp[t.length][h.length];
-  return Math.max(0, Math.round((1 - distance / len) * 100));
+  return pronunciationScore(target, heard);
 }
 
 function speak(text: string, rate = 0.85): Promise<void> {
@@ -96,39 +61,21 @@ export default function PronunciationTrainer({ word, pronunciation, onClose }: P
 
   // Start recording user's voice
   const startListening = useCallback(() => {
-    const SpeechRec = getSpeechRecognition();
-    if (!SpeechRec) return;
-
-    const recognition = new SpeechRec();
-    recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 3;
-    recognitionRef.current = recognition;
-
     setListening(true);
     setCurrentHeard('');
 
-    recognition.onresult = (event: any) => {
-      let heard = '';
-      for (let i = 0; i < event.results.length; i++) {
-        heard += event.results[i][0].transcript;
-      }
-      setCurrentHeard(heard);
-
-      // Final result
-      if (event.results[event.results.length - 1].isFinal) {
+    recognitionRef.current = listenOnce({
+      onInterim: (heard) => setCurrentHeard(heard),
+      onResult: (heard) => {
         const score = calculateScore(word, heard);
         const result = { heard: heard.trim(), score, correct: score >= 80 };
         setAttempts(prev => [result, ...prev].slice(0, 10));
         if (score >= 80) awardXP('pronunciation');
         setListening(false);
-      }
-    };
-
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
-    recognition.start();
+      },
+      onError: () => setListening(false),
+      onEnd: () => setListening(false),
+    });
   }, [word]);
 
   const stopListening = useCallback(() => {

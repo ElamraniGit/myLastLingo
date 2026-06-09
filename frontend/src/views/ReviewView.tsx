@@ -23,6 +23,7 @@ import { xpApi, practiceApi } from '@/lib/api';
 import type { SentenceFeedback } from '@/lib/api';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
+import { isSpeechSupported, pronunciationScore, listenOnce, type RecognitionHandle } from '@/lib/speech';
 import * as sfx from '@/lib/sfx';
 import { awardXP } from '@/components/common/XPBar';
 import { SpellingIcon, ScrambleIcon, MatchIcon, CrosswordIcon } from '@/components/ui/Icons';
@@ -79,7 +80,7 @@ function filterPlayable(words: SavedWord[]): SavedWord[] {
 /* ─────────────────────────────────────────────────────────────────
    TYPES
 ───────────────────────────────────────────────────────────────── */
-type Tab         = 'cards' | 'quiz' | 'write' | 'games';
+type Tab         = 'cards' | 'quiz' | 'write' | 'speak' | 'games';
 type QuizType    = 'definition' | 'fillblank' | 'word';
 type GameMode    = 'menu' | 'spelling' | 'scramble' | 'matching' | 'crossword';
 type SessionSize = 5 | 10 | 20 | 40;
@@ -308,6 +309,7 @@ export default function ReviewView() {
                 { id: 'cards' as Tab, label: 'Cards', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
                 { id: 'quiz'  as Tab, label: 'Quiz', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
                 { id: 'write' as Tab, label: 'Write', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
+                { id: 'speak' as Tab, label: 'Speak', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg> },
                 { id: 'games' as Tab, label: 'Games', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
               ]).map(t => (
                 <button
@@ -409,6 +411,11 @@ export default function ReviewView() {
           {/* ════════ WRITE TAB ════════ */}
           {tab === 'write' && (
             <WriteTab playable={playable} loading={loading} setPage={setPage} />
+          )}
+
+          {/* ════════ SPEAK TAB ════════ */}
+          {tab === 'speak' && (
+            <SpeakTab playable={playable} loading={loading} setPage={setPage} />
           )}
 
           {/* ════════ GAMES TAB ════════ */}
@@ -678,6 +685,179 @@ function QuizTab({
           Hear the word
         </button>
       )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SPEAK TAB — pronunciation practice: listen → record → score
+───────────────────────────────────────────────────────────────── */
+function SpeakTab({ playable, loading, setPage }: {
+  playable: SavedWord[]; loading: boolean; setPage: (p: any) => void;
+}) {
+  const queue = useMemo(() => shuffle(playable.filter(w => w.word)), [playable]);
+
+  const supported = useMemo(() => isSpeechSupported(), []);
+  const [idx, setIdx]           = useState(0);
+  const [listening, setListening] = useState(false);
+  const [heard, setHeard]       = useState('');
+  const [score, setScore]       = useState<number | null>(null);
+  const [best, setBest]         = useState(0);
+  const [practised, setPractised] = useState(0);
+  const recRef = useRef<RecognitionHandle | null>(null);
+
+  const word = queue[idx % Math.max(1, queue.length)];
+
+  // Stop any active recognition on unmount / word change.
+  useEffect(() => () => { recRef.current?.abort(); }, []);
+  const resetWord = useCallback(() => { setHeard(''); setScore(null); }, []);
+
+  const listenModel = useCallback(() => {
+    if (word) ttsSpeak(word.word, { rate: 0.7 });
+  }, [word]);
+
+  const record = useCallback(() => {
+    if (!word || listening) return;
+    setHeard(''); setScore(null);
+    setListening(true);
+    recRef.current = listenOnce({
+      onInterim: (t) => setHeard(t),
+      onResult: (t) => {
+        const s = pronunciationScore(word.word, t);
+        setHeard(t);
+        setScore(s);
+        setListening(false);
+        setPractised(p => p + 1);
+        setBest(b => Math.max(b, s));
+        if (s >= 80) { sfx.correct(); awardXP('pronunciation'); }
+        else if (s >= 50) { sfx.tap(); }
+        else { sfx.wrong(); }
+      },
+      onError: () => setListening(false),
+      onEnd: () => setListening(false),
+    });
+  }, [word, listening]);
+
+  const stop = useCallback(() => { recRef.current?.stop(); setListening(false); }, []);
+
+  const next = useCallback(() => {
+    recRef.current?.abort();
+    resetWord();
+    setIdx(i => i + 1);
+  }, [resetWord]);
+
+  if (loading) return (
+    <div className="space-y-3 animate-fade-in">
+      {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
+    </div>
+  );
+
+  if (queue.length === 0) return (
+    <EmptyState
+      icon={<svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg>}
+      title="No words to practise yet"
+      description="Save some words first, then come back to practise speaking."
+      action={<button onClick={() => setPage('library')} className="btn-primary px-6 py-3 rounded-2xl text-sm">Go to Library</button>}
+      className="animate-fade-in"
+    />
+  );
+
+  if (!supported) return (
+    <EmptyState
+      icon={<svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg>}
+      title="Speech recognition unavailable"
+      description="Pronunciation practice needs a browser that supports speech recognition (Chrome, Edge, or Samsung Internet on Android)."
+      className="animate-fade-in"
+    />
+  );
+
+  const scoreColor = score == null ? '' :
+    score >= 80 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400';
+  const ringColor  = score == null ? '#3b82f6' :
+    score >= 80 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div className="space-y-4 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm font-bold text-heading">Pronunciation</div>
+          <div className="text-xs text-muted">{practised} practised · best {best}%</div>
+        </div>
+        <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5">
+          <span className="text-sm">⭐</span>
+          <span className="text-sm font-bold text-amber-500">{best}%</span>
+        </div>
+      </div>
+
+      {/* Word card with score ring */}
+      <div className="bg-card border border-default rounded-2xl p-6 text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <h2 className="text-3xl font-black text-heading">{word.word}</h2>
+          <button onClick={listenModel} aria-label="Listen"
+            className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 active:scale-95 flex items-center justify-center transition-all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/>
+            </svg>
+          </button>
+        </div>
+        {word.pronunciation && <p className="text-sm text-muted font-mono">{word.pronunciation}</p>}
+
+        {/* Score ring */}
+        {score != null && (
+          <div className="flex items-center justify-center mt-4">
+            <div className="relative w-24 h-24">
+              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="rgb(var(--bg-elevated))" strokeWidth="9"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke={ringColor} strokeWidth="9"
+                  strokeDasharray={`${2 * Math.PI * 42}`}
+                  strokeDashoffset={`${2 * Math.PI * 42 * (1 - score / 100)}`}
+                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset .8s ease' }}/>
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-2xl font-black ${scoreColor}`}>{score}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {heard && (
+          <p className="text-sm text-muted mt-3 italic">heard: &ldquo;{heard}&rdquo;</p>
+        )}
+      </div>
+
+      {/* Record / Stop */}
+      {score == null ? (
+        <button onClick={listening ? stop : record}
+          className={`w-full py-4 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
+            listening ? 'bg-red-500/15 text-red-400 border-2 border-red-500/40 animate-pulse'
+                      : 'btn-primary'
+          }`}>
+          {listening ? (
+            <><span className="w-3 h-3 bg-red-500 rounded-full animate-ping" /> Listening… tap to stop</>
+          ) : (
+            <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg> Tap and say the word</>
+          )}
+        </button>
+      ) : (
+        <div className="flex gap-2">
+          <button onClick={() => { resetWord(); record(); }}
+            className="px-4 py-3.5 rounded-2xl border border-default text-sm text-body hover:bg-card transition-colors">
+            Retry
+          </button>
+          <button onClick={next} className="flex-1 btn-primary py-3.5 rounded-2xl text-sm">Next word →</button>
+        </div>
+      )}
+
+      {score != null && score < 80 && (
+        <p className="text-xs text-muted bg-blue-500/8 rounded-lg p-2.5">
+          💡 Listen to the model again, then speak slowly and clearly, focusing on each syllable.
+        </p>
+      )}
+
+      <p className="text-center text-xs text-faint">
+        Speaking aloud trains your accent and listening together.
+      </p>
     </div>
   );
 }
