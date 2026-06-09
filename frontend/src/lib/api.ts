@@ -318,6 +318,9 @@ export const xpApi = {
     req<any>('/xp/batch', { method: 'POST', body: { items } }),
 
   getStatus: () => req<any>('/xp/status'),
+
+  /** Real per-day activity (xp / actions / reviews) for the last `days` days. */
+  getActivity: (days = 30) => req<any>(`/xp/activity?days=${days}`),
 };
 
 export const chatApi = {

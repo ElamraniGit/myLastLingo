@@ -178,6 +178,49 @@ async def get_xp_status(current_user: dict = Depends(get_current_user)):
     return await _get_status(current_user["sub"])
 
 
+@router.get("/activity")
+async def get_activity(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Return real per-day activity for the last `days` days from xp_log:
+      { "by_day": { "YYYY-MM-DD": {"xp": N, "actions": M, "reviews": R}, ... },
+        "active_days": int, "days": int }
+    Powers the activity heatmap, the 7-day sparkline and the streak calendar.
+    """
+    days = max(1, min(days, 365))
+    user_id = current_user["sub"]
+    cutoff = (datetime.utcnow() - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+
+    async with db_manager.get_connection() as conn:
+        async with conn.execute(
+            """SELECT substr(created_at,1,10) AS day,
+                      SUM(xp_earned) AS xp,
+                      COUNT(*) AS actions,
+                      SUM(CASE WHEN action IN ('review_word','review_perfect') THEN 1 ELSE 0 END) AS reviews
+               FROM xp_log
+               WHERE user_id = ? AND substr(created_at,1,10) >= ?
+               GROUP BY day""",
+            (user_id, cutoff),
+        ) as cur:
+            rows = [dict(r) for r in await cur.fetchall()]
+
+    by_day = {
+        r["day"]: {
+            "xp":      int(r["xp"] or 0),
+            "actions": int(r["actions"] or 0),
+            "reviews": int(r["reviews"] or 0),
+        }
+        for r in rows if r["day"]
+    }
+    return {
+        "by_day":      by_day,
+        "active_days": len(by_day),
+        "days":        days,
+    }
+
+
 async def _get_status(user_id: str) -> dict:
     today = datetime.utcnow().strftime("%Y-%m-%d")
     async with db_manager.get_connection() as conn:

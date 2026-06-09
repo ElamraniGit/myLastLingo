@@ -235,6 +235,7 @@ export default function StatsView() {
   const [loading, setLoading] = useState(true);
   const [xpData,  setXpData]  = useState<any>(null);
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [activity, setActivity] = useState<Record<string, { xp: number; actions: number; reviews: number }>>({});
 
   // Derive 7-day sparkline from upcoming_review_days (past 7 days) as proxy,
   // or build a flat line from total_reviews
@@ -248,8 +249,12 @@ export default function StatsView() {
     setLoading(true);
     try {
       await loadStats();
-      const xp = await xpApi.getStatus().catch(() => null);
+      const [xp, act] = await Promise.all([
+        xpApi.getStatus().catch(() => null),
+        xpApi.getActivity(30).catch(() => null),
+      ]);
       setXpData(xp);
+      setActivity(act?.by_day ?? {});
     } finally {
       setLoading(false);
     }
@@ -292,14 +297,20 @@ export default function StatsView() {
     ? (qualityData.reduce((a, d) => a + d.value * Number(d.label), 0) / totalQ).toFixed(1)
     : '—';
 
-  // Sparkline: build 7-point series from upcoming days reversed (past isn't stored,
-  // so we use a rolling window of reviewed_today as anchor with flat line)
+  // Real per-day review counts from the activity endpoint (xp_log).
+  const reviewsByDay: Record<string, number> = {};
+  Object.entries(activity).forEach(([day, v]) => { reviewsByDay[day] = v.reviews; });
+
+  // Sparkline: real reviews for the past 7 days.
   const sparkData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     const key = d.toISOString().slice(0, 10);
-    return upcomingDays[key] ?? (i === 6 ? reviewedToday : 0);
+    return reviewsByDay[key] ?? 0;
   });
+
+  // Active days in the last 30 (real).
+  const activeDays30 = Object.values(activity).filter(v => v.actions > 0).length;
 
   // ── Skeleton ────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -347,7 +358,7 @@ export default function StatsView() {
         {[
           { label: 'Reviews',     val: fmt(totalReviews), sub: 'total',       color: 'text-cyan-400'   },
           { label: 'Today',       val: String(reviewedToday), sub: 'reviewed', color: 'text-blue-400'  },
-          { label: 'Active Days', val: String(activeDays),   sub: 'last 30d', color: 'text-purple-400' },
+          { label: 'Active Days', val: String(activeDays30 || activeDays), sub: 'last 30d', color: 'text-purple-400' },
         ].map(s => (
           <StatTile key={s.label} label={s.label} value={s.val} subtitle={s.sub} toneClassName={s.color} />
         ))}
@@ -458,8 +469,10 @@ export default function StatsView() {
             <span>More</span>
           </div>
         </div>
-        <Heatmap data={upcomingDays}/>
-        <p className="text-xs text-faint text-center mt-3">Reviews per day — last 30 days</p>
+        <Heatmap data={reviewsByDay}/>
+        <p className="text-xs text-faint text-center mt-3">
+          Reviews per day — last 30 days · {activeDays30} active day{activeDays30 === 1 ? '' : 's'}
+        </p>
       </div>
 
       {/* ── Upcoming Reviews ─────────────────────────────────────────────────── */}
