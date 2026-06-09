@@ -54,25 +54,9 @@ def _login_clear(ident: str) -> None:
     _LOGIN_ATTEMPTS.pop(ident, None)
 
 # ─── Secret key (generated once, stored locally) ────────────────────────────
-_SECRET_KEY: Optional[str] = None
-
-def _get_secret() -> str:
-    global _SECRET_KEY
-    if _SECRET_KEY:
-        return _SECRET_KEY
-    key_file = "data/.secret_key"
-    try:
-        from pathlib import Path
-        p = Path(key_file)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        if p.exists():
-            _SECRET_KEY = p.read_text().strip()
-        else:
-            _SECRET_KEY = base64.urlsafe_b64encode(os.urandom(32)).decode()
-            p.write_text(_SECRET_KEY)
-    except Exception:
-        _SECRET_KEY = "lingualearn-local-secret-fallback-key-32b"
-    return _SECRET_KEY
+# Delegated to backend.app.utils.crypto, which never falls back to a hardcoded
+# constant (FIX-SEC: a predictable fallback key allowed token forgery).
+from backend.app.utils.crypto import get_master_secret as _get_secret
 
 
 # ─── Simple local JWT (no external lib needed) ───────────────────────────────

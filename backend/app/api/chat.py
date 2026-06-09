@@ -28,6 +28,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from backend.app.api.auth import get_current_user
+from backend.app.utils.crypto import encrypt_secret, decrypt_secret
 
 logger     = logging.getLogger(__name__)
 router     = APIRouter()
@@ -60,7 +61,7 @@ async def _get_groq_key(user_id: str) -> Optional[str]:
             ) as cur:
                 row = await cur.fetchone()
         if row:
-            key = (dict(row).get("groq_api_key") or "").strip()
+            key = decrypt_secret((dict(row).get("groq_api_key") or "").strip())
             if key:
                 return key
     from pathlib import Path
@@ -398,7 +399,7 @@ async def set_api_key(req: SetKeyRequest, current_user: dict = Depends(get_curre
     async with db_manager.get_connection() as conn:
         await conn.execute(
             "UPDATE users SET groq_api_key=? WHERE id=?",
-            (key, current_user["sub"]),
+            (encrypt_secret(key), current_user["sub"]),  # FIX-SEC: encrypt at rest
         )
     return {"message": "API key saved successfully"}
 

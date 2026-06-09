@@ -203,7 +203,8 @@ async def get_groq_key_for_request(db_manager, user_id: str) -> Optional[str]:
             ) as cur:
                 row = await cur.fetchone()
         if row:
-            key = (dict(row).get("groq_api_key") or "").strip()
+            from backend.app.utils.crypto import decrypt_secret
+            key = decrypt_secret((dict(row).get("groq_api_key") or "").strip())
             return key if key else None
     except Exception:
         pass

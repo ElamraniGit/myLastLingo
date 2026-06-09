@@ -33,6 +33,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 
 from backend.app.api.auth import get_current_user
+from backend.app.utils.crypto import decrypt_secret
 
 logger     = logging.getLogger(__name__)
 router     = APIRouter()
@@ -66,7 +67,7 @@ async def _get_groq_key(user_id: str) -> Optional[str]:
             ) as cur:
                 row = await cur.fetchone()
         if row:
-            key = (dict(row).get("groq_api_key") or "").strip()
+            key = decrypt_secret((dict(row).get("groq_api_key") or "").strip())
             return key if key else None
     except Exception:
         pass

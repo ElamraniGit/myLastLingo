@@ -20,8 +20,16 @@ const nextConfig = {
       config.resolve.fallback = { fs: false, net: false, tls: false };
     }
 
-    // Disable ALL minification — Terser and SWC minifier both crash on ARM64
-    if (!dev) {
+    // Minification: Terser/SWC minifiers crash on Termux/Android ARM64, so we
+    // disable it there. Everywhere else (CI, desktop) we keep it ON to ship a
+    // smaller, faster bundle. Force-disable via DISABLE_MINIFY=1 if needed.
+    const arch = process.arch; // 'arm64' on Termux/Android
+    const isAndroid = process.platform === 'android' ||
+      /android|termux/i.test(process.env.PREFIX || '');
+    const disableMinify =
+      process.env.DISABLE_MINIFY === '1' || arch === 'arm64' || isAndroid;
+
+    if (!dev && disableMinify) {
       config.optimization.minimize = false;
       config.optimization.minimizer = [];
     }

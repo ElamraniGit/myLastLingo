@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import StreamingResponse
 from backend.app.api.auth import get_current_user
+from backend.app.utils.crypto import decrypt_secret
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ async def _get_groq_key(user_id: str) -> Optional[str]:
             ) as cursor:
                 row = await cursor.fetchone()
         if row:
-            key = (dict(row).get("groq_api_key") or "").strip()
+            key = decrypt_secret((dict(row).get("groq_api_key") or "").strip())
             return key or None
     except Exception:
         return None
