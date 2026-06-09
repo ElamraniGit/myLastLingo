@@ -179,19 +179,30 @@ async def get_xp_status(current_user: dict = Depends(get_current_user)):
 
 
 async def _get_status(user_id: str) -> dict:
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     async with db_manager.get_connection() as conn:
         async with conn.execute("SELECT * FROM user_xp WHERE user_id=?", (user_id,)) as cur:
             row = await cur.fetchone()
+        # Count today's review actions so the client can tell whether the user
+        # already practised today (used for accurate streak-warning reminders).
+        async with conn.execute(
+            """SELECT COUNT(*) FROM xp_log
+               WHERE user_id=? AND action IN ('review_word','review_perfect')
+                 AND substr(created_at,1,10)=?""",
+            (user_id, today),
+        ) as cur2:
+            reviewed_today = (await cur2.fetchone())[0]
+
     if not row:
         return {
             "total_xp": 0, "level": 1, "streak_days": 0, "daily_xp": 0,
             "next_level_xp": 100, "progress": 0,
             "daily_goal": DAILY_GOAL_XP, "daily_goal_met": False,
+            "reviewed_today": reviewed_today,
         }
     data  = dict(row)
     total = data["total_xp"]
     level = total // 100 + 1
-    today = datetime.utcnow().strftime("%Y-%m-%d")
     daily_xp = data.get("daily_xp", 0) if data.get("last_active_date") == today else 0
     return {
         "total_xp":      total,
@@ -202,6 +213,7 @@ async def _get_status(user_id: str) -> dict:
         "progress":      total % 100,
         "daily_goal":    DAILY_GOAL_XP,
         "daily_goal_met": daily_xp >= DAILY_GOAL_XP,
+        "reviewed_today": reviewed_today,
     }
 
 

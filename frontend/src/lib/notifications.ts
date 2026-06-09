@@ -113,6 +113,28 @@ export async function scheduleDailyReviewNotification(
   localStorage.setItem('ll-notif-scheduled-at', new Date().toISOString());
 }
 
+export async function sendTestNotification(): Promise<boolean> {
+  // Lets the user confirm push notifications actually work on their device.
+  if (typeof window === 'undefined' || Notification.permission !== 'granted') return false;
+  if (!('serviceWorker' in navigator)) return false;
+  const sw = await navigator.serviceWorker.ready.catch(() => null);
+  if (!sw) return false;
+
+  sw.active?.postMessage({
+    type: 'SCHEDULE_NOTIFICATION',
+    payload: {
+      delayMs: 0, // immediate
+      title:   '✅ Notifications are on',
+      body:    "Great! You'll get a daily reminder to review your words.",
+      icon:    '/icons/icon-192x192.svg',
+      badge:   '/icons/icon-192x192.svg',
+      tag:     'll-test',
+      data:    { page: 'flashcards' },
+    },
+  });
+  return true;
+}
+
 export async function sendStreakWarningNotification(streakDays: number): Promise<void> {
   if (Notification.permission !== 'granted') return;
   if (!('serviceWorker' in navigator)) return;

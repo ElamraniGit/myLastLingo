@@ -22,6 +22,7 @@ import {
   NotifSettings,
   requestNotificationPermission,
   notificationPermission,
+  sendTestNotification,
 } from '@/lib/notifications';
 import {
   NEURAL_VOICES,
@@ -779,6 +780,7 @@ function NotificationSettings() {
   const [time,       setTime]       = React.useState('09:00');
   const [permission, setPermission] = React.useState<string>('default');
   const [requesting, setRequesting] = React.useState(false);
+  const [testSent,   setTestSent]   = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -814,6 +816,14 @@ function NotificationSettings() {
   const handleTimeChange = (t: string) => {
     setTime(t);
     NotifSettings.setTime(t);
+  };
+
+  const handleTest = async () => {
+    const ok = await sendTestNotification();
+    if (ok) {
+      setTestSent(true);
+      setTimeout(() => setTestSent(false), 4000);
+    }
   };
 
   const isUnsupported = permission === 'unsupported';
@@ -877,6 +887,16 @@ function NotificationSettings() {
               <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${streakWarn ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </button>
           </div>
+
+          {enabled && (
+            <button
+              onClick={handleTest}
+              disabled={testSent}
+              className="w-full text-sm font-medium rounded-xl border border-default text-body hover:bg-elevated disabled:opacity-60 transition-colors py-2.5"
+            >
+              {testSent ? '✅ Sent — check your notifications' : 'Send a test notification'}
+            </button>
+          )}
         </>
       )}
     </div>
