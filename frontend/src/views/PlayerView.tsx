@@ -17,6 +17,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { libraryApi, xpApi } from '@/lib/api';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import TranscriptViewer from '@/components/transcript/TranscriptViewer';
+import DictationPanel from '@/components/player/DictationPanel';
 import type { SavedWord, ReviewSummary } from '@/types';
 import { speak as ttsSpeak } from '@/lib/tts';
 
@@ -46,6 +47,7 @@ const STATUS_DOT: Record<string, string> = {
 // ── Player Screen ─────────────────────────────────────────────────────────────
 export default function PlayerView() {
   const { currentVideo, resetPlayer } = useStore();
+  const [mode, setMode] = useState<'read' | 'dictation'>('read');
   if (!currentVideo) return <HomeDashboard />;
 
   return (
@@ -87,8 +89,30 @@ export default function PlayerView() {
       {/* Player */}
       <div className="shrink-0"><VideoPlayer /></div>
 
-      {/* Transcript */}
-      <div className="flex-1 overflow-hidden"><TranscriptViewer /></div>
+      {/* Mode toggle: Read transcript vs Dictation (listening gap-fill) */}
+      <div className="shrink-0 px-4 pt-3">
+        <div className="flex gap-1 bg-elevated rounded-xl p-1 max-w-xs mx-auto">
+          {([
+            { id: 'read' as const,      label: 'Read' },
+            { id: 'dictation' as const, label: 'Dictation' },
+          ]).map(t => (
+            <button
+              key={t.id}
+              onClick={() => setMode(t.id)}
+              className={`flex-1 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                mode === t.id ? 'bg-base text-heading shadow-card' : 'text-muted hover:text-body'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Transcript or Dictation */}
+      <div className="flex-1 overflow-hidden">
+        {mode === 'read' ? <TranscriptViewer /> : <DictationPanel />}
+      </div>
     </div>
   );
 }
