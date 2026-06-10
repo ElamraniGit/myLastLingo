@@ -106,6 +106,20 @@ Hard quality rules:
 11. Avoid generic filler like “used in many contexts”. Be concrete.
 12. `learning_difficulty`, `priority_score`, and `confidence` must be floats from 0.0 to 1.0.
 13. `frequency_score` must be an integer from 1 to 100.
+
+ARABIC QUALITY (critical — never violate):
+A. Every Arabic field ("translation" and each meaning "arabic") MUST be a REAL,
+   standard Modern Standard Arabic word or phrase that genuinely means the term.
+   NEVER invent, transliterate, or guess Arabic words. If you are unsure of the
+   correct Arabic, use a short accurate Arabic phrase that describes the meaning
+   instead of a single made-up word.
+B. The "translation" must be the most common, correct Arabic equivalent. Example:
+   "trap" → "فَخّ / مِصْيدة" (NOT a non-existent word).
+C. Do NOT output Arabic letters that do not form a real Arabic word.
+D. "part_of_speech_explanation" must be clear, grammatical Arabic or English —
+   never broken or nonsensical text.
+E. If the input has several common meanings, put the most common correct Arabic
+   translation first.
 """
 
 
