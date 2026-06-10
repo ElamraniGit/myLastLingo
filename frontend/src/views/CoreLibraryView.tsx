@@ -60,6 +60,16 @@ interface Progress {
 }
 
 const LEVELS  = ['A1','A2','B1','B2','C1','C2'] as const;
+
+// Part-of-speech quick filters. Values must match core_words.part_of_speech.
+const POS_FILTERS: { label: string; value: string }[] = [
+  { label: 'All types',     value: '' },
+  { label: '🔗 Phrasal Verbs', value: 'phrasal verb' },
+  { label: 'Verbs',         value: 'verb' },
+  { label: 'Nouns',         value: 'noun' },
+  { label: 'Adjectives',    value: 'adjective' },
+  { label: 'Adverbs',       value: 'adverb' },
+];
 const LEVEL_COLORS: Record<string, string> = {
   A1: 'bg-green-500/15 text-green-500 border-green-500/30',
   A2: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
@@ -139,16 +149,17 @@ function BrowseTab() {
   const [loading,    setLoading]    = useState(false);
   const [search,     setSearch]     = useState('');
   const [level,      setLevel]      = useState('');
+  const [pos,        setPos]        = useState('');
   const [sort,       setSort]       = useState('freq');
   const [selected,   setSelected]   = useState<CoreWord | null>(null);
 
   const searchRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const load = useCallback(async (pg = 1, srch = search, lvl = level, srt = sort) => {
+  const load = useCallback(async (pg = 1, srch = search, lvl = level, srt = sort, ps = pos) => {
     setLoading(true);
     try {
       const res = await coreApi.listWords({
-        search: srch || undefined, level: lvl || undefined,
+        search: srch || undefined, level: lvl || undefined, pos: ps || undefined,
         page: pg, limit: 50, sort: srt,
       });
       if (pg === 1) setWords(res.words || []);
@@ -157,14 +168,14 @@ function BrowseTab() {
       setPage_(pg);
     } catch { /* noop */ }
     setLoading(false);
-  }, [search, level, sort]);
+  }, [search, level, sort, pos]);
 
-  useEffect(() => { load(1, search, level, sort); }, [level, sort]); // eslint-disable-line
+  useEffect(() => { load(1, search, level, sort, pos); }, [level, sort, pos]); // eslint-disable-line
 
   const handleSearch = (v: string) => {
     setSearch(v);
     if (searchRef.current) clearTimeout(searchRef.current);
-    searchRef.current = setTimeout(() => load(1, v, level, sort), 350);
+    searchRef.current = setTimeout(() => load(1, v, level, sort, pos), 350);
   };
 
   const hasMore = words.length < total;
@@ -205,6 +216,18 @@ function BrowseTab() {
           <option value="alpha">A → Z</option>
           <option value="level">Level</option>
         </select>
+      </div>
+
+      {/* Part-of-speech filters (incl. Phrasal Verbs) */}
+      <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-none pb-1">
+        {POS_FILTERS.map(p => (
+          <button key={p.value} onClick={() => setPos(pos === p.value ? '' : p.value)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 border transition-all ${
+              pos === p.value
+                ? 'bg-indigo-600 text-white border-indigo-600'
+                : 'bg-card border-default text-muted hover:text-body'
+            }`}>{p.label}</button>
+        ))}
       </div>
 
       {/* Count */}
