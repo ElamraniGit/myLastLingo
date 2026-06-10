@@ -304,23 +304,23 @@ export default function ReviewView() {
               <StatTile label="Streak" value={streakData?.streak_days ?? 0} toneClassName="text-orange-400" />
             </div>
 
-            <div className="flex bg-elevated rounded-2xl p-1 gap-1">
+            <div className="grid grid-cols-5 bg-elevated rounded-2xl p-1 gap-1">
               {([
-                { id: 'cards' as Tab, label: 'Cards', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
-                { id: 'quiz'  as Tab, label: 'Quiz', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
-                { id: 'write' as Tab, label: 'Write', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
-                { id: 'speak' as Tab, label: 'Speak', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg> },
-                { id: 'games' as Tab, label: 'Games', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
+                { id: 'cards' as Tab, label: 'Cards', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M8 10h8M8 14h5"/><circle cx="18" cy="14" r="2" fill="currentColor" stroke="none"/></svg> },
+                { id: 'quiz'  as Tab, label: 'Quiz', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/></svg> },
+                { id: 'write' as Tab, label: 'Write', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> },
+                { id: 'speak' as Tab, label: 'Speak', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3M8 22h8"/></svg> },
+                { id: 'games' as Tab, label: 'Games', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="13" r="1" fill="currentColor" stroke="none"/></svg> },
               ]).map(t => (
                 <button
                   key={t.id}
                   onClick={() => { setTab(t.id); if (t.id !== 'games') setGameMode('menu'); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? 'bg-base text-heading shadow-card' : 'text-muted hover:text-body'}`}
+                  className={`relative flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-semibold transition-all ${tab === t.id ? 'bg-base text-heading shadow-card' : 'text-muted hover:text-body'}`}
                 >
                   <span className={tab === t.id ? 'text-blue-500' : ''}>{t.icon}</span>
                   {t.label}
                   {t.id === 'cards' && (summary?.due_now ?? 0) > 0 && (
-                    <span className="ml-0.5 min-w-[18px] h-[18px] text-xs font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
+                    <span className="absolute top-1 right-1 min-w-[16px] h-[16px] text-[10px] leading-none font-bold bg-blue-500 text-white rounded-full flex items-center justify-center px-1">
                       {summary.due_now}
                     </span>
                   )}

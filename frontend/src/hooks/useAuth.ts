@@ -20,7 +20,10 @@ export function useAuth() {
         const res = await authApi.login(username, password, remember);
         tokenStore.set(res.token);
         setUser(res.user);
-        setPage('player');
+        // Show the onboarding tour on login only if this user never completed it;
+        // otherwise go straight to the app (no welcome screen on normal launches).
+        const seen = useStore.getState().hasCompletedOnboarding;
+        setPage(seen ? 'player' : ('onboarding' as any));
         return true;
       } catch (e) {
         setAuthError(e instanceof ApiError ? e.message : 'Login failed');
