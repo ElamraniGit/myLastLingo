@@ -450,16 +450,21 @@ async def get_user_progress(
         ) as cur:
             row = dict(await cur.fetchone())
 
-        # Per-level breakdown
+        # Per-level breakdown — driven by ALL core_words so every CEFR level is
+        # always present with its true total, even before the user reviews
+        # anything. User progress is LEFT-joined in (started/learned counts).
         async with conn.execute(
             """SELECT cw.level,
-                      COUNT(*) as started,
-                      SUM(CASE WHEN ucp.status='learned' THEN 1 ELSE 0 END) as learned,
-                      (SELECT COUNT(*) FROM core_words c WHERE c.level=cw.level) as total
-               FROM user_core_progress ucp
-               JOIN core_words cw ON cw.id=ucp.core_word_id
-               WHERE ucp.user_id=?
-               GROUP BY cw.level""",
+                      COUNT(*) AS total,
+                      COALESCE(SUM(CASE WHEN ucp.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS started,
+                      COALESCE(SUM(CASE WHEN ucp.status='learned' THEN 1 ELSE 0 END), 0) AS learned
+               FROM core_words cw
+               LEFT JOIN user_core_progress ucp
+                 ON ucp.core_word_id = cw.id AND ucp.user_id = ?
+               GROUP BY cw.level
+               ORDER BY CASE cw.level
+                          WHEN 'A1' THEN 1 WHEN 'A2' THEN 2 WHEN 'B1' THEN 3
+                          WHEN 'B2' THEN 4 WHEN 'C1' THEN 5 ELSE 6 END""",
             (user_id,),
         ) as cur:
             level_rows = [dict(r) for r in await cur.fetchall()]
