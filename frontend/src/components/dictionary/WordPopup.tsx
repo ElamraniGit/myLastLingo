@@ -321,7 +321,6 @@ export default function WordPopup() {
   const ai = w._ai_entry;
   const ps = posStyle(w.part_of_speech);
   const definitions = w.definitions || [];
-  const howToUse = w.how_to_use || [];
   const examples = w.examples || [];
   const synonyms = w.synonyms || [];
   const antonyms = w.antonyms || [];
@@ -414,19 +413,10 @@ export default function WordPopup() {
         </div>
       )}
 
-      {(ai?.word_explanation || howToUse.length > 0) && (
+      {ai?.word_explanation && (
         <Section title="Explanation" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 7 7c0 2.87-1.7 5.27-4 6.46V17a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1v-1.54C6.7 14.27 5 11.87 5 9a7 7 0 0 1 7-7z"/></svg>}>
-          <div className="space-y-2">
-            {ai?.word_explanation && (
-              <div className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
-                <p className="text-sm text-body leading-relaxed">{ai.word_explanation}</p>
-              </div>
-            )}
-            {howToUse.slice(0, 3).map((tip, index) => (
-              <div key={`${tip}-${index}`} className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
-                <p className="text-sm text-body leading-relaxed">{tip}</p>
-              </div>
-            ))}
+          <div className="bg-card/50 rounded-xl px-3.5 py-3 border border-line/30">
+            <p className="text-sm text-body leading-relaxed">{ai.word_explanation}</p>
           </div>
         </Section>
       )}
