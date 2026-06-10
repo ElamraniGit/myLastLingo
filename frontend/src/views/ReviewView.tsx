@@ -114,6 +114,7 @@ export default function ReviewView() {
   const [sessionSize,  setSessionSize]  = useState<SessionSize>(20);
   const [cefrFilter,   setCefrFilter]   = useState<CEFRLevel | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showStats,    setShowStats]    = useState(false);
 
   /* Progress */
   const [done,      setDone]      = useState(0);
@@ -251,6 +252,15 @@ export default function ReviewView() {
                     <span className="text-sm font-bold text-orange-500">{streakData.streak_days}</span>
                   </div>
                 )}
+                <button
+                  onClick={() => setShowStats(v => !v)}
+                  title="Toggle stats"
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${showStats ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-card text-muted hover:text-body'}`}
+                >
+                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </button>
                 {(tab === 'cards' || tab === 'quiz') && (
                   <button
                     onClick={() => setShowSettings(v => !v)}
@@ -297,12 +307,14 @@ export default function ReviewView() {
               </SectionCard>
             )}
 
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              <StatTile label="Done" value={done} subtitle={`${total} total`} />
-              <StatTile label="Due" value={summary?.due_now ?? 0} toneClassName="text-blue-500" />
-              <StatTile label="Learned" value={summary?.learned ?? 0} toneClassName="text-green-500" />
-              <StatTile label="Streak" value={streakData?.streak_days ?? 0} toneClassName="text-orange-400" />
-            </div>
+            {showStats && (
+              <div className="grid grid-cols-4 gap-2 mb-3 animate-fade-in">
+                <StatTile label="Done" value={done} subtitle={`${total} total`} />
+                <StatTile label="Due" value={summary?.due_now ?? 0} toneClassName="text-blue-500" />
+                <StatTile label="Learned" value={summary?.learned ?? 0} toneClassName="text-green-500" />
+                <StatTile label="Streak" value={streakData?.streak_days ?? 0} toneClassName="text-orange-400" />
+              </div>
+            )}
 
             <div className="grid grid-cols-5 bg-elevated rounded-2xl p-1 gap-1">
               {([
@@ -356,7 +368,7 @@ export default function ReviewView() {
 
       {/* ── Tab Content ───────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-none">
-        <div className="max-w-lg mx-auto px-4 py-5 pb-28 lg:pb-8">
+        <div className="max-w-lg mx-auto px-4 py-4 pb-28 lg:pb-8">
 
           {/* ════════ CARDS TAB ════════ */}
           {tab === 'cards' && (
