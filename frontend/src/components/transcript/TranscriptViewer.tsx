@@ -359,7 +359,7 @@ export default function TranscriptViewer() {
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 py-3 space-y-1 scrollbar-thin"
+        className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin"
         dir="ltr"
         style={{ WebkitUserSelect: 'none', userSelect: 'none' } as React.CSSProperties}
         onContextMenu={e => e.preventDefault()}
@@ -367,6 +367,9 @@ export default function TranscriptViewer() {
         onTouchEnd={onScrollTouchEnd}
         onTouchCancel={onScrollTouchEnd}
       >
+        {/* Continuous reading flow: sentences run together as one text, the
+            current sentence is highlighted in place as playback advances. */}
+        <p className={`${fs} leading-loose`} style={{ direction: 'ltr', textAlign: 'left' }}>
         {transcript.segments.map((seg, segListIndex) => {
           const isActive = playerState.current_segment === seg.index;
           const segmentHighlightMode = resolveHighlightMode(seg, transcriptHighlightMode);
@@ -377,16 +380,14 @@ export default function TranscriptViewer() {
           const savedMatch = savedMatchBySegment[segListIndex];
 
           return (
-            <div
+            <span
               key={seg.index}
               ref={isActive ? activeRef : undefined}
               dir="ltr"
               onClick={() => seekTo(seg.start)}
-              className={`group relative rounded-xl px-3 py-2.5 cursor-pointer border transition-colors ${isActive ? 'bg-blue-500/8 border-blue-500/20 shadow-sm' : 'border-transparent hover:bg-card/70 hover:border-line/50'}`}
+              className={`cursor-pointer rounded-md transition-colors ${isActive ? 'bg-blue-500/15 shadow-sm' : 'hover:bg-card/60'}`}
             >
-              {isActive && <div className="absolute left-0 top-2 bottom-2 w-[3px] bg-blue-500 rounded-full" />}
-              <p className={`${fs} leading-loose pl-1`} style={{ direction: 'ltr', textAlign: 'left' }}>
-                {(seg.words?.length ? seg.words : seg.text.split(' ').map(w => ({ word: w } as WordTiming))).map((wt, wi) => {
+              {(seg.words?.length ? seg.words : seg.text.split(' ').map(w => ({ word: w } as WordTiming))).map((wt, wi) => {
                   const word  = typeof wt === 'object' ? wt.word : wt;
                   const clean = normalizeWordText(word);
                   const isSel = segSel ? wi >= segSel.lo && wi <= segSel.hi : false;
@@ -415,17 +416,12 @@ export default function TranscriptViewer() {
                     </React.Fragment>
                   );
                 })}
-              </p>
-              <div className="mt-1 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className={`${fm} text-faint tabular-nums text-sm`}>{fmtTime(seg.start)} → {fmtTime(seg.end)}</span>
-                <span className={`${fm} text-faint`}>{(seg.end - seg.start).toFixed(1)}s</span>
-                {segSel && segSel.hi > segSel.lo && (
-                  <span className={`${fm} text-blue-400 ml-1`}>{segSel.hi - segSel.lo + 1} words</span>
-                )}
-              </div>
-            </div>
+              {/* space between sentences keeps the text flowing as one block */}
+              {segListIndex < transcript.segments.length - 1 ? ' ' : ''}
+            </span>
           );
         })}
+        </p>
       </div>
 
       {toolbar && (

@@ -434,55 +434,77 @@ def _build_clean_segments(cues: List[Dict]) -> List[Dict]:
 
 def _merge_into_sentences(
     runs: List[Dict],
-    max_words: int = 14,
-    max_duration: float = 6.0,
+    max_words: int = 40,
+    max_duration: float = 18.0,
 ) -> List[Dict]:
-    """Merge small word-runs into sentence-like segments."""
+    """
+    Merge small word-runs into complete sentences.
+
+    Captions arrive as small fragments. We accumulate them and flush a segment
+    only at a real sentence boundary (. ! ? …) so each segment is a full sentence
+    for natural, synchronized reading. Generous safety caps (max_words /
+    max_duration) prevent a runaway segment if punctuation is ever missing
+    (common with auto-generated captions), but we still try to break at a clause
+    boundary (, ; :) in that case rather than mid-phrase.
+    """
     if not runs:
         return []
 
+    # Flatten runs into a per-word timeline so we can split exactly at a
+    # sentence boundary even when it falls inside a caption fragment.
+    timeline: List[Dict] = []
+    for run in runs:
+        words = run.get("words") or []
+        n = len(words)
+        if n == 0:
+            continue
+        start = run["start"]
+        dur = max(run["end"] - start, 0.05)
+        wd = dur / n
+        for j, w in enumerate(words):
+            timeline.append({
+                "word": w,
+                "start": start + j * wd,
+                "end": start + (j + 1) * wd,
+            })
+
     merged: List[Dict] = []
-    buf_words: List[str] = []
-    buf_start = 0.0
-    buf_end = 0.0
+    buf: List[Dict] = []
+
+    _SENT_END = re.compile(r"[.!?…]['\"”’\)]?$")
+    _CLAUSE_END = re.compile(r"[,;:]['\"”’\)]?$")
 
     def flush():
-        nonlocal buf_words, buf_start, buf_end
-        if not buf_words:
+        if not buf:
             return
-        text = " ".join(buf_words)
-        n = len(buf_words)
-        dur = max(buf_end - buf_start, 0.1)
-        wd = dur / n
+        buf_start = buf[0]["start"]
+        buf_end = buf[-1]["end"]
         words = [{
-            "word": w,
-            "start": round(buf_start + j * wd, 3),
-            "end": round(buf_start + (j + 1) * wd, 3),
-        } for j, w in enumerate(buf_words)]
-
+            "word": t["word"],
+            "start": round(t["start"], 3),
+            "end": round(t["end"], 3),
+        } for t in buf]
         merged.append({
             "index": len(merged),
             "start": round(buf_start, 3),
             "end": round(buf_end, 3),
-            "text": text,
+            "text": " ".join(t["word"] for t in buf),
             "words": words,
             "duration": round(buf_end - buf_start, 3),
         })
-        buf_words = []
+        buf.clear()
 
-    for run in runs:
-        if not buf_words:
-            buf_start = run["start"]
+    for tok in timeline:
+        buf.append(tok)
+        word = tok["word"].rstrip()
+        span = buf[-1]["end"] - buf[0]["start"]
 
-        buf_words.extend(run["words"])
-        buf_end = run["end"]
+        ends_sentence = bool(_SENT_END.search(word))
+        too_long = len(buf) >= max_words
+        too_much_time = span >= max_duration
+        clause_break = len(buf) >= max_words * 0.6 and bool(_CLAUSE_END.search(word))
 
-        text_so_far = " ".join(buf_words)
-        ends_sentence = bool(re.search(r"[.!?]$", text_so_far.rstrip()))
-        too_long = len(buf_words) >= max_words
-        too_much_time = (buf_end - buf_start) >= max_duration
-
-        if ends_sentence or too_long or too_much_time:
+        if ends_sentence or too_long or too_much_time or clause_break:
             flush()
 
     flush()
