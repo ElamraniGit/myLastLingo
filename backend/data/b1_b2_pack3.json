@@ -1,0 +1,1309 @@
+[
+ {
+  "word": "go on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to continue; to happen",
+  "meaning_ar": "يستمرّ / يحدث",
+  "pronunciation": "ɡəʊ ɒn",
+  "synonyms": [
+   "continue",
+   "carry on",
+   "happen"
+  ],
+  "antonyms": [
+   "stop"
+  ],
+  "collocations": [
+   "go on talking",
+   "what's going on",
+   "go on for hours"
+  ],
+  "example": "Please go on with your story."
+ },
+ {
+  "word": "get back",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to return; to receive something again",
+  "meaning_ar": "يعود / يسترجع",
+  "pronunciation": "ɡet bæk",
+  "synonyms": [
+   "return",
+   "come back",
+   "retrieve"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get back home",
+   "get back to me",
+   "get back your money"
+  ],
+  "example": "I'll call you when I get back."
+ },
+ {
+  "word": "look around",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to look at what is near you or in a place",
+  "meaning_ar": "يتفقّد / يتجوّل بالنظر",
+  "pronunciation": "lʊk əˈraʊnd",
+  "synonyms": [
+   "explore",
+   "browse"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "look around the shop",
+   "take a look around",
+   "look around for"
+  ],
+  "example": "We looked around the museum for an hour."
+ },
+ {
+  "word": "move on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to leave a topic or situation and start a new one",
+  "meaning_ar": "يمضي قدمًا / ينتقل",
+  "pronunciation": "muːv ɒn",
+  "synonyms": [
+   "proceed",
+   "progress",
+   "advance"
+  ],
+  "antonyms": [
+   "dwell"
+  ],
+  "collocations": [
+   "move on to",
+   "time to move on",
+   "move on from"
+  ],
+  "example": "Let's move on to the next question."
+ },
+ {
+  "word": "settle down",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to become calm; to start a stable life",
+  "meaning_ar": "يستقرّ / يهدأ",
+  "pronunciation": "ˈsetl daʊn",
+  "synonyms": [
+   "calm down",
+   "stabilize"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "settle down with",
+   "settle down and relax",
+   "finally settle down"
+  ],
+  "example": "They got married and settled down in the countryside."
+ },
+ {
+  "word": "set off",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to start a journey; to cause something to start",
+  "meaning_ar": "ينطلق / يُطلق",
+  "pronunciation": "set ɒf",
+  "synonyms": [
+   "depart",
+   "leave",
+   "trigger"
+  ],
+  "antonyms": [
+   "arrive"
+  ],
+  "collocations": [
+   "set off early",
+   "set off an alarm",
+   "set off on a trip"
+  ],
+  "example": "We set off at dawn to avoid traffic."
+ },
+ {
+  "word": "hold up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to delay or block someone or something",
+  "meaning_ar": "يؤخّر / يعرقل",
+  "pronunciation": "həʊld ʌp",
+  "synonyms": [
+   "delay",
+   "slow down",
+   "obstruct"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "hold up traffic",
+   "be held up",
+   "sorry to hold you up"
+  ],
+  "example": "The accident held up traffic for hours."
+ },
+ {
+  "word": "break up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to end a relationship; to split into pieces",
+  "meaning_ar": "ينفصل / يتفكّك",
+  "pronunciation": "breɪk ʌp",
+  "synonyms": [
+   "split up",
+   "separate",
+   "disband"
+  ],
+  "antonyms": [
+   "get together"
+  ],
+  "collocations": [
+   "break up with",
+   "break up a fight",
+   "the band broke up"
+  ],
+  "example": "They broke up after five years together."
+ },
+ {
+  "word": "grow up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to develop from a child into an adult",
+  "meaning_ar": "يكبر / ينشأ",
+  "pronunciation": "ɡrəʊ ʌp",
+  "synonyms": [
+   "mature",
+   "develop"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "grow up in",
+   "grow up fast",
+   "where did you grow up"
+  ],
+  "example": "She grew up in a small village."
+ },
+ {
+  "word": "calm down",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to become or make someone less upset or excited",
+  "meaning_ar": "يهدأ / يُهدّئ",
+  "pronunciation": "kɑːm daʊn",
+  "synonyms": [
+   "relax",
+   "cool down",
+   "settle"
+  ],
+  "antonyms": [
+   "panic"
+  ],
+  "collocations": [
+   "calm down please",
+   "try to calm down",
+   "calm someone down"
+  ],
+  "example": "Take a deep breath and calm down."
+ },
+ {
+  "word": "give away",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to give something free; to reveal a secret",
+  "meaning_ar": "يتبرّع بـ / يكشف سرًّا",
+  "pronunciation": "ɡɪv əˈweɪ",
+  "synonyms": [
+   "donate",
+   "reveal",
+   "disclose"
+  ],
+  "antonyms": [
+   "keep"
+  ],
+  "collocations": [
+   "give away prizes",
+   "give away a secret",
+   "give it away"
+  ],
+  "example": "They gave away free samples at the store."
+ },
+ {
+  "word": "put up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to build or raise something; to let someone stay",
+  "meaning_ar": "يُقيم / يرفع / يستضيف",
+  "pronunciation": "pʊt ʌp",
+  "synonyms": [
+   "erect",
+   "raise",
+   "accommodate"
+  ],
+  "antonyms": [
+   "take down"
+  ],
+  "collocations": [
+   "put up a tent",
+   "put up prices",
+   "put someone up"
+  ],
+  "example": "They put up a new fence around the garden."
+ },
+ {
+  "word": "get rid of",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to remove or throw away something unwanted",
+  "meaning_ar": "يتخلّص من",
+  "pronunciation": "ɡet rɪd ɒv",
+  "synonyms": [
+   "dispose of",
+   "remove",
+   "discard"
+  ],
+  "antonyms": [
+   "keep"
+  ],
+  "collocations": [
+   "get rid of clutter",
+   "hard to get rid of",
+   "get rid of a habit"
+  ],
+  "example": "I need to get rid of these old clothes."
+ },
+ {
+  "word": "look out",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to be careful or pay attention to danger",
+  "meaning_ar": "ينتبه / يحذر",
+  "pronunciation": "lʊk aʊt",
+  "synonyms": [
+   "watch out",
+   "be careful",
+   "beware"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "look out for",
+   "look out below",
+   "you'd better look out"
+  ],
+  "example": "Look out! There's a car coming."
+ },
+ {
+  "word": "come back",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to return to a place",
+  "meaning_ar": "يعود / يرجع",
+  "pronunciation": "kʌm bæk",
+  "synonyms": [
+   "return",
+   "get back"
+  ],
+  "antonyms": [
+   "leave"
+  ],
+  "collocations": [
+   "come back soon",
+   "come back home",
+   "come back later"
+  ],
+  "example": "She came back from holiday yesterday."
+ },
+ {
+  "word": "take care",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to be careful; used to say goodbye",
+  "meaning_ar": "يهتمّ / يكون حذرًا",
+  "pronunciation": "teɪk keə",
+  "synonyms": [
+   "be careful",
+   "mind"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "take care of yourself",
+   "take great care",
+   "take care now"
+  ],
+  "example": "Take care on the icy roads."
+ },
+ {
+  "word": "pay back",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to return money you owe to someone",
+  "meaning_ar": "يُسدّد / يردّ الدين",
+  "pronunciation": "peɪ bæk",
+  "synonyms": [
+   "repay",
+   "reimburse",
+   "settle"
+  ],
+  "antonyms": [
+   "borrow"
+  ],
+  "collocations": [
+   "pay back a loan",
+   "pay you back",
+   "pay back debt"
+  ],
+  "example": "I'll pay you back next week."
+ },
+ {
+  "word": "sign up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to put your name on a list to join something",
+  "meaning_ar": "يسجّل / يشترك",
+  "pronunciation": "saɪn ʌp",
+  "synonyms": [
+   "enrol",
+   "register",
+   "join"
+  ],
+  "antonyms": [
+   "withdraw"
+  ],
+  "collocations": [
+   "sign up for a course",
+   "sign up online",
+   "sign up now"
+  ],
+  "example": "I signed up for an English class."
+ },
+ {
+  "word": "warm up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to prepare your body with exercise; to make warmer",
+  "meaning_ar": "يُحمّي / يُسخّن",
+  "pronunciation": "wɔːm ʌp",
+  "synonyms": [
+   "heat up",
+   "limber up"
+  ],
+  "antonyms": [
+   "cool down"
+  ],
+  "collocations": [
+   "warm up before exercise",
+   "warm up the engine",
+   "warm up leftovers"
+  ],
+  "example": "Always warm up before you run."
+ },
+ {
+  "word": "check in",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to report your arrival at a hotel or airport",
+  "meaning_ar": "يُسجّل الوصول",
+  "pronunciation": "tʃek ɪn",
+  "synonyms": [
+   "register",
+   "report"
+  ],
+  "antonyms": [
+   "check out"
+  ],
+  "collocations": [
+   "check in at the hotel",
+   "check in online",
+   "check-in desk"
+  ],
+  "example": "We need to check in two hours before the flight."
+ },
+ {
+  "word": "check out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to leave a hotel; to look at or examine something",
+  "meaning_ar": "يُغادر (فندقًا) / يتفحّص",
+  "pronunciation": "tʃek aʊt",
+  "synonyms": [
+   "leave",
+   "examine",
+   "inspect"
+  ],
+  "antonyms": [
+   "check in"
+  ],
+  "collocations": [
+   "check out of the hotel",
+   "check out this offer",
+   "check it out"
+  ],
+  "example": "Check out this new app I found."
+ },
+ {
+  "word": "dress up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to put on formal or special clothes",
+  "meaning_ar": "يتأنّق / يتنكّر",
+  "pronunciation": "dres ʌp",
+  "synonyms": [
+   "smarten up",
+   "get dressed up"
+  ],
+  "antonyms": [
+   "dress down"
+  ],
+  "collocations": [
+   "dress up for a party",
+   "dress up as",
+   "get all dressed up"
+  ],
+  "example": "You don't need to dress up; it's casual."
+ },
+ {
+  "word": "eat out",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to have a meal in a restaurant",
+  "meaning_ar": "يأكل خارج المنزل",
+  "pronunciation": "iːt aʊt",
+  "synonyms": [
+   "dine out"
+  ],
+  "antonyms": [
+   "eat in"
+  ],
+  "collocations": [
+   "eat out often",
+   "let's eat out",
+   "eat out tonight"
+  ],
+  "example": "We eat out every Friday evening."
+ },
+ {
+  "word": "in the long run",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "over a long period in the future",
+  "meaning_ar": "على المدى الطويل",
+  "pronunciation": "ɪn ðə lɒŋ rʌn",
+  "synonyms": [
+   "eventually",
+   "ultimately",
+   "over time"
+  ],
+  "antonyms": [
+   "in the short term"
+  ],
+  "collocations": [
+   "in the long run",
+   "pay off in the long run"
+  ],
+  "example": "Saving money now will help in the long run."
+ },
+ {
+  "word": "for the time being",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "for now; temporarily",
+  "meaning_ar": "في الوقت الحالي",
+  "pronunciation": "fɔː ðə taɪm ˈbiːɪŋ",
+  "synonyms": [
+   "for now",
+   "temporarily",
+   "meanwhile"
+  ],
+  "antonyms": [
+   "permanently"
+  ],
+  "collocations": [
+   "for the time being",
+   "stay for the time being"
+  ],
+  "example": "For the time being, we'll keep the old system."
+ },
+ {
+  "word": "as far as I know",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "based on the information I have",
+  "meaning_ar": "على حدّ علمي",
+  "pronunciation": "æz fɑːr æz aɪ nəʊ",
+  "synonyms": [
+   "to my knowledge"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "as far as I know",
+   "as far as I'm aware"
+  ],
+  "example": "As far as I know, the shop is still open."
+ },
+ {
+  "word": "in my opinion",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "used to give your personal view",
+  "meaning_ar": "في رأيي",
+  "pronunciation": "ɪn maɪ əˈpɪnjən",
+  "synonyms": [
+   "I think",
+   "I believe",
+   "to my mind"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "in my opinion",
+   "in my honest opinion"
+  ],
+  "example": "In my opinion, this is the best choice."
+ },
+ {
+  "word": "by the way",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "used to add or change to a new topic",
+  "meaning_ar": "بالمناسبة",
+  "pronunciation": "baɪ ðə weɪ",
+  "synonyms": [
+   "incidentally",
+   "anyway"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "by the way",
+   "oh, by the way"
+  ],
+  "example": "By the way, did you call the doctor?"
+ },
+ {
+  "word": "at least",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "not less than; used to mention a positive point",
+  "meaning_ar": "على الأقلّ",
+  "pronunciation": "ət liːst",
+  "synonyms": [
+   "at minimum",
+   "anyway"
+  ],
+  "antonyms": [
+   "at most"
+  ],
+  "collocations": [
+   "at least once",
+   "at least we tried",
+   "at least ten"
+  ],
+  "example": "At least we got there before it closed."
+ },
+ {
+  "word": "in fact",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "used to add true or surprising information",
+  "meaning_ar": "في الواقع",
+  "pronunciation": "ɪn fækt",
+  "synonyms": [
+   "actually",
+   "really",
+   "indeed"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "in fact",
+   "in actual fact"
+  ],
+  "example": "He said he was busy; in fact, he was at home."
+ },
+ {
+  "word": "no wonder",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "it is not surprising that",
+  "meaning_ar": "لا عجب / ليس غريبًا",
+  "pronunciation": "nəʊ ˈwʌndə",
+  "synonyms": [
+   "not surprising",
+   "understandably"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "no wonder",
+   "it's no wonder that"
+  ],
+  "example": "No wonder you're tired; you barely slept."
+ },
+ {
+  "word": "take part in",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to be involved in an activity with others",
+  "meaning_ar": "يشارك في",
+  "pronunciation": "teɪk pɑːt ɪn",
+  "synonyms": [
+   "participate in",
+   "join in",
+   "be involved in"
+  ],
+  "antonyms": [
+   "sit out"
+  ],
+  "collocations": [
+   "take part in a competition",
+   "actively take part in"
+  ],
+  "example": "Hundreds of students took part in the event."
+ },
+ {
+  "word": "on purpose",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "deliberately, not by accident",
+  "meaning_ar": "عن قصد / عمدًا",
+  "pronunciation": "ɒn ˈpɜːpəs",
+  "synonyms": [
+   "deliberately",
+   "intentionally"
+  ],
+  "antonyms": [
+   "by accident"
+  ],
+  "collocations": [
+   "do it on purpose",
+   "not on purpose"
+  ],
+  "example": "I'm sorry; I didn't do it on purpose."
+ },
+ {
+  "word": "a waste of time",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "an activity that is not worth the time spent",
+  "meaning_ar": "مضيعة للوقت",
+  "pronunciation": "ə weɪst ɒv taɪm",
+  "synonyms": [
+   "pointless",
+   "futile"
+  ],
+  "antonyms": [
+   "worthwhile"
+  ],
+  "collocations": [
+   "a complete waste of time",
+   "such a waste of time"
+  ],
+  "example": "That meeting was a total waste of time."
+ },
+ {
+  "word": "up to date",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "modern; including the latest information",
+  "meaning_ar": "محدَّث / مواكب",
+  "pronunciation": "ʌp tə deɪt",
+  "synonyms": [
+   "current",
+   "modern",
+   "latest"
+  ],
+  "antonyms": [
+   "out of date"
+  ],
+  "collocations": [
+   "keep up to date",
+   "up-to-date information",
+   "stay up to date"
+  ],
+  "example": "Make sure your software is up to date."
+ },
+ {
+  "word": "out of date",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "old-fashioned or no longer valid",
+  "meaning_ar": "قديم / منتهي الصلاحية",
+  "pronunciation": "aʊt ɒv deɪt",
+  "synonyms": [
+   "outdated",
+   "obsolete",
+   "expired"
+  ],
+  "antonyms": [
+   "up to date"
+  ],
+  "collocations": [
+   "an out-of-date map",
+   "out of date food",
+   "become out of date"
+  ],
+  "example": "This information is completely out of date."
+ },
+ {
+  "word": "make the most of",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "to get the greatest benefit from something",
+  "meaning_ar": "يستغلّ بأفضل صورة",
+  "pronunciation": "meɪk ðə məʊst ɒv",
+  "synonyms": [
+   "take advantage of",
+   "maximize"
+  ],
+  "antonyms": [
+   "waste"
+  ],
+  "collocations": [
+   "make the most of it",
+   "make the most of your time"
+  ],
+  "example": "Make the most of every opportunity."
+ },
+ {
+  "word": "get in touch",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to contact someone",
+  "meaning_ar": "يتواصل / يتّصل",
+  "pronunciation": "ɡet ɪn tʌtʃ",
+  "synonyms": [
+   "contact",
+   "reach out",
+   "get hold of"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get in touch with",
+   "please get in touch",
+   "get in touch soon"
+  ],
+  "example": "Get in touch if you have any questions."
+ },
+ {
+  "word": "run late",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to be later than expected",
+  "meaning_ar": "يتأخّر",
+  "pronunciation": "rʌn leɪt",
+  "synonyms": [
+   "be behind",
+   "be delayed"
+  ],
+  "antonyms": [
+   "be early"
+  ],
+  "collocations": [
+   "running late",
+   "sorry, I'm running late"
+  ],
+  "example": "Sorry, I'm running a bit late."
+ },
+ {
+  "word": "approximately",
+  "pos": "adverb",
+  "level": "B1",
+  "meaning_en": "close to a particular number; about",
+  "meaning_ar": "تقريبًا",
+  "pronunciation": "əˈprɒksɪmətli",
+  "synonyms": [
+   "about",
+   "roughly",
+   "around"
+  ],
+  "antonyms": [
+   "exactly"
+  ],
+  "collocations": [
+   "approximately ten",
+   "approximately equal",
+   "cost approximately"
+  ],
+  "example": "The journey takes approximately two hours."
+ },
+ {
+  "word": "definitely",
+  "pos": "adverb",
+  "level": "B1",
+  "meaning_en": "without any doubt; certainly",
+  "meaning_ar": "بالتأكيد / قطعًا",
+  "pronunciation": "ˈdefɪnətli",
+  "synonyms": [
+   "certainly",
+   "surely",
+   "absolutely"
+  ],
+  "antonyms": [
+   "maybe"
+  ],
+  "collocations": [
+   "definitely yes",
+   "I'll definitely come",
+   "definitely not"
+  ],
+  "example": "I'll definitely be there tonight."
+ },
+ {
+  "word": "eventually",
+  "pos": "adverb",
+  "level": "B1",
+  "meaning_en": "in the end, especially after a delay",
+  "meaning_ar": "في النهاية / آخر الأمر",
+  "pronunciation": "ɪˈventʃuəli",
+  "synonyms": [
+   "finally",
+   "ultimately",
+   "in the end"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "eventually arrive",
+   "will eventually",
+   "eventually agreed"
+  ],
+  "example": "After many tries, he eventually succeeded."
+ },
+ {
+  "word": "fortunately",
+  "pos": "adverb",
+  "level": "B1",
+  "meaning_en": "by good luck; happily",
+  "meaning_ar": "لحسن الحظ",
+  "pronunciation": "ˈfɔːtʃənətli",
+  "synonyms": [
+   "luckily",
+   "happily",
+   "thankfully"
+  ],
+  "antonyms": [
+   "unfortunately"
+  ],
+  "collocations": [
+   "fortunately for us",
+   "fortunately no one was hurt"
+  ],
+  "example": "Fortunately, the rain stopped before the match."
+ },
+ {
+  "word": "nevertheless",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "in spite of what has just been said",
+  "meaning_ar": "ومع ذلك / رغم ذلك",
+  "pronunciation": "ˌnevəðəˈles",
+  "synonyms": [
+   "nonetheless",
+   "however",
+   "still"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "nevertheless, we tried",
+   "difficult; nevertheless"
+  ],
+  "example": "It was raining; nevertheless, we went out."
+ },
+ {
+  "word": "therefore",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "for that reason; as a result",
+  "meaning_ar": "لذلك / بناءً عليه",
+  "pronunciation": "ˈðeəfɔː",
+  "synonyms": [
+   "thus",
+   "hence",
+   "consequently"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "and therefore",
+   "therefore we conclude"
+  ],
+  "example": "He didn't study, and therefore he failed."
+ },
+ {
+  "word": "meanwhile",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "at the same time; while something else happens",
+  "meaning_ar": "في هذه الأثناء",
+  "pronunciation": "ˈmiːnwaɪl",
+  "synonyms": [
+   "in the meantime",
+   "simultaneously"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "meanwhile, back home",
+   "meanwhile she waited"
+  ],
+  "example": "You set the table; meanwhile, I'll cook."
+ },
+ {
+  "word": "frankly",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "in an honest and direct way",
+  "meaning_ar": "بصراحة",
+  "pronunciation": "ˈfræŋkli",
+  "synonyms": [
+   "honestly",
+   "candidly",
+   "openly"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "frankly speaking",
+   "quite frankly",
+   "frankly, I disagree"
+  ],
+  "example": "Frankly, I don't think it will work."
+ },
+ {
+  "word": "barely",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "only just; almost not",
+  "meaning_ar": "بالكاد",
+  "pronunciation": "ˈbeəli",
+  "synonyms": [
+   "hardly",
+   "scarcely",
+   "just"
+  ],
+  "antonyms": [
+   "easily"
+  ],
+  "collocations": [
+   "barely enough",
+   "barely make it",
+   "could barely see"
+  ],
+  "example": "I could barely hear him over the noise."
+ },
+ {
+  "word": "efficiently",
+  "pos": "adverb",
+  "level": "B2",
+  "meaning_en": "in a way that works well without waste",
+  "meaning_ar": "بكفاءة / بفعالية",
+  "pronunciation": "ɪˈfɪʃntli",
+  "synonyms": [
+   "effectively",
+   "productively"
+  ],
+  "antonyms": [
+   "inefficiently"
+  ],
+  "collocations": [
+   "work efficiently",
+   "run efficiently",
+   "manage efficiently"
+  ],
+  "example": "The team handled the crisis efficiently."
+ },
+ {
+  "word": "solution",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "a way to solve a problem",
+  "meaning_ar": "حلّ",
+  "pronunciation": "səˈluːʃn",
+  "synonyms": [
+   "answer",
+   "remedy",
+   "fix"
+  ],
+  "antonyms": [
+   "problem"
+  ],
+  "collocations": [
+   "find a solution",
+   "a simple solution",
+   "the best solution"
+  ],
+  "example": "We need to find a solution quickly."
+ },
+ {
+  "word": "purpose",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "the reason for which something is done",
+  "meaning_ar": "غرض / هدف",
+  "pronunciation": "ˈpɜːpəs",
+  "synonyms": [
+   "aim",
+   "goal",
+   "intention"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "the main purpose",
+   "on purpose",
+   "sense of purpose"
+  ],
+  "example": "The purpose of the meeting was to plan the event."
+ },
+ {
+  "word": "progress",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "movement towards a better or more advanced state",
+  "meaning_ar": "تقدّم",
+  "pronunciation": "ˈprəʊɡres",
+  "synonyms": [
+   "advancement",
+   "improvement",
+   "development"
+  ],
+  "antonyms": [
+   "regression"
+  ],
+  "collocations": [
+   "make progress",
+   "good progress",
+   "track progress"
+  ],
+  "example": "She has made great progress in English."
+ },
+ {
+  "word": "effort",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "the physical or mental energy to do something",
+  "meaning_ar": "جهد / مجهود",
+  "pronunciation": "ˈefət",
+  "synonyms": [
+   "work",
+   "exertion",
+   "attempt"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make an effort",
+   "worth the effort",
+   "put in effort"
+  ],
+  "example": "Learning a language takes a lot of effort."
+ },
+ {
+  "word": "advantageous",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "giving a benefit or putting you in a better position",
+  "meaning_ar": "مفيد / مُجدٍ",
+  "pronunciation": "ˌædvənˈteɪdʒəs",
+  "synonyms": [
+   "beneficial",
+   "favourable",
+   "helpful"
+  ],
+  "antonyms": [
+   "disadvantageous"
+  ],
+  "collocations": [
+   "an advantageous position",
+   "financially advantageous"
+  ],
+  "example": "The location is advantageous for business."
+ },
+ {
+  "word": "worthwhile",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "useful, important, or enjoyable enough to be worth doing",
+  "meaning_ar": "يستحقّ العناء",
+  "pronunciation": "ˌwɜːθˈwaɪl",
+  "synonyms": [
+   "valuable",
+   "rewarding",
+   "useful"
+  ],
+  "antonyms": [
+   "pointless"
+  ],
+  "collocations": [
+   "a worthwhile cause",
+   "well worthwhile",
+   "worthwhile experience"
+  ],
+  "example": "Volunteering is a worthwhile use of time."
+ },
+ {
+  "word": "straightforward",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "easy to understand or do; honest and open",
+  "meaning_ar": "واضح / مباشر / بسيط",
+  "pronunciation": "ˌstreɪtˈfɔːwəd",
+  "synonyms": [
+   "simple",
+   "clear",
+   "direct"
+  ],
+  "antonyms": [
+   "complicated"
+  ],
+  "collocations": [
+   "a straightforward task",
+   "fairly straightforward",
+   "straightforward answer"
+  ],
+  "example": "The instructions are clear and straightforward."
+ },
+ {
+  "word": "considerate",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "careful not to upset or harm other people",
+  "meaning_ar": "مراعٍ لمشاعر الآخرين",
+  "pronunciation": "kənˈsɪdərət",
+  "synonyms": [
+   "thoughtful",
+   "caring",
+   "kind"
+  ],
+  "antonyms": [
+   "inconsiderate"
+  ],
+  "collocations": [
+   "a considerate person",
+   "considerate of others",
+   "very considerate"
+  ],
+  "example": "It was considerate of you to call ahead."
+ },
+ {
+  "word": "sensible",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "reasonable and showing good judgement",
+  "meaning_ar": "عاقل / حكيم",
+  "pronunciation": "ˈsensəbl",
+  "synonyms": [
+   "wise",
+   "practical",
+   "reasonable"
+  ],
+  "antonyms": [
+   "foolish"
+  ],
+  "collocations": [
+   "a sensible decision",
+   "be sensible",
+   "sensible advice"
+  ],
+  "example": "It's sensible to save some money each month."
+ },
+ {
+  "word": "confident",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "feeling sure about yourself and your abilities",
+  "meaning_ar": "واثق",
+  "pronunciation": "ˈkɒnfɪdənt",
+  "synonyms": [
+   "self-assured",
+   "positive",
+   "certain"
+  ],
+  "antonyms": [
+   "insecure"
+  ],
+  "collocations": [
+   "feel confident",
+   "confident about",
+   "quietly confident"
+  ],
+  "example": "She felt confident before the interview."
+ },
+ {
+  "word": "disappointing",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "not as good as you hoped or expected",
+  "meaning_ar": "مخيّب للآمال",
+  "pronunciation": "ˌdɪsəˈpɔɪntɪŋ",
+  "synonyms": [
+   "letdown",
+   "unsatisfactory"
+  ],
+  "antonyms": [
+   "impressive"
+  ],
+  "collocations": [
+   "a disappointing result",
+   "rather disappointing",
+   "disappointing news"
+  ],
+  "example": "The film was disappointing despite the reviews."
+ },
+ {
+  "word": "impressive",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "so good that it earns admiration",
+  "meaning_ar": "مُبهر / مثير للإعجاب",
+  "pronunciation": "ɪmˈpresɪv",
+  "synonyms": [
+   "remarkable",
+   "striking",
+   "admirable"
+  ],
+  "antonyms": [
+   "unimpressive"
+  ],
+  "collocations": [
+   "an impressive performance",
+   "truly impressive",
+   "impressive results"
+  ],
+  "example": "She gave an impressive speech."
+ },
+ {
+  "word": "annoying",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "making you feel slightly angry",
+  "meaning_ar": "مزعج",
+  "pronunciation": "əˈnɔɪɪŋ",
+  "synonyms": [
+   "irritating",
+   "frustrating",
+   "bothersome"
+  ],
+  "antonyms": [
+   "pleasant"
+  ],
+  "collocations": [
+   "really annoying",
+   "an annoying habit",
+   "how annoying"
+  ],
+  "example": "That dripping tap is so annoying."
+ },
+ {
+  "word": "complicated",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "difficult to understand because of many parts",
+  "meaning_ar": "معقّد",
+  "pronunciation": "ˈkɒmplɪkeɪtɪd",
+  "synonyms": [
+   "complex",
+   "involved",
+   "intricate"
+  ],
+  "antonyms": [
+   "simple"
+  ],
+  "collocations": [
+   "a complicated situation",
+   "get complicated",
+   "overly complicated"
+  ],
+  "example": "The instructions are too complicated."
+ }
+]
