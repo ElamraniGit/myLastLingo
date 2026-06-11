@@ -1,0 +1,1310 @@
+[
+ {
+  "word": "get into",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to become involved or interested in something",
+  "meaning_ar": "يدخل في / يهتمّ بـ",
+  "pronunciation": "ɡet ˈɪntuː",
+  "synonyms": [
+   "enter",
+   "take up",
+   "get involved in"
+  ],
+  "antonyms": [
+   "get out of"
+  ],
+  "collocations": [
+   "get into trouble",
+   "get into a habit",
+   "get into university"
+  ],
+  "example": "How did you get into photography?"
+ },
+ {
+  "word": "get out of",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to avoid a duty; to leave a place or situation",
+  "meaning_ar": "يتهرّب من / يخرج من",
+  "pronunciation": "ɡet aʊt ɒv",
+  "synonyms": [
+   "avoid",
+   "escape",
+   "dodge"
+  ],
+  "antonyms": [
+   "get into"
+  ],
+  "collocations": [
+   "get out of work",
+   "get out of bed",
+   "get out of a deal"
+  ],
+  "example": "He always tries to get out of doing chores."
+ },
+ {
+  "word": "look down on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to think you are better than someone",
+  "meaning_ar": "يحتقر / يستصغر",
+  "pronunciation": "lʊk daʊn ɒn",
+  "synonyms": [
+   "despise",
+   "disdain",
+   "belittle"
+  ],
+  "antonyms": [
+   "look up to"
+  ],
+  "collocations": [
+   "look down on others",
+   "never look down on"
+  ],
+  "example": "She never looks down on anyone."
+ },
+ {
+  "word": "put together",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to make something by joining parts or ideas",
+  "meaning_ar": "يجمّع / يُركّب",
+  "pronunciation": "pʊt təˈɡeðə",
+  "synonyms": [
+   "assemble",
+   "build",
+   "compile"
+  ],
+  "antonyms": [
+   "take apart"
+  ],
+  "collocations": [
+   "put together a plan",
+   "put together furniture",
+   "put a team together"
+  ],
+  "example": "It took hours to put the report together."
+ },
+ {
+  "word": "turn around",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to change from bad to good; to face the other way",
+  "meaning_ar": "يتحسّن / يُحوّل للأفضل",
+  "pronunciation": "tɜːn əˈraʊnd",
+  "synonyms": [
+   "recover",
+   "improve",
+   "reverse"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "turn the business around",
+   "turn around quickly",
+   "turn your life around"
+  ],
+  "example": "New management turned the company around."
+ },
+ {
+  "word": "come across as",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to seem to have a particular quality",
+  "meaning_ar": "يبدو / يُعطي انطباعًا",
+  "pronunciation": "kʌm əˈkrɒs æz",
+  "synonyms": [
+   "seem",
+   "appear",
+   "give the impression"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "come across as rude",
+   "come across as friendly",
+   "come across well"
+  ],
+  "example": "He comes across as very confident."
+ },
+ {
+  "word": "go ahead",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to start or continue; to give permission",
+  "meaning_ar": "يمضي قُدمًا / يتفضّل",
+  "pronunciation": "ɡəʊ əˈhed",
+  "synonyms": [
+   "proceed",
+   "continue",
+   "carry on"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "go ahead with",
+   "please go ahead",
+   "go ahead and try"
+  ],
+  "example": "You can go ahead and start without me."
+ },
+ {
+  "word": "drop off",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to take someone to a place; to decrease",
+  "meaning_ar": "يُوصّل / ينخفض",
+  "pronunciation": "drɒp ɒf",
+  "synonyms": [
+   "deliver",
+   "decline",
+   "decrease"
+  ],
+  "antonyms": [
+   "pick up",
+   "rise"
+  ],
+  "collocations": [
+   "drop off the kids",
+   "sales dropped off",
+   "drop you off"
+  ],
+  "example": "Can you drop me off at the station?"
+ },
+ {
+  "word": "pick out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to choose or recognize someone or something",
+  "meaning_ar": "يختار / يميّز",
+  "pronunciation": "pɪk aʊt",
+  "synonyms": [
+   "select",
+   "choose",
+   "spot"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "pick out a dress",
+   "pick out a face",
+   "carefully pick out"
+  ],
+  "example": "She picked out a nice gift for him."
+ },
+ {
+  "word": "hang out",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to spend time relaxing, usually with friends",
+  "meaning_ar": "يقضي الوقت / يتسكّع",
+  "pronunciation": "hæŋ aʊt",
+  "synonyms": [
+   "spend time",
+   "relax",
+   "socialize"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "hang out with friends",
+   "hang out at home",
+   "just hang out"
+  ],
+  "example": "We like to hang out at the café."
+ },
+ {
+  "word": "turn into",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to become or change into something different",
+  "meaning_ar": "يتحوّل إلى",
+  "pronunciation": "tɜːn ˈɪntuː",
+  "synonyms": [
+   "become",
+   "transform into",
+   "change into"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "turn into a problem",
+   "turn into water",
+   "turn into a habit"
+  ],
+  "example": "The argument turned into a serious fight."
+ },
+ {
+  "word": "stick to",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to continue doing something and not change it",
+  "meaning_ar": "يلتزم بـ / يتمسّك بـ",
+  "pronunciation": "stɪk tuː",
+  "synonyms": [
+   "adhere to",
+   "keep to",
+   "follow"
+  ],
+  "antonyms": [
+   "abandon"
+  ],
+  "collocations": [
+   "stick to the plan",
+   "stick to a diet",
+   "stick to the rules"
+  ],
+  "example": "Try to stick to your study schedule."
+ },
+ {
+  "word": "rely on",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to need or trust someone or something",
+  "meaning_ar": "يعتمد على / يثق بـ",
+  "pronunciation": "rɪˈlaɪ ɒn",
+  "synonyms": [
+   "depend on",
+   "count on",
+   "trust"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "rely on support",
+   "rely on him",
+   "heavily rely on"
+  ],
+  "example": "You can rely on me to help."
+ },
+ {
+  "word": "focus on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to give attention to one thing",
+  "meaning_ar": "يركّز على",
+  "pronunciation": "ˈfəʊkəs ɒn",
+  "synonyms": [
+   "concentrate on",
+   "center on"
+  ],
+  "antonyms": [
+   "ignore"
+  ],
+  "collocations": [
+   "focus on work",
+   "focus on the goal",
+   "really focus on"
+  ],
+  "example": "Let's focus on the main issue."
+ },
+ {
+  "word": "cut back",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to reduce the amount of something",
+  "meaning_ar": "يُقلّل / يُخفّض",
+  "pronunciation": "kʌt bæk",
+  "synonyms": [
+   "reduce",
+   "cut down",
+   "decrease"
+  ],
+  "antonyms": [
+   "increase"
+  ],
+  "collocations": [
+   "cut back on spending",
+   "cut back hours",
+   "need to cut back"
+  ],
+  "example": "We had to cut back on expenses this year."
+ },
+ {
+  "word": "bring in",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to introduce something; to earn money",
+  "meaning_ar": "يُدخل / يجلب (مالًا)",
+  "pronunciation": "brɪŋ ɪn",
+  "synonyms": [
+   "introduce",
+   "earn",
+   "generate"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "bring in a law",
+   "bring in profit",
+   "bring in experts"
+  ],
+  "example": "The new policy brings in extra income."
+ },
+ {
+  "word": "go over",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to examine or check something carefully",
+  "meaning_ar": "يُراجع / يستعرض",
+  "pronunciation": "ɡəʊ ˈəʊvə",
+  "synonyms": [
+   "review",
+   "check",
+   "examine"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "go over notes",
+   "go over the details",
+   "go over it again"
+  ],
+  "example": "Let's go over the plan one more time."
+ },
+ {
+  "word": "speak up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to talk louder; to express your opinion openly",
+  "meaning_ar": "يرفع صوته / يُجاهر برأيه",
+  "pronunciation": "spiːk ʌp",
+  "synonyms": [
+   "speak louder",
+   "voice an opinion"
+  ],
+  "antonyms": [
+   "keep quiet"
+  ],
+  "collocations": [
+   "speak up please",
+   "speak up for",
+   "don't be afraid to speak up"
+  ],
+  "example": "Please speak up; we can't hear you."
+ },
+ {
+  "word": "tell apart",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to see the difference between similar things",
+  "meaning_ar": "يُفرّق بين / يميّز",
+  "pronunciation": "tel əˈpɑːt",
+  "synonyms": [
+   "distinguish",
+   "differentiate"
+  ],
+  "antonyms": [
+   "confuse"
+  ],
+  "collocations": [
+   "tell them apart",
+   "hard to tell apart",
+   "can't tell apart"
+  ],
+  "example": "The twins are hard to tell apart."
+ },
+ {
+  "word": "set aside",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to keep something for a special purpose",
+  "meaning_ar": "يُخصّص / يدّخر",
+  "pronunciation": "set əˈsaɪd",
+  "synonyms": [
+   "reserve",
+   "save",
+   "put aside"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "set aside time",
+   "set aside money",
+   "set aside differences"
+  ],
+  "example": "Set aside an hour each day to study."
+ },
+ {
+  "word": "act up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to behave badly or work badly",
+  "meaning_ar": "يتصرّف بشكل سيّئ / يتعطّل",
+  "pronunciation": "ækt ʌp",
+  "synonyms": [
+   "misbehave",
+   "malfunction",
+   "play up"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "the kids acting up",
+   "my knee is acting up",
+   "the computer is acting up"
+  ],
+  "example": "The car has been acting up lately."
+ },
+ {
+  "word": "pay attention",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to watch, listen, or think carefully",
+  "meaning_ar": "ينتبه / يُعير اهتمامًا",
+  "pronunciation": "peɪ əˈtenʃn",
+  "synonyms": [
+   "concentrate",
+   "take notice",
+   "focus"
+  ],
+  "antonyms": [
+   "ignore"
+  ],
+  "collocations": [
+   "pay attention to",
+   "pay close attention",
+   "pay no attention"
+  ],
+  "example": "Pay attention to the road while driving."
+ },
+ {
+  "word": "change your mind",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to form a new opinion or decision",
+  "meaning_ar": "يُغيّر رأيه",
+  "pronunciation": "tʃeɪndʒ jɔː maɪnd",
+  "synonyms": [
+   "reconsider",
+   "have second thoughts"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "change your mind",
+   "changed his mind",
+   "might change my mind"
+  ],
+  "example": "She changed her mind at the last minute."
+ },
+ {
+  "word": "on the whole",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "considering everything; generally",
+  "meaning_ar": "على العموم / إجمالًا",
+  "pronunciation": "ɒn ðə həʊl",
+  "synonyms": [
+   "generally",
+   "overall",
+   "by and large"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "on the whole",
+   "on the whole, it went well"
+  ],
+  "example": "On the whole, the trip was a success."
+ },
+ {
+  "word": "to be honest",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "used to give your true opinion",
+  "meaning_ar": "لأكون صادقًا / بصراحة",
+  "pronunciation": "tə bi ˈɒnɪst",
+  "synonyms": [
+   "honestly",
+   "frankly",
+   "truthfully"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "to be honest with you",
+   "to be honest, I disagree"
+  ],
+  "example": "To be honest, I didn't enjoy the film."
+ },
+ {
+  "word": "in advance",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "before a particular time; beforehand",
+  "meaning_ar": "مُسبقًا / مُقدّمًا",
+  "pronunciation": "ɪn ədˈvɑːns",
+  "synonyms": [
+   "beforehand",
+   "ahead of time"
+  ],
+  "antonyms": [
+   "afterwards"
+  ],
+  "collocations": [
+   "book in advance",
+   "pay in advance",
+   "thanks in advance"
+  ],
+  "example": "You should book tickets in advance."
+ },
+ {
+  "word": "all of a sudden",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "quickly and unexpectedly",
+  "meaning_ar": "فجأة / بغتةً",
+  "pronunciation": "ɔːl ɒv ə ˈsʌdn",
+  "synonyms": [
+   "suddenly",
+   "abruptly",
+   "out of nowhere"
+  ],
+  "antonyms": [
+   "gradually"
+  ],
+  "collocations": [
+   "all of a sudden",
+   "then all of a sudden"
+  ],
+  "example": "All of a sudden, the lights went out."
+ },
+ {
+  "word": "take it easy",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to relax and not work too hard",
+  "meaning_ar": "يأخذ الأمور ببساطة / يرتاح",
+  "pronunciation": "teɪk ɪt ˈiːzi",
+  "synonyms": [
+   "relax",
+   "rest",
+   "slow down"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "take it easy",
+   "just take it easy",
+   "take it easy today"
+  ],
+  "example": "You've worked hard; take it easy this weekend."
+ },
+ {
+  "word": "get used to",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to become familiar with something new",
+  "meaning_ar": "يعتاد على",
+  "pronunciation": "ɡet juːst tuː",
+  "synonyms": [
+   "become accustomed to",
+   "adapt to"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get used to it",
+   "get used to the noise",
+   "hard to get used to"
+  ],
+  "example": "It took me a while to get used to the cold."
+ },
+ {
+  "word": "on the go",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "very busy and active",
+  "meaning_ar": "في حركة دائمة / مشغول",
+  "pronunciation": "ɒn ðə ɡəʊ",
+  "synonyms": [
+   "busy",
+   "active",
+   "on the move"
+  ],
+  "antonyms": [
+   "idle"
+  ],
+  "collocations": [
+   "always on the go",
+   "on the go all day",
+   "constantly on the go"
+  ],
+  "example": "With three kids, she's always on the go."
+ },
+ {
+  "word": "in the meantime",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "in the time between now and a future event",
+  "meaning_ar": "في غضون ذلك",
+  "pronunciation": "ɪn ðə ˈmiːntaɪm",
+  "synonyms": [
+   "meanwhile",
+   "for now"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "in the meantime",
+   "in the meantime, wait here"
+  ],
+  "example": "The bus is late; in the meantime, let's get coffee."
+ },
+ {
+  "word": "a great deal",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "a large amount; very much",
+  "meaning_ar": "قدر كبير / كثيرًا",
+  "pronunciation": "ə ɡreɪt diːl",
+  "synonyms": [
+   "a lot",
+   "much",
+   "plenty"
+  ],
+  "antonyms": [
+   "a little"
+  ],
+  "collocations": [
+   "a great deal of time",
+   "spend a great deal",
+   "mean a great deal"
+  ],
+  "example": "She spends a great deal of time reading."
+ },
+ {
+  "word": "at the moment",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "now; at the present time",
+  "meaning_ar": "في الوقت الحالي",
+  "pronunciation": "ət ðə ˈməʊmənt",
+  "synonyms": [
+   "right now",
+   "currently",
+   "presently"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "at the moment",
+   "busy at the moment",
+   "not at the moment"
+  ],
+  "example": "I'm a bit busy at the moment."
+ },
+ {
+  "word": "in general",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "usually; considering the whole",
+  "meaning_ar": "بشكل عام",
+  "pronunciation": "ɪn ˈdʒenrəl",
+  "synonyms": [
+   "generally",
+   "usually",
+   "on the whole"
+  ],
+  "antonyms": [
+   "specifically"
+  ],
+  "collocations": [
+   "in general",
+   "people in general",
+   "in general terms"
+  ],
+  "example": "In general, the service here is excellent."
+ },
+ {
+  "word": "sooner or later",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "at some time in the future; eventually",
+  "meaning_ar": "عاجلًا أم آجلًا",
+  "pronunciation": "ˈsuːnə ɔː ˈleɪtə",
+  "synonyms": [
+   "eventually",
+   "in time",
+   "one day"
+  ],
+  "antonyms": [
+   "never"
+  ],
+  "collocations": [
+   "sooner or later",
+   "it'll happen sooner or later"
+  ],
+  "example": "Sooner or later, he'll have to apologize."
+ },
+ {
+  "word": "the other day",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "a few days ago; recently",
+  "meaning_ar": "قبل أيام قليلة",
+  "pronunciation": "ði ˈʌðə deɪ",
+  "synonyms": [
+   "recently",
+   "a few days ago"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "the other day",
+   "just the other day",
+   "saw him the other day"
+  ],
+  "example": "I met your brother the other day."
+ },
+ {
+  "word": "make sure",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to check that something is true or done",
+  "meaning_ar": "يتأكّد / يحرص على",
+  "pronunciation": "meɪk ʃʊə",
+  "synonyms": [
+   "ensure",
+   "confirm",
+   "check"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make sure that",
+   "make sure to",
+   "just make sure"
+  ],
+  "example": "Make sure you lock the door."
+ },
+ {
+  "word": "achievable",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "possible to do or reach successfully",
+  "meaning_ar": "قابل للتحقيق",
+  "pronunciation": "əˈtʃiːvəbl",
+  "synonyms": [
+   "attainable",
+   "realistic",
+   "feasible"
+  ],
+  "antonyms": [
+   "impossible"
+  ],
+  "collocations": [
+   "an achievable goal",
+   "realistic and achievable",
+   "easily achievable"
+  ],
+  "example": "Set goals that are realistic and achievable."
+ },
+ {
+  "word": "brief",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "lasting a short time; using few words",
+  "meaning_ar": "موجز / قصير",
+  "pronunciation": "briːf",
+  "synonyms": [
+   "short",
+   "concise",
+   "quick"
+  ],
+  "antonyms": [
+   "lengthy"
+  ],
+  "collocations": [
+   "a brief meeting",
+   "in brief",
+   "a brief pause"
+  ],
+  "example": "Let me give you a brief summary."
+ },
+ {
+  "word": "eager",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "wanting to do something very much",
+  "meaning_ar": "متحمّس / متلهّف",
+  "pronunciation": "ˈiːɡə",
+  "synonyms": [
+   "keen",
+   "enthusiastic",
+   "anxious"
+  ],
+  "antonyms": [
+   "reluctant"
+  ],
+  "collocations": [
+   "eager to learn",
+   "eager to please",
+   "eager for news"
+  ],
+  "example": "The students were eager to start."
+ },
+ {
+  "word": "fair",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "treating people equally and reasonably",
+  "meaning_ar": "عادل / منصف",
+  "pronunciation": "feə",
+  "synonyms": [
+   "just",
+   "reasonable",
+   "even-handed"
+  ],
+  "antonyms": [
+   "unfair"
+  ],
+  "collocations": [
+   "a fair decision",
+   "fair treatment",
+   "fair share"
+  ],
+  "example": "That doesn't seem fair to me."
+ },
+ {
+  "word": "guilty",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "having done wrong; feeling responsible for a fault",
+  "meaning_ar": "مذنب / يشعر بالذنب",
+  "pronunciation": "ˈɡɪlti",
+  "synonyms": [
+   "responsible",
+   "ashamed",
+   "at fault"
+  ],
+  "antonyms": [
+   "innocent"
+  ],
+  "collocations": [
+   "feel guilty",
+   "found guilty",
+   "guilty conscience"
+  ],
+  "example": "He felt guilty about forgetting her birthday."
+ },
+ {
+  "word": "honest",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "always telling the truth; not cheating",
+  "meaning_ar": "صادق / أمين",
+  "pronunciation": "ˈɒnɪst",
+  "synonyms": [
+   "truthful",
+   "sincere",
+   "trustworthy"
+  ],
+  "antonyms": [
+   "dishonest"
+  ],
+  "collocations": [
+   "an honest answer",
+   "to be honest",
+   "brutally honest"
+  ],
+  "example": "She gave me an honest opinion."
+ },
+ {
+  "word": "loyal",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "always supporting your friends or country",
+  "meaning_ar": "وفيّ / مخلص",
+  "pronunciation": "ˈlɔɪəl",
+  "synonyms": [
+   "faithful",
+   "devoted",
+   "dependable"
+  ],
+  "antonyms": [
+   "disloyal"
+  ],
+  "collocations": [
+   "a loyal friend",
+   "loyal customers",
+   "fiercely loyal"
+  ],
+  "example": "He has always been a loyal friend."
+ },
+ {
+  "word": "mature",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "behaving in a sensible adult way; fully developed",
+  "meaning_ar": "ناضج",
+  "pronunciation": "məˈtʃʊə",
+  "synonyms": [
+   "grown-up",
+   "sensible",
+   "developed"
+  ],
+  "antonyms": [
+   "immature"
+  ],
+  "collocations": [
+   "mature for her age",
+   "a mature attitude",
+   "emotionally mature"
+  ],
+  "example": "She is very mature for her age."
+ },
+ {
+  "word": "nervous",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "worried and slightly frightened",
+  "meaning_ar": "متوتّر / قلق",
+  "pronunciation": "ˈnɜːvəs",
+  "synonyms": [
+   "anxious",
+   "tense",
+   "uneasy"
+  ],
+  "antonyms": [
+   "calm",
+   "relaxed"
+  ],
+  "collocations": [
+   "feel nervous",
+   "nervous about",
+   "a nervous laugh"
+  ],
+  "example": "I always get nervous before exams."
+ },
+ {
+  "word": "polite",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "behaving in a respectful and considerate way",
+  "meaning_ar": "مؤدّب / لبق",
+  "pronunciation": "pəˈlaɪt",
+  "synonyms": [
+   "courteous",
+   "well-mannered",
+   "civil"
+  ],
+  "antonyms": [
+   "rude"
+  ],
+  "collocations": [
+   "a polite reply",
+   "be polite",
+   "polite to staff"
+  ],
+  "example": "It's polite to say thank you."
+ },
+ {
+  "word": "rude",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "not polite; offensive",
+  "meaning_ar": "وقح / فظّ",
+  "pronunciation": "ruːd",
+  "synonyms": [
+   "impolite",
+   "disrespectful",
+   "offensive"
+  ],
+  "antonyms": [
+   "polite"
+  ],
+  "collocations": [
+   "a rude comment",
+   "be rude to",
+   "rude behaviour"
+  ],
+  "example": "It was rude of him to interrupt."
+ },
+ {
+  "word": "selfish",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "caring only about yourself, not others",
+  "meaning_ar": "أناني",
+  "pronunciation": "ˈselfɪʃ",
+  "synonyms": [
+   "self-centred",
+   "egotistical"
+  ],
+  "antonyms": [
+   "generous",
+   "selfless"
+  ],
+  "collocations": [
+   "a selfish person",
+   "selfish behaviour",
+   "don't be selfish"
+  ],
+  "example": "It was selfish of him to take the last slice."
+ },
+ {
+  "word": "stubborn",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "refusing to change your mind or behaviour",
+  "meaning_ar": "عنيد",
+  "pronunciation": "ˈstʌbən",
+  "synonyms": [
+   "obstinate",
+   "headstrong",
+   "inflexible"
+  ],
+  "antonyms": [
+   "flexible"
+  ],
+  "collocations": [
+   "a stubborn child",
+   "stubborn as a mule",
+   "stubborn refusal"
+  ],
+  "example": "He's too stubborn to admit he was wrong."
+ },
+ {
+  "word": "brave",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "ready to face danger or pain; courageous",
+  "meaning_ar": "شجاع",
+  "pronunciation": "breɪv",
+  "synonyms": [
+   "courageous",
+   "fearless",
+   "bold"
+  ],
+  "antonyms": [
+   "cowardly"
+  ],
+  "collocations": [
+   "a brave decision",
+   "be brave",
+   "brave enough"
+  ],
+  "example": "It was brave of her to speak out."
+ },
+ {
+  "word": "ashamed",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "feeling guilty or embarrassed about something",
+  "meaning_ar": "خجل / يشعر بالعار",
+  "pronunciation": "əˈʃeɪmd",
+  "synonyms": [
+   "embarrassed",
+   "guilty",
+   "mortified"
+  ],
+  "antonyms": [
+   "proud"
+  ],
+  "collocations": [
+   "ashamed of",
+   "feel ashamed",
+   "deeply ashamed"
+  ],
+  "example": "He was ashamed of his behaviour."
+ },
+ {
+  "word": "delighted",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "very pleased and happy",
+  "meaning_ar": "مسرور جدًّا / مبتهج",
+  "pronunciation": "dɪˈlaɪtɪd",
+  "synonyms": [
+   "thrilled",
+   "overjoyed",
+   "pleased"
+  ],
+  "antonyms": [
+   "disappointed"
+  ],
+  "collocations": [
+   "delighted to",
+   "absolutely delighted",
+   "delighted with"
+  ],
+  "example": "We were delighted to hear the good news."
+ },
+ {
+  "word": "grateful",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "feeling thankful for something",
+  "meaning_ar": "ممتنّ / شاكر",
+  "pronunciation": "ˈɡreɪtfl",
+  "synonyms": [
+   "thankful",
+   "appreciative",
+   "indebted"
+  ],
+  "antonyms": [
+   "ungrateful"
+  ],
+  "collocations": [
+   "grateful for",
+   "deeply grateful",
+   "grateful to you"
+  ],
+  "example": "I'm so grateful for your support."
+ },
+ {
+  "word": "willing",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "ready and happy to do something",
+  "meaning_ar": "مستعدّ / راغب",
+  "pronunciation": "ˈwɪlɪŋ",
+  "synonyms": [
+   "ready",
+   "prepared",
+   "keen"
+  ],
+  "antonyms": [
+   "unwilling",
+   "reluctant"
+  ],
+  "collocations": [
+   "willing to help",
+   "more than willing",
+   "willing participant"
+  ],
+  "example": "She is always willing to lend a hand."
+ },
+ {
+  "word": "anxiety",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "a feeling of worry or unease",
+  "meaning_ar": "قلق / توتّر",
+  "pronunciation": "æŋˈzaɪəti",
+  "synonyms": [
+   "worry",
+   "unease",
+   "nervousness"
+  ],
+  "antonyms": [
+   "calm"
+  ],
+  "collocations": [
+   "cause anxiety",
+   "feel anxiety",
+   "social anxiety"
+  ],
+  "example": "Exams can cause a lot of anxiety."
+ },
+ {
+  "word": "difference",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "the way in which two things are not the same",
+  "meaning_ar": "فرق / اختلاف",
+  "pronunciation": "ˈdɪfrəns",
+  "synonyms": [
+   "distinction",
+   "contrast",
+   "disparity"
+  ],
+  "antonyms": [
+   "similarity"
+  ],
+  "collocations": [
+   "make a difference",
+   "a big difference",
+   "tell the difference"
+  ],
+  "example": "There's a big difference between the two plans."
+ },
+ {
+  "word": "habit",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "something you do regularly, often without thinking",
+  "meaning_ar": "عادة",
+  "pronunciation": "ˈhæbɪt",
+  "synonyms": [
+   "routine",
+   "custom",
+   "practice"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "a bad habit",
+   "break a habit",
+   "form a habit"
+  ],
+  "example": "Reading before bed is a good habit."
+ },
+ {
+  "word": "mistake",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "something done incorrectly; an error",
+  "meaning_ar": "خطأ / غلط",
+  "pronunciation": "mɪˈsteɪk",
+  "synonyms": [
+   "error",
+   "slip",
+   "blunder"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make a mistake",
+   "a common mistake",
+   "by mistake"
+  ],
+  "example": "Everyone makes mistakes sometimes."
+ },
+ {
+  "word": "suggestion",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "an idea or plan put forward for consideration",
+  "meaning_ar": "اقتراح",
+  "pronunciation": "səˈdʒestʃən",
+  "synonyms": [
+   "proposal",
+   "recommendation",
+   "idea"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make a suggestion",
+   "a helpful suggestion",
+   "open to suggestions"
+  ],
+  "example": "Thank you for your helpful suggestion."
+ },
+ {
+  "word": "prevent",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to stop something from happening",
+  "meaning_ar": "يمنع / يحول دون",
+  "pronunciation": "prɪˈvent",
+  "synonyms": [
+   "stop",
+   "avert",
+   "block"
+  ],
+  "antonyms": [
+   "allow",
+   "cause"
+  ],
+  "collocations": [
+   "prevent disease",
+   "help prevent",
+   "prevent from"
+  ],
+  "example": "Washing your hands helps prevent illness."
+ },
+ {
+  "word": "succeed",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to achieve what you wanted or planned",
+  "meaning_ar": "ينجح",
+  "pronunciation": "səkˈsiːd",
+  "synonyms": [
+   "accomplish",
+   "triumph",
+   "make it"
+  ],
+  "antonyms": [
+   "fail"
+  ],
+  "collocations": [
+   "succeed in",
+   "succeed at",
+   "determined to succeed"
+  ],
+  "example": "She worked hard to succeed in business."
+ }
+]
