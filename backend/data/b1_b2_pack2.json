@@ -1,0 +1,1438 @@
+[
+ {
+  "word": "get up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to leave your bed after sleeping",
+  "meaning_ar": "ينهض / يستيقظ",
+  "pronunciation": "ɡet ʌp",
+  "synonyms": [
+   "rise",
+   "wake up"
+  ],
+  "antonyms": [
+   "lie down"
+  ],
+  "collocations": [
+   "get up early",
+   "get up late",
+   "time to get up"
+  ],
+  "example": "I usually get up at seven o'clock."
+ },
+ {
+  "word": "turn on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to make a machine or light start working",
+  "meaning_ar": "يُشغّل (جهازًا)",
+  "pronunciation": "tɜːn ɒn",
+  "synonyms": [
+   "switch on",
+   "start"
+  ],
+  "antonyms": [
+   "turn off"
+  ],
+  "collocations": [
+   "turn on the light",
+   "turn on the TV",
+   "turn it on"
+  ],
+  "example": "Can you turn on the air conditioner?"
+ },
+ {
+  "word": "turn off",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to make a machine or light stop working",
+  "meaning_ar": "يُطفئ / يُغلق (جهازًا)",
+  "pronunciation": "tɜːn ɒf",
+  "synonyms": [
+   "switch off",
+   "shut off"
+  ],
+  "antonyms": [
+   "turn on"
+  ],
+  "collocations": [
+   "turn off the lights",
+   "turn off the engine",
+   "turn it off"
+  ],
+  "example": "Please turn off your phone in the cinema."
+ },
+ {
+  "word": "wake up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to stop sleeping or make someone stop sleeping",
+  "meaning_ar": "يستيقظ / يُوقظ",
+  "pronunciation": "weɪk ʌp",
+  "synonyms": [
+   "awaken",
+   "rise"
+  ],
+  "antonyms": [
+   "fall asleep"
+  ],
+  "collocations": [
+   "wake up early",
+   "wake someone up",
+   "wake up late"
+  ],
+  "example": "Try not to wake up the baby."
+ },
+ {
+  "word": "put on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to dress yourself in clothes; to add",
+  "meaning_ar": "يرتدي / يضع",
+  "pronunciation": "pʊt ɒn",
+  "synonyms": [
+   "wear",
+   "don"
+  ],
+  "antonyms": [
+   "take off"
+  ],
+  "collocations": [
+   "put on a coat",
+   "put on weight",
+   "put on make-up"
+  ],
+  "example": "Put on your jacket; it's cold outside."
+ },
+ {
+  "word": "take off",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to remove clothing; (of a plane) to leave the ground",
+  "meaning_ar": "يخلع / تُقلع (طائرة)",
+  "pronunciation": "teɪk ɒf",
+  "synonyms": [
+   "remove",
+   "leave the ground"
+  ],
+  "antonyms": [
+   "put on",
+   "land"
+  ],
+  "collocations": [
+   "take off your shoes",
+   "the plane took off",
+   "take off a layer"
+  ],
+  "example": "The plane took off on time."
+ },
+ {
+  "word": "try on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to put on clothes to see if they fit or suit you",
+  "meaning_ar": "يُجرّب ارتداء",
+  "pronunciation": "traɪ ɒn",
+  "synonyms": [
+   "test",
+   "fit"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "try on a dress",
+   "try them on",
+   "try on shoes"
+  ],
+  "example": "Can I try on this shirt?"
+ },
+ {
+  "word": "throw away",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to get rid of something you don't want",
+  "meaning_ar": "يرمي / يتخلّص من",
+  "pronunciation": "θrəʊ əˈweɪ",
+  "synonyms": [
+   "discard",
+   "bin",
+   "dump"
+  ],
+  "antonyms": [
+   "keep"
+  ],
+  "collocations": [
+   "throw away rubbish",
+   "throw it away",
+   "throw away food"
+  ],
+  "example": "Don't throw away those old photos."
+ },
+ {
+  "word": "fill in",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to complete a form by writing information",
+  "meaning_ar": "يملأ (استمارة)",
+  "pronunciation": "fɪl ɪn",
+  "synonyms": [
+   "complete",
+   "fill out"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "fill in a form",
+   "fill in the blanks",
+   "fill in details"
+  ],
+  "example": "Please fill in this application form."
+ },
+ {
+  "word": "give back",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to return something to its owner",
+  "meaning_ar": "يُرجع / يُعيد",
+  "pronunciation": "ɡɪv bæk",
+  "synonyms": [
+   "return",
+   "hand back"
+  ],
+  "antonyms": [
+   "keep",
+   "take"
+  ],
+  "collocations": [
+   "give back the money",
+   "give it back",
+   "give back a book"
+  ],
+  "example": "Can you give back my pen, please?"
+ },
+ {
+  "word": "hang up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to end a phone call; to put something on a hook",
+  "meaning_ar": "يُنهي المكالمة / يُعلّق",
+  "pronunciation": "hæŋ ʌp",
+  "synonyms": [
+   "ring off",
+   "end the call"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "hang up the phone",
+   "hang up your coat",
+   "don't hang up"
+  ],
+  "example": "She hung up before I could reply."
+ },
+ {
+  "word": "look after",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to take care of someone or something",
+  "meaning_ar": "يعتني بـ / يرعى",
+  "pronunciation": "lʊk ˈɑːftə",
+  "synonyms": [
+   "care for",
+   "mind",
+   "tend"
+  ],
+  "antonyms": [
+   "neglect"
+  ],
+  "collocations": [
+   "look after children",
+   "look after yourself",
+   "look after a pet"
+  ],
+  "example": "Could you look after my dog this weekend?"
+ },
+ {
+  "word": "run out",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to use all of something so none is left",
+  "meaning_ar": "ينفد / يُستنفد",
+  "pronunciation": "rʌn aʊt",
+  "synonyms": [
+   "use up",
+   "be out of"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "run out of time",
+   "run out of money",
+   "we ran out"
+  ],
+  "example": "We've run out of milk again."
+ },
+ {
+  "word": "wash up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to clean the dishes after a meal",
+  "meaning_ar": "يغسل الأطباق",
+  "pronunciation": "wɒʃ ʌp",
+  "synonyms": [
+   "clean up",
+   "do the dishes"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "wash up after dinner",
+   "help wash up",
+   "wash up the plates"
+  ],
+  "example": "I'll cook if you wash up."
+ },
+ {
+  "word": "get on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to have a friendly relationship; to board a vehicle",
+  "meaning_ar": "ينسجم مع / يصعد (وسيلة نقل)",
+  "pronunciation": "ɡet ɒn",
+  "synonyms": [
+   "get along",
+   "board"
+  ],
+  "antonyms": [
+   "get off"
+  ],
+  "collocations": [
+   "get on well",
+   "get on a bus",
+   "get on with people"
+  ],
+  "example": "They get on really well together."
+ },
+ {
+  "word": "show up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to arrive or appear, especially when expected",
+  "meaning_ar": "يحضر / يظهر",
+  "pronunciation": "ʃəʊ ʌp",
+  "synonyms": [
+   "arrive",
+   "turn up",
+   "appear"
+  ],
+  "antonyms": [
+   "disappear"
+  ],
+  "collocations": [
+   "show up late",
+   "didn't show up",
+   "show up on time"
+  ],
+  "example": "He didn't show up for the meeting."
+ },
+ {
+  "word": "hold back",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to stop yourself or someone from doing something",
+  "meaning_ar": "يكبح / يتردّد",
+  "pronunciation": "həʊld bæk",
+  "synonyms": [
+   "restrain",
+   "hesitate",
+   "withhold"
+  ],
+  "antonyms": [
+   "release"
+  ],
+  "collocations": [
+   "hold back tears",
+   "hold yourself back",
+   "nothing holds her back"
+  ],
+  "example": "She held back her tears during the speech."
+ },
+ {
+  "word": "put down",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to place something down; to criticize someone",
+  "meaning_ar": "يضع أرضًا / ينتقد",
+  "pronunciation": "pʊt daʊn",
+  "synonyms": [
+   "set down",
+   "belittle"
+  ],
+  "antonyms": [
+   "pick up",
+   "praise"
+  ],
+  "collocations": [
+   "put down the box",
+   "put someone down",
+   "put down roots"
+  ],
+  "example": "He put down his bag and sat on the sofa."
+ },
+ {
+  "word": "bring back",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to return something; to make you remember",
+  "meaning_ar": "يُعيد / يستحضر (ذكريات)",
+  "pronunciation": "brɪŋ bæk",
+  "synonyms": [
+   "return",
+   "revive",
+   "recall"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "bring back memories",
+   "bring it back",
+   "bring back a tradition"
+  ],
+  "example": "That song brings back happy memories."
+ },
+ {
+  "word": "come up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to be mentioned or to happen unexpectedly",
+  "meaning_ar": "يُطرح / يظهر فجأة",
+  "pronunciation": "kʌm ʌp",
+  "synonyms": [
+   "arise",
+   "occur",
+   "emerge"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "come up in conversation",
+   "something came up",
+   "come up with"
+  ],
+  "example": "An interesting question came up in class."
+ },
+ {
+  "word": "get through",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to succeed in dealing with a difficult time or task",
+  "meaning_ar": "يجتاز / يتجاوز (محنة)",
+  "pronunciation": "ɡet θruː",
+  "synonyms": [
+   "survive",
+   "endure",
+   "pass"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get through hard times",
+   "get through an exam",
+   "get through to"
+  ],
+  "example": "It was a tough year, but we got through it."
+ },
+ {
+  "word": "look over",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to examine something quickly",
+  "meaning_ar": "يُراجع / يتفحّص",
+  "pronunciation": "lʊk ˈəʊvə",
+  "synonyms": [
+   "review",
+   "check",
+   "examine"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "look over a document",
+   "look it over",
+   "quickly look over"
+  ],
+  "example": "Could you look over my essay before I send it?"
+ },
+ {
+  "word": "hand in",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to give a piece of work to a person in authority",
+  "meaning_ar": "يُسلّم (واجبًا)",
+  "pronunciation": "hænd ɪn",
+  "synonyms": [
+   "submit",
+   "turn in",
+   "give in"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "hand in homework",
+   "hand in your notice",
+   "hand it in"
+  ],
+  "example": "You must hand in the report by Friday."
+ },
+ {
+  "word": "put aside",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to save something, especially money, for later",
+  "meaning_ar": "يدّخر / يضع جانبًا",
+  "pronunciation": "pʊt əˈsaɪd",
+  "synonyms": [
+   "save",
+   "set aside",
+   "reserve"
+  ],
+  "antonyms": [
+   "spend"
+  ],
+  "collocations": [
+   "put aside money",
+   "put aside differences",
+   "put aside time"
+  ],
+  "example": "She puts aside a little money each month."
+ },
+ {
+  "word": "step in",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to become involved in a situation to help",
+  "meaning_ar": "يتدخّل",
+  "pronunciation": "step ɪn",
+  "synonyms": [
+   "intervene",
+   "help",
+   "assist"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "step in to help",
+   "decide to step in",
+   "step in quickly"
+  ],
+  "example": "The manager stepped in to settle the argument."
+ },
+ {
+  "word": "come along",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to make progress; to arrive or appear",
+  "meaning_ar": "يتقدّم / يرافق",
+  "pronunciation": "kʌm əˈlɒŋ",
+  "synonyms": [
+   "progress",
+   "develop",
+   "arrive"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "coming along nicely",
+   "come along with",
+   "an opportunity came along"
+  ],
+  "example": "Your English is coming along very well."
+ },
+ {
+  "word": "once in a while",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "occasionally; not very often",
+  "meaning_ar": "من حين لآخر",
+  "pronunciation": "wʌns ɪn ə waɪl",
+  "synonyms": [
+   "occasionally",
+   "now and then",
+   "sometimes"
+  ],
+  "antonyms": [
+   "always",
+   "never"
+  ],
+  "collocations": [
+   "just once in a while",
+   "every once in a while"
+  ],
+  "example": "We eat out once in a while."
+ },
+ {
+  "word": "on time",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "at the correct or expected time",
+  "meaning_ar": "في الموعد",
+  "pronunciation": "ɒn taɪm",
+  "synonyms": [
+   "punctual",
+   "prompt"
+  ],
+  "antonyms": [
+   "late"
+  ],
+  "collocations": [
+   "arrive on time",
+   "always on time",
+   "right on time"
+  ],
+  "example": "The train arrived exactly on time."
+ },
+ {
+  "word": "by heart",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "from memory; memorized completely",
+  "meaning_ar": "عن ظهر قلب",
+  "pronunciation": "baɪ hɑːt",
+  "synonyms": [
+   "from memory",
+   "memorized"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "learn by heart",
+   "know by heart",
+   "recite by heart"
+  ],
+  "example": "She knows the poem by heart."
+ },
+ {
+  "word": "make sense",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to be easy to understand or be reasonable",
+  "meaning_ar": "يكون منطقيًا / مفهومًا",
+  "pronunciation": "meɪk sens",
+  "synonyms": [
+   "be logical",
+   "be clear",
+   "add up"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "it makes sense",
+   "make sense of",
+   "that makes sense"
+  ],
+  "example": "His explanation didn't make sense to me."
+ },
+ {
+  "word": "take care of",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to look after or deal with someone or something",
+  "meaning_ar": "يعتني بـ / يتولّى",
+  "pronunciation": "teɪk keər ɒv",
+  "synonyms": [
+   "look after",
+   "handle",
+   "mind"
+  ],
+  "antonyms": [
+   "neglect"
+  ],
+  "collocations": [
+   "take care of yourself",
+   "take care of business",
+   "take care of a child"
+  ],
+  "example": "Who will take care of the garden while you're away?"
+ },
+ {
+  "word": "in charge of",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "having control or responsibility for something",
+  "meaning_ar": "مسؤول عن",
+  "pronunciation": "ɪn tʃɑːdʒ ɒv",
+  "synonyms": [
+   "responsible for",
+   "in control of"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "be in charge of",
+   "put in charge",
+   "in charge of a team"
+  ],
+  "example": "She is in charge of the marketing department."
+ },
+ {
+  "word": "keep in touch",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to continue to communicate with someone",
+  "meaning_ar": "يبقى على تواصل",
+  "pronunciation": "kiːp ɪn tʌtʃ",
+  "synonyms": [
+   "stay in contact",
+   "keep in contact"
+  ],
+  "antonyms": [
+   "lose touch"
+  ],
+  "collocations": [
+   "keep in touch with",
+   "let's keep in touch",
+   "keep in touch by email"
+  ],
+  "example": "We promised to keep in touch after graduation."
+ },
+ {
+  "word": "make up your mind",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to make a decision",
+  "meaning_ar": "يحسم أمره / يقرّر",
+  "pronunciation": "meɪk ʌp jɔː maɪnd",
+  "synonyms": [
+   "decide",
+   "choose",
+   "settle on"
+  ],
+  "antonyms": [
+   "hesitate"
+  ],
+  "collocations": [
+   "make up your mind",
+   "can't make up my mind",
+   "made up his mind"
+  ],
+  "example": "Hurry up and make up your mind!"
+ },
+ {
+  "word": "get the hang of",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "to learn how to do something with practice",
+  "meaning_ar": "يُتقن / يعتاد على",
+  "pronunciation": "ɡet ðə hæŋ ɒv",
+  "synonyms": [
+   "master",
+   "learn",
+   "grasp"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "get the hang of it",
+   "get the hang of driving",
+   "slowly get the hang of"
+  ],
+  "example": "It takes time to get the hang of a new job."
+ },
+ {
+  "word": "on the other hand",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "used to present a different or opposite point",
+  "meaning_ar": "من ناحية أخرى",
+  "pronunciation": "ɒn ðə ˈʌðə hænd",
+  "synonyms": [
+   "conversely",
+   "alternatively",
+   "however"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "on the one hand",
+   "but on the other hand"
+  ],
+  "example": "It's cheaper; on the other hand, the quality is lower."
+ },
+ {
+  "word": "a piece of cake",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "something very easy to do",
+  "meaning_ar": "أمر سهل جدًّا",
+  "pronunciation": "ə piːs ɒv keɪk",
+  "synonyms": [
+   "very easy",
+   "effortless",
+   "child's play"
+  ],
+  "antonyms": [
+   "difficult"
+  ],
+  "collocations": [
+   "it was a piece of cake",
+   "absolutely a piece of cake"
+  ],
+  "example": "The exam was a piece of cake."
+ },
+ {
+  "word": "under the weather",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "feeling slightly ill",
+  "meaning_ar": "متوعّك / ليس بخير",
+  "pronunciation": "ˈʌndə ðə ˈweðə",
+  "synonyms": [
+   "unwell",
+   "poorly",
+   "sick"
+  ],
+  "antonyms": [
+   "healthy"
+  ],
+  "collocations": [
+   "feel under the weather",
+   "a bit under the weather"
+  ],
+  "example": "I'm feeling a little under the weather today."
+ },
+ {
+  "word": "break the ice",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "to do or say something to make people feel relaxed",
+  "meaning_ar": "يكسر الجمود / حاجز التحفّظ",
+  "pronunciation": "breɪk ðə aɪs",
+  "synonyms": [
+   "ease tension",
+   "warm up"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "break the ice",
+   "help break the ice",
+   "a good way to break the ice"
+  ],
+  "example": "He told a joke to break the ice."
+ },
+ {
+  "word": "keep an eye on",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "to watch someone or something carefully",
+  "meaning_ar": "يراقب / يتابع",
+  "pronunciation": "kiːp ən aɪ ɒn",
+  "synonyms": [
+   "watch",
+   "monitor",
+   "supervise"
+  ],
+  "antonyms": [
+   "ignore"
+  ],
+  "collocations": [
+   "keep an eye on the kids",
+   "keep an eye on things",
+   "keep a close eye on"
+  ],
+  "example": "Could you keep an eye on my bag for a moment?"
+ },
+ {
+  "word": "out of the blue",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "suddenly and unexpectedly",
+  "meaning_ar": "فجأة / دون سابق إنذار",
+  "pronunciation": "aʊt ɒv ðə bluː",
+  "synonyms": [
+   "suddenly",
+   "unexpectedly",
+   "out of nowhere"
+  ],
+  "antonyms": [
+   "expectedly"
+  ],
+  "collocations": [
+   "come out of the blue",
+   "totally out of the blue"
+  ],
+  "example": "She called me out of the blue after ten years."
+ },
+ {
+  "word": "on second thought",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "used when you change your opinion after thinking again",
+  "meaning_ar": "بعد إعادة التفكير",
+  "pronunciation": "ɒn ˈsekənd θɔːt",
+  "synonyms": [
+   "on reflection",
+   "actually"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "on second thought",
+   "on second thoughts"
+  ],
+  "example": "On second thought, let's stay home tonight."
+ },
+ {
+  "word": "get along",
+  "pos": "idiom",
+  "level": "B1",
+  "meaning_en": "to have a friendly relationship with someone",
+  "meaning_ar": "ينسجم / يتفاهم",
+  "pronunciation": "ɡet əˈlɒŋ",
+  "synonyms": [
+   "get on",
+   "be friendly"
+  ],
+  "antonyms": [
+   "clash"
+  ],
+  "collocations": [
+   "get along with",
+   "get along well",
+   "easy to get along with"
+  ],
+  "example": "Do you get along with your coworkers?"
+ },
+ {
+  "word": "make a difference",
+  "pos": "idiom",
+  "level": "B2",
+  "meaning_en": "to have an important effect on a situation",
+  "meaning_ar": "يُحدث فرقًا / تأثيرًا",
+  "pronunciation": "meɪk ə ˈdɪfrəns",
+  "synonyms": [
+   "have an impact",
+   "matter",
+   "count"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make a big difference",
+   "make a real difference",
+   "make all the difference"
+  ],
+  "example": "Small daily habits can make a big difference."
+ },
+ {
+  "word": "realize",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to understand or become aware of something",
+  "meaning_ar": "يُدرك / يَعي",
+  "pronunciation": "ˈrɪəlaɪz",
+  "synonyms": [
+   "understand",
+   "recognize",
+   "grasp"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "realize the truth",
+   "suddenly realize",
+   "fail to realize"
+  ],
+  "example": "I didn't realize how late it was."
+ },
+ {
+  "word": "avoidable",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to be prevented or kept from happening",
+  "meaning_ar": "يمكن تجنّبه",
+  "pronunciation": "əˈvɔɪdəbl",
+  "synonyms": [
+   "preventable",
+   "escapable"
+  ],
+  "antonyms": [
+   "unavoidable",
+   "inevitable"
+  ],
+  "collocations": [
+   "an avoidable mistake",
+   "easily avoidable",
+   "avoidable risk"
+  ],
+  "example": "Most accidents are avoidable with care."
+ },
+ {
+  "word": "reliable",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to be trusted to do what is expected",
+  "meaning_ar": "موثوق / يُعتمد عليه",
+  "pronunciation": "rɪˈlaɪəbl",
+  "synonyms": [
+   "dependable",
+   "trustworthy",
+   "steady"
+  ],
+  "antonyms": [
+   "unreliable"
+  ],
+  "collocations": [
+   "a reliable car",
+   "reliable source",
+   "highly reliable"
+  ],
+  "example": "He is a reliable and honest worker."
+ },
+ {
+  "word": "flexible",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to change or be changed easily",
+  "meaning_ar": "مرن",
+  "pronunciation": "ˈfleksəbl",
+  "synonyms": [
+   "adaptable",
+   "adjustable",
+   "versatile"
+  ],
+  "antonyms": [
+   "rigid",
+   "fixed"
+  ],
+  "collocations": [
+   "flexible hours",
+   "a flexible approach",
+   "remain flexible"
+  ],
+  "example": "We offer flexible working hours."
+ },
+ {
+  "word": "essential",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "extremely important and necessary",
+  "meaning_ar": "أساسي / ضروري",
+  "pronunciation": "ɪˈsenʃl",
+  "synonyms": [
+   "vital",
+   "crucial",
+   "necessary"
+  ],
+  "antonyms": [
+   "unnecessary"
+  ],
+  "collocations": [
+   "essential skills",
+   "absolutely essential",
+   "essential for"
+  ],
+  "example": "Water is essential for life."
+ },
+ {
+  "word": "obvious",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "easy to see or understand",
+  "meaning_ar": "واضح / بديهيّ",
+  "pronunciation": "ˈɒbviəs",
+  "synonyms": [
+   "clear",
+   "evident",
+   "plain"
+  ],
+  "antonyms": [
+   "unclear",
+   "subtle"
+  ],
+  "collocations": [
+   "an obvious mistake",
+   "for obvious reasons",
+   "fairly obvious"
+  ],
+  "example": "It was obvious that she was tired."
+ },
+ {
+  "word": "rough",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "not smooth; approximate; difficult",
+  "meaning_ar": "خشن / تقريبي / صعب",
+  "pronunciation": "rʌf",
+  "synonyms": [
+   "uneven",
+   "approximate",
+   "harsh"
+  ],
+  "antonyms": [
+   "smooth",
+   "exact"
+  ],
+  "collocations": [
+   "a rough surface",
+   "a rough estimate",
+   "a rough time"
+  ],
+  "example": "Can you give me a rough idea of the cost?"
+ },
+ {
+  "word": "steady",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "developing gradually and regularly; firm",
+  "meaning_ar": "ثابت / مطّرد",
+  "pronunciation": "ˈstedi",
+  "synonyms": [
+   "stable",
+   "constant",
+   "firm"
+  ],
+  "antonyms": [
+   "unsteady",
+   "irregular"
+  ],
+  "collocations": [
+   "steady progress",
+   "a steady job",
+   "steady growth"
+  ],
+  "example": "The company has shown steady growth."
+ },
+ {
+  "word": "strict",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "demanding that rules are obeyed",
+  "meaning_ar": "صارم / متشدّد",
+  "pronunciation": "strɪkt",
+  "synonyms": [
+   "firm",
+   "stern",
+   "rigorous"
+  ],
+  "antonyms": [
+   "lenient",
+   "easy-going"
+  ],
+  "collocations": [
+   "a strict teacher",
+   "strict rules",
+   "very strict"
+  ],
+  "example": "Our teacher is strict about deadlines."
+ },
+ {
+  "word": "urgent",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "needing immediate attention or action",
+  "meaning_ar": "عاجل / مُلِحّ",
+  "pronunciation": "ˈɜːdʒənt",
+  "synonyms": [
+   "pressing",
+   "critical",
+   "immediate"
+  ],
+  "antonyms": [
+   "trivial"
+  ],
+  "collocations": [
+   "an urgent message",
+   "urgent need",
+   "extremely urgent"
+  ],
+  "example": "This is an urgent matter that can't wait."
+ },
+ {
+  "word": "rare",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "not happening or seen very often",
+  "meaning_ar": "نادر",
+  "pronunciation": "reə",
+  "synonyms": [
+   "uncommon",
+   "scarce",
+   "unusual"
+  ],
+  "antonyms": [
+   "common",
+   "frequent"
+  ],
+  "collocations": [
+   "a rare chance",
+   "rare disease",
+   "extremely rare"
+  ],
+  "example": "It's rare to see snow in this region."
+ },
+ {
+  "word": "typical",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "having the usual qualities of a type of thing",
+  "meaning_ar": "نموذجي / معتاد",
+  "pronunciation": "ˈtɪpɪkl",
+  "synonyms": [
+   "usual",
+   "standard",
+   "representative"
+  ],
+  "antonyms": [
+   "unusual",
+   "atypical"
+  ],
+  "collocations": [
+   "a typical day",
+   "typical of",
+   "quite typical"
+  ],
+  "example": "This is a typical example of his work."
+ },
+ {
+  "word": "permanent",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "lasting for a long time or for ever",
+  "meaning_ar": "دائم",
+  "pronunciation": "ˈpɜːmənənt",
+  "synonyms": [
+   "lasting",
+   "enduring",
+   "fixed"
+  ],
+  "antonyms": [
+   "temporary"
+  ],
+  "collocations": [
+   "a permanent job",
+   "permanent damage",
+   "become permanent"
+  ],
+  "example": "She finally got a permanent contract."
+ },
+ {
+  "word": "temporary",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "lasting for only a limited time",
+  "meaning_ar": "مؤقّت",
+  "pronunciation": "ˈtemprəri",
+  "synonyms": [
+   "short-term",
+   "provisional"
+  ],
+  "antonyms": [
+   "permanent"
+  ],
+  "collocations": [
+   "a temporary job",
+   "temporary solution",
+   "only temporary"
+  ],
+  "example": "This is just a temporary arrangement."
+ },
+ {
+  "word": "gradual",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "happening slowly over a long period",
+  "meaning_ar": "تدريجي",
+  "pronunciation": "ˈɡrædʒuəl",
+  "synonyms": [
+   "steady",
+   "slow",
+   "progressive"
+  ],
+  "antonyms": [
+   "sudden",
+   "abrupt"
+  ],
+  "collocations": [
+   "a gradual change",
+   "gradual improvement",
+   "gradual decline"
+  ],
+  "example": "There has been a gradual rise in prices."
+ },
+ {
+  "word": "accurate",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "correct and exact in every detail",
+  "meaning_ar": "دقيق",
+  "pronunciation": "ˈækjərət",
+  "synonyms": [
+   "precise",
+   "exact",
+   "correct"
+  ],
+  "antonyms": [
+   "inaccurate"
+  ],
+  "collocations": [
+   "accurate data",
+   "highly accurate",
+   "accurate measurement"
+  ],
+  "example": "We need accurate figures for the report."
+ },
+ {
+  "word": "genuine",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "real and exactly what it appears to be; sincere",
+  "meaning_ar": "أصلي / صادق",
+  "pronunciation": "ˈdʒenjuɪn",
+  "synonyms": [
+   "authentic",
+   "real",
+   "sincere"
+  ],
+  "antonyms": [
+   "fake",
+   "false"
+  ],
+  "collocations": [
+   "genuine leather",
+   "a genuine concern",
+   "genuine interest"
+  ],
+  "example": "She showed genuine interest in the project."
+ },
+ {
+  "word": "severe",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "very bad, serious, or strict",
+  "meaning_ar": "شديد / قاسٍ",
+  "pronunciation": "sɪˈvɪə",
+  "synonyms": [
+   "serious",
+   "harsh",
+   "intense"
+  ],
+  "antonyms": [
+   "mild",
+   "gentle"
+  ],
+  "collocations": [
+   "severe weather",
+   "severe pain",
+   "a severe shortage"
+  ],
+  "example": "The region suffered a severe drought."
+ },
+ {
+  "word": "estimate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to guess the amount or value of something",
+  "meaning_ar": "يُقدّر",
+  "pronunciation": "ˈestɪmeɪt",
+  "synonyms": [
+   "calculate",
+   "gauge",
+   "reckon"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "estimate the cost",
+   "roughly estimate",
+   "estimate that"
+  ],
+  "example": "Experts estimate the damage at millions."
+ },
+ {
+  "word": "recognize",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to know someone or something from before; to accept",
+  "meaning_ar": "يتعرّف على / يُقرّ بـ",
+  "pronunciation": "ˈrekəɡnaɪz",
+  "synonyms": [
+   "identify",
+   "know",
+   "acknowledge"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "recognize a face",
+   "widely recognized",
+   "recognize the need"
+  ],
+  "example": "I didn't recognize you with your new haircut."
+ },
+ {
+  "word": "replace",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to put something new in place of another",
+  "meaning_ar": "يستبدل / يحلّ محلّ",
+  "pronunciation": "rɪˈpleɪs",
+  "synonyms": [
+   "substitute",
+   "change",
+   "swap"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "replace a part",
+   "replace with",
+   "hard to replace"
+  ],
+  "example": "We need to replace the broken window."
+ },
+ {
+  "word": "survive",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to continue to live or exist despite difficulty",
+  "meaning_ar": "ينجو / يبقى على قيد الحياة",
+  "pronunciation": "səˈvaɪv",
+  "synonyms": [
+   "endure",
+   "last",
+   "pull through"
+  ],
+  "antonyms": [
+   "perish",
+   "die"
+  ],
+  "collocations": [
+   "survive an accident",
+   "barely survive",
+   "survive the winter"
+  ],
+  "example": "Few plants can survive in the desert."
+ },
+ {
+  "word": "recover",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to get better after illness or get something back",
+  "meaning_ar": "يتعافى / يستعيد",
+  "pronunciation": "rɪˈkʌvə",
+  "synonyms": [
+   "heal",
+   "recuperate",
+   "retrieve"
+  ],
+  "antonyms": [
+   "worsen"
+  ],
+  "collocations": [
+   "recover from illness",
+   "fully recover",
+   "recover losses"
+  ],
+  "example": "It took weeks to recover from the flu."
+ },
+ {
+  "word": "expand",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to become larger or make something larger",
+  "meaning_ar": "يتوسّع / يُوسّع",
+  "pronunciation": "ɪkˈspænd",
+  "synonyms": [
+   "grow",
+   "enlarge",
+   "extend"
+  ],
+  "antonyms": [
+   "shrink",
+   "contract"
+  ],
+  "collocations": [
+   "expand a business",
+   "rapidly expand",
+   "expand into"
+  ],
+  "example": "The company plans to expand overseas."
+ }
+]

@@ -65,6 +65,7 @@ const LEVELS  = ['A1','A2','B1','B2','C1','C2'] as const;
 const POS_FILTERS: { label: string; value: string }[] = [
   { label: 'All types',     value: '' },
   { label: '🔗 Phrasal Verbs', value: 'phrasal verb' },
+  { label: '💬 Idioms',     value: 'idiom' },
   { label: 'Verbs',         value: 'verb' },
   { label: 'Nouns',         value: 'noun' },
   { label: 'Adjectives',    value: 'adjective' },
