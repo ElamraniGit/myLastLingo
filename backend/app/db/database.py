@@ -559,7 +559,10 @@ class DatabaseManager:
         from pathlib import Path
 
         base_path  = Path("backend/data/core3000_words.json")
-        extra_paths = [Path("backend/data/b2_extra_words.json")]
+        extra_paths = [
+            Path("backend/data/b2_extra_words.json"),
+            Path("backend/data/b1_b2_pack.json"),
+        ]
 
         async def _insert_words(conn, words) -> int:
             inserted = 0

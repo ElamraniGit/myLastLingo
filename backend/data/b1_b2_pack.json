@@ -1,0 +1,2358 @@
+[
+ {
+  "word": "achievement",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "something good that you succeed in doing",
+  "meaning_ar": "إنجاز",
+  "pronunciation": "əˈtʃiːvmənt",
+  "synonyms": [
+   "accomplishment",
+   "success",
+   "feat"
+  ],
+  "antonyms": [
+   "failure"
+  ],
+  "collocations": [
+   "a great achievement",
+   "sense of achievement",
+   "major achievement"
+  ],
+  "example": "Winning the award was a huge achievement."
+ },
+ {
+  "word": "advertise",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to tell people about a product to make them buy it",
+  "meaning_ar": "يُعلن / يُروّج",
+  "pronunciation": "ˈædvətaɪz",
+  "synonyms": [
+   "promote",
+   "market",
+   "publicize"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "advertise a product",
+   "advertise online",
+   "heavily advertise"
+  ],
+  "example": "The company advertises its products on TV."
+ },
+ {
+  "word": "apologize",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to say sorry for doing something wrong",
+  "meaning_ar": "يعتذر",
+  "pronunciation": "əˈpɒlədʒaɪz",
+  "synonyms": [
+   "say sorry"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "apologize for",
+   "apologize to someone",
+   "sincerely apologize"
+  ],
+  "example": "He apologized for being late."
+ },
+ {
+  "word": "appointment",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "an arrangement to meet someone at a particular time",
+  "meaning_ar": "موعد",
+  "pronunciation": "əˈpɔɪntmənt",
+  "synonyms": [
+   "meeting",
+   "arrangement"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "make an appointment",
+   "a doctor's appointment",
+   "cancel an appointment"
+  ],
+  "example": "I have a dentist appointment at three."
+ },
+ {
+  "word": "attractive",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "pleasant to look at; appealing",
+  "meaning_ar": "جذّاب",
+  "pronunciation": "əˈtræktɪv",
+  "synonyms": [
+   "appealing",
+   "good-looking",
+   "pretty"
+  ],
+  "antonyms": [
+   "unattractive",
+   "ugly"
+  ],
+  "collocations": [
+   "an attractive offer",
+   "physically attractive",
+   "attractive design"
+  ],
+  "example": "They live in an attractive old house."
+ },
+ {
+  "word": "avoid",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to stay away from someone or something",
+  "meaning_ar": "يتجنّب",
+  "pronunciation": "əˈvɔɪd",
+  "synonyms": [
+   "evade",
+   "dodge",
+   "steer clear of"
+  ],
+  "antonyms": [
+   "seek",
+   "face"
+  ],
+  "collocations": [
+   "avoid problems",
+   "hard to avoid",
+   "avoid doing"
+  ],
+  "example": "Try to avoid eating too much sugar."
+ },
+ {
+  "word": "behaviour",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "the way that someone acts",
+  "meaning_ar": "سلوك",
+  "pronunciation": "bɪˈheɪvjə",
+  "synonyms": [
+   "conduct",
+   "manner",
+   "attitude"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "good behaviour",
+   "bad behaviour",
+   "change your behaviour"
+  ],
+  "example": "The teacher praised the children's behaviour."
+ },
+ {
+  "word": "celebrate",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to do something enjoyable for a special occasion",
+  "meaning_ar": "يحتفل",
+  "pronunciation": "ˈselɪbreɪt",
+  "synonyms": [
+   "commemorate",
+   "rejoice"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "celebrate a birthday",
+   "celebrate success",
+   "celebrate together"
+  ],
+  "example": "We celebrated her birthday with a big party."
+ },
+ {
+  "word": "comfortable",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "making you feel relaxed and at ease",
+  "meaning_ar": "مريح",
+  "pronunciation": "ˈkʌmftəbl",
+  "synonyms": [
+   "cosy",
+   "relaxing",
+   "snug"
+  ],
+  "antonyms": [
+   "uncomfortable"
+  ],
+  "collocations": [
+   "a comfortable chair",
+   "feel comfortable",
+   "comfortable shoes"
+  ],
+  "example": "This sofa is very comfortable."
+ },
+ {
+  "word": "confused",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "not able to understand something clearly",
+  "meaning_ar": "مرتبك / حائر",
+  "pronunciation": "kənˈfjuːzd",
+  "synonyms": [
+   "puzzled",
+   "bewildered",
+   "unclear"
+  ],
+  "antonyms": [
+   "clear",
+   "certain"
+  ],
+  "collocations": [
+   "totally confused",
+   "get confused",
+   "confused about"
+  ],
+  "example": "I'm a bit confused about the instructions."
+ },
+ {
+  "word": "convenient",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "useful, easy, or suitable for a purpose",
+  "meaning_ar": "مناسب / عملي",
+  "pronunciation": "kənˈviːniənt",
+  "synonyms": [
+   "handy",
+   "suitable",
+   "practical"
+  ],
+  "antonyms": [
+   "inconvenient"
+  ],
+  "collocations": [
+   "a convenient time",
+   "convenient location",
+   "conveniently located"
+  ],
+  "example": "The hotel is convenient for the airport."
+ },
+ {
+  "word": "deliver",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to take goods to a place; to give a speech",
+  "meaning_ar": "يُوصّل / يُسلّم",
+  "pronunciation": "dɪˈlɪvə",
+  "synonyms": [
+   "bring",
+   "supply",
+   "hand over"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "deliver a parcel",
+   "deliver a speech",
+   "deliver on time"
+  ],
+  "example": "They deliver pizza to your door."
+ },
+ {
+  "word": "disappointed",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "unhappy because something was not as good as you hoped",
+  "meaning_ar": "خائب الأمل",
+  "pronunciation": "ˌdɪsəˈpɔɪntɪd",
+  "synonyms": [
+   "let down",
+   "disheartened"
+  ],
+  "antonyms": [
+   "pleased",
+   "satisfied"
+  ],
+  "collocations": [
+   "deeply disappointed",
+   "disappointed with",
+   "disappointed by"
+  ],
+  "example": "She was disappointed with her exam result."
+ },
+ {
+  "word": "discount",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "a reduction in the usual price",
+  "meaning_ar": "خصم",
+  "pronunciation": "ˈdɪskaʊnt",
+  "synonyms": [
+   "reduction",
+   "markdown",
+   "deal"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "a big discount",
+   "offer a discount",
+   "student discount"
+  ],
+  "example": "They gave me a 20% discount."
+ },
+ {
+  "word": "encourage",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to give someone confidence or support to do something",
+  "meaning_ar": "يُشجّع",
+  "pronunciation": "ɪnˈkʌrɪdʒ",
+  "synonyms": [
+   "motivate",
+   "support",
+   "inspire"
+  ],
+  "antonyms": [
+   "discourage"
+  ],
+  "collocations": [
+   "encourage someone to",
+   "strongly encourage",
+   "encourage learning"
+  ],
+  "example": "My parents always encouraged me to read."
+ },
+ {
+  "word": "equipment",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "the things needed for a particular activity",
+  "meaning_ar": "معدّات / أجهزة",
+  "pronunciation": "ɪˈkwɪpmənt",
+  "synonyms": [
+   "gear",
+   "tools",
+   "apparatus"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "office equipment",
+   "sports equipment",
+   "modern equipment"
+  ],
+  "example": "The gym has all the latest equipment."
+ },
+ {
+  "word": "generous",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "willing to give money, help, or time",
+  "meaning_ar": "كريم / سخيّ",
+  "pronunciation": "ˈdʒenərəs",
+  "synonyms": [
+   "giving",
+   "kind",
+   "liberal"
+  ],
+  "antonyms": [
+   "stingy",
+   "mean"
+  ],
+  "collocations": [
+   "a generous gift",
+   "very generous",
+   "generous with"
+  ],
+  "example": "It was generous of you to help."
+ },
+ {
+  "word": "guarantee",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to promise that something will happen or is true",
+  "meaning_ar": "يضمن",
+  "pronunciation": "ˌɡærənˈtiː",
+  "synonyms": [
+   "promise",
+   "ensure",
+   "assure"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "guarantee quality",
+   "money-back guarantee",
+   "I can't guarantee"
+  ],
+  "example": "We guarantee delivery within two days."
+ },
+ {
+  "word": "ingredient",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "one of the foods used to make a particular dish",
+  "meaning_ar": "مكوّن",
+  "pronunciation": "ɪnˈɡriːdiənt",
+  "synonyms": [
+   "component",
+   "element"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "fresh ingredients",
+   "key ingredient",
+   "mix the ingredients"
+  ],
+  "example": "Flour is the main ingredient in bread."
+ },
+ {
+  "word": "introduce",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to make people known to each other; to bring in something new",
+  "meaning_ar": "يُقدّم / يُعرّف",
+  "pronunciation": "ˌɪntrəˈdjuːs",
+  "synonyms": [
+   "present",
+   "bring in",
+   "launch"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "introduce yourself",
+   "introduce a law",
+   "introduce someone to"
+  ],
+  "example": "Let me introduce you to my colleague."
+ },
+ {
+  "word": "organize",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to plan and arrange something",
+  "meaning_ar": "يُنظّم",
+  "pronunciation": "ˈɔːɡənaɪz",
+  "synonyms": [
+   "arrange",
+   "plan",
+   "coordinate"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "organize an event",
+   "well organized",
+   "organize your time"
+  ],
+  "example": "She organized a surprise party."
+ },
+ {
+  "word": "persuade",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to make someone agree to do something by giving reasons",
+  "meaning_ar": "يُقنع",
+  "pronunciation": "pəˈsweɪd",
+  "synonyms": [
+   "convince",
+   "talk into",
+   "coax"
+  ],
+  "antonyms": [
+   "dissuade"
+  ],
+  "collocations": [
+   "persuade someone to",
+   "try to persuade",
+   "easily persuaded"
+  ],
+  "example": "I persuaded him to come with us."
+ },
+ {
+  "word": "pollution",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "harmful substances that damage air, water, or land",
+  "meaning_ar": "تلوّث",
+  "pronunciation": "pəˈluːʃn",
+  "synonyms": [
+   "contamination"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "air pollution",
+   "reduce pollution",
+   "water pollution"
+  ],
+  "example": "Air pollution is a serious problem in big cities."
+ },
+ {
+  "word": "prefer",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to like one thing more than another",
+  "meaning_ar": "يُفضّل",
+  "pronunciation": "prɪˈfɜː",
+  "synonyms": [
+   "favour",
+   "go for"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "prefer tea to coffee",
+   "I'd prefer",
+   "strongly prefer"
+  ],
+  "example": "I prefer tea to coffee."
+ },
+ {
+  "word": "recommend",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to suggest that something is good or suitable",
+  "meaning_ar": "يوصي / يُنصح بـ",
+  "pronunciation": "ˌrekəˈmend",
+  "synonyms": [
+   "suggest",
+   "advise",
+   "endorse"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "recommend a book",
+   "highly recommend",
+   "recommend that"
+  ],
+  "example": "Can you recommend a good restaurant?"
+ },
+ {
+  "word": "responsible",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "having the duty to deal with something; sensible",
+  "meaning_ar": "مسؤول",
+  "pronunciation": "rɪˈspɒnsəbl",
+  "synonyms": [
+   "accountable",
+   "in charge",
+   "reliable"
+  ],
+  "antonyms": [
+   "irresponsible"
+  ],
+  "collocations": [
+   "responsible for",
+   "a responsible person",
+   "hold responsible"
+  ],
+  "example": "She is responsible for the whole team."
+ },
+ {
+  "word": "schedule",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "a plan of when things will happen",
+  "meaning_ar": "جدول زمني",
+  "pronunciation": "ˈʃedjuːl",
+  "synonyms": [
+   "timetable",
+   "plan",
+   "agenda"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "a busy schedule",
+   "ahead of schedule",
+   "on schedule"
+  ],
+  "example": "My schedule is full this week."
+ },
+ {
+  "word": "similar",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "almost the same but not exactly",
+  "meaning_ar": "مشابه",
+  "pronunciation": "ˈsɪmələ",
+  "synonyms": [
+   "alike",
+   "comparable",
+   "akin"
+  ],
+  "antonyms": [
+   "different"
+  ],
+  "collocations": [
+   "similar to",
+   "very similar",
+   "in a similar way"
+  ],
+  "example": "Our houses are similar in size."
+ },
+ {
+  "word": "translate",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to change words from one language into another",
+  "meaning_ar": "يترجم",
+  "pronunciation": "trænzˈleɪt",
+  "synonyms": [
+   "interpret",
+   "render",
+   "convert"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "translate into",
+   "translate a text",
+   "roughly translate"
+  ],
+  "example": "Can you translate this letter into Arabic?"
+ },
+ {
+  "word": "vary",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to be different or to change",
+  "meaning_ar": "يتنوّع / يختلف",
+  "pronunciation": "ˈveəri",
+  "synonyms": [
+   "differ",
+   "change",
+   "range"
+  ],
+  "antonyms": [
+   "stay the same"
+  ],
+  "collocations": [
+   "vary widely",
+   "prices vary",
+   "vary from"
+  ],
+  "example": "Prices vary from shop to shop."
+ },
+ {
+  "word": "weakness",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "a fault or a lack of strength",
+  "meaning_ar": "نقطة ضعف",
+  "pronunciation": "ˈwiːknəs",
+  "synonyms": [
+   "flaw",
+   "fault",
+   "shortcoming"
+  ],
+  "antonyms": [
+   "strength"
+  ],
+  "collocations": [
+   "a major weakness",
+   "point of weakness",
+   "admit a weakness"
+  ],
+  "example": "Everyone has their strengths and weaknesses."
+ },
+ {
+  "word": "wealthy",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "having a lot of money",
+  "meaning_ar": "ثريّ / غنيّ",
+  "pronunciation": "ˈwelθi",
+  "synonyms": [
+   "rich",
+   "affluent",
+   "well-off"
+  ],
+  "antonyms": [
+   "poor"
+  ],
+  "collocations": [
+   "a wealthy family",
+   "extremely wealthy",
+   "wealthy nations"
+  ],
+  "example": "They come from a wealthy family."
+ },
+ {
+  "word": "attract",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to make someone interested or to pull towards",
+  "meaning_ar": "يجذب",
+  "pronunciation": "əˈtrækt",
+  "synonyms": [
+   "draw",
+   "appeal to",
+   "lure"
+  ],
+  "antonyms": [
+   "repel"
+  ],
+  "collocations": [
+   "attract attention",
+   "attract tourists",
+   "attract customers"
+  ],
+  "example": "The festival attracts thousands of visitors."
+ },
+ {
+  "word": "complain",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to say that you are not satisfied with something",
+  "meaning_ar": "يشتكي",
+  "pronunciation": "kəmˈpleɪn",
+  "synonyms": [
+   "protest",
+   "grumble",
+   "object"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "complain about",
+   "complain to",
+   "constantly complain"
+  ],
+  "example": "He complained about the noise."
+ },
+ {
+  "word": "compete",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to try to win or be more successful than others",
+  "meaning_ar": "يتنافس",
+  "pronunciation": "kəmˈpiːt",
+  "synonyms": [
+   "contend",
+   "rival",
+   "vie"
+  ],
+  "antonyms": [
+   "cooperate"
+  ],
+  "collocations": [
+   "compete with",
+   "compete for",
+   "compete fiercely"
+  ],
+  "example": "Small shops can't compete with big chains."
+ },
+ {
+  "word": "disappear",
+  "pos": "verb",
+  "level": "B1",
+  "meaning_en": "to go somewhere where you cannot be seen",
+  "meaning_ar": "يختفي",
+  "pronunciation": "ˌdɪsəˈpɪə",
+  "synonyms": [
+   "vanish",
+   "fade",
+   "go missing"
+  ],
+  "antonyms": [
+   "appear"
+  ],
+  "collocations": [
+   "disappear suddenly",
+   "slowly disappear",
+   "make disappear"
+  ],
+  "example": "The sun disappeared behind the clouds."
+ },
+ {
+  "word": "entertainment",
+  "pos": "noun",
+  "level": "B1",
+  "meaning_en": "things like films and shows that are enjoyable",
+  "meaning_ar": "ترفيه",
+  "pronunciation": "ˌentəˈteɪnmənt",
+  "synonyms": [
+   "amusement",
+   "fun",
+   "recreation"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "live entertainment",
+   "home entertainment",
+   "provide entertainment"
+  ],
+  "example": "The hotel offers evening entertainment."
+ },
+ {
+  "word": "frequent",
+  "pos": "adjective",
+  "level": "B1",
+  "meaning_en": "happening often",
+  "meaning_ar": "متكرّر",
+  "pronunciation": "ˈfriːkwənt",
+  "synonyms": [
+   "regular",
+   "common",
+   "repeated"
+  ],
+  "antonyms": [
+   "rare",
+   "infrequent"
+  ],
+  "collocations": [
+   "frequent visits",
+   "a frequent flyer",
+   "frequent updates"
+  ],
+  "example": "He is a frequent visitor to our office."
+ },
+ {
+  "word": "abolish",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to officially end a law, system, or practice",
+  "meaning_ar": "يُلغي / يُبطل",
+  "pronunciation": "əˈbɒlɪʃ",
+  "synonyms": [
+   "end",
+   "scrap",
+   "do away with"
+  ],
+  "antonyms": [
+   "establish",
+   "create"
+  ],
+  "collocations": [
+   "abolish slavery",
+   "abolish a tax",
+   "officially abolish"
+  ],
+  "example": "The government abolished the old tax system."
+ },
+ {
+  "word": "accelerate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to happen faster or to make something go faster",
+  "meaning_ar": "يُسرّع / يتسارع",
+  "pronunciation": "əkˈseləreɪt",
+  "synonyms": [
+   "speed up",
+   "hasten",
+   "quicken"
+  ],
+  "antonyms": [
+   "slow down",
+   "decelerate"
+  ],
+  "collocations": [
+   "accelerate growth",
+   "rapidly accelerate",
+   "accelerate the process"
+  ],
+  "example": "New technology has accelerated the pace of change."
+ },
+ {
+  "word": "adverse",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "having a negative or harmful effect",
+  "meaning_ar": "سلبي / ضارّ",
+  "pronunciation": "ˈædvɜːs",
+  "synonyms": [
+   "negative",
+   "harmful",
+   "unfavourable"
+  ],
+  "antonyms": [
+   "favourable",
+   "positive"
+  ],
+  "collocations": [
+   "adverse effects",
+   "adverse weather",
+   "adverse impact"
+  ],
+  "example": "The drug can have adverse side effects."
+ },
+ {
+  "word": "advocate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to publicly support a particular idea or way",
+  "meaning_ar": "يُناصر / يدعو إلى",
+  "pronunciation": "ˈædvəkeɪt",
+  "synonyms": [
+   "support",
+   "champion",
+   "endorse"
+  ],
+  "antonyms": [
+   "oppose"
+  ],
+  "collocations": [
+   "advocate change",
+   "strongly advocate",
+   "advocate for"
+  ],
+  "example": "She advocates a healthier lifestyle."
+ },
+ {
+  "word": "aggravate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to make a problem or illness worse",
+  "meaning_ar": "يُفاقم / يُهيّج",
+  "pronunciation": "ˈæɡrəveɪt",
+  "synonyms": [
+   "worsen",
+   "intensify",
+   "compound"
+  ],
+  "antonyms": [
+   "ease",
+   "improve"
+  ],
+  "collocations": [
+   "aggravate the situation",
+   "aggravate an injury",
+   "only aggravate"
+  ],
+  "example": "Stress can aggravate the condition."
+ },
+ {
+  "word": "alleviate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to make pain or a problem less severe",
+  "meaning_ar": "يُخفّف",
+  "pronunciation": "əˈliːvieɪt",
+  "synonyms": [
+   "ease",
+   "relieve",
+   "lessen"
+  ],
+  "antonyms": [
+   "worsen",
+   "aggravate"
+  ],
+  "collocations": [
+   "alleviate pain",
+   "alleviate poverty",
+   "help alleviate"
+  ],
+  "example": "The medicine helps alleviate the pain."
+ },
+ {
+  "word": "anonymous",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "with a name that is not known or made public",
+  "meaning_ar": "مجهول الهوية",
+  "pronunciation": "əˈnɒnɪməs",
+  "synonyms": [
+   "unnamed",
+   "unidentified"
+  ],
+  "antonyms": [
+   "named",
+   "identified"
+  ],
+  "collocations": [
+   "an anonymous donor",
+   "stay anonymous",
+   "anonymous source"
+  ],
+  "example": "The donation came from an anonymous donor."
+ },
+ {
+  "word": "articulate",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to express ideas clearly and effectively",
+  "meaning_ar": "فصيح / واضح التعبير",
+  "pronunciation": "ɑːˈtɪkjələt",
+  "synonyms": [
+   "eloquent",
+   "fluent",
+   "coherent"
+  ],
+  "antonyms": [
+   "inarticulate"
+  ],
+  "collocations": [
+   "highly articulate",
+   "articulate speaker",
+   "clearly articulate"
+  ],
+  "example": "She is an articulate and confident speaker."
+ },
+ {
+  "word": "aspiration",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "a strong hope or ambition to achieve something",
+  "meaning_ar": "طموح / تطلّع",
+  "pronunciation": "ˌæspəˈreɪʃn",
+  "synonyms": [
+   "ambition",
+   "goal",
+   "dream"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "career aspirations",
+   "high aspirations",
+   "political aspirations"
+  ],
+  "example": "He has aspirations to become a doctor."
+ },
+ {
+  "word": "attain",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to succeed in achieving something after effort",
+  "meaning_ar": "يبلغ / يحقّق",
+  "pronunciation": "əˈteɪn",
+  "synonyms": [
+   "achieve",
+   "reach",
+   "accomplish"
+  ],
+  "antonyms": [
+   "fail"
+  ],
+  "collocations": [
+   "attain a goal",
+   "attain success",
+   "attain a level"
+  ],
+  "example": "She finally attained her dream of running a business."
+ },
+ {
+  "word": "breach",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "an act of breaking a law, rule, or agreement",
+  "meaning_ar": "خرق / انتهاك",
+  "pronunciation": "briːtʃ",
+  "synonyms": [
+   "violation",
+   "infringement"
+  ],
+  "antonyms": [
+   "compliance"
+  ],
+  "collocations": [
+   "a breach of contract",
+   "security breach",
+   "breach of trust"
+  ],
+  "example": "Sharing the data was a breach of privacy."
+ },
+ {
+  "word": "compelling",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "so interesting or convincing that it holds attention",
+  "meaning_ar": "مقنع / آسر",
+  "pronunciation": "kəmˈpelɪŋ",
+  "synonyms": [
+   "convincing",
+   "persuasive",
+   "gripping"
+  ],
+  "antonyms": [
+   "weak",
+   "unconvincing"
+  ],
+  "collocations": [
+   "a compelling argument",
+   "compelling evidence",
+   "compelling story"
+  ],
+  "example": "She made a compelling argument for change."
+ },
+ {
+  "word": "compensate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to give something good to balance a loss or harm",
+  "meaning_ar": "يُعوّض",
+  "pronunciation": "ˈkɒmpenseɪt",
+  "synonyms": [
+   "make up for",
+   "offset",
+   "repay"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "compensate for",
+   "fully compensate",
+   "compensate victims"
+  ],
+  "example": "The company compensated customers for the delay."
+ },
+ {
+  "word": "comply",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to obey a rule, order, or request",
+  "meaning_ar": "يمتثل / يلتزم",
+  "pronunciation": "kəmˈplaɪ",
+  "synonyms": [
+   "obey",
+   "conform",
+   "adhere"
+  ],
+  "antonyms": [
+   "defy",
+   "violate"
+  ],
+  "collocations": [
+   "comply with",
+   "fully comply",
+   "refuse to comply"
+  ],
+  "example": "All staff must comply with safety rules."
+ },
+ {
+  "word": "comprehend",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to understand something fully",
+  "meaning_ar": "يفهم / يستوعب",
+  "pronunciation": "ˌkɒmprɪˈhend",
+  "synonyms": [
+   "understand",
+   "grasp",
+   "fathom"
+  ],
+  "antonyms": [
+   "misunderstand"
+  ],
+  "collocations": [
+   "fully comprehend",
+   "hard to comprehend",
+   "comprehend the scale"
+  ],
+  "example": "It's hard to comprehend the size of the universe."
+ },
+ {
+  "word": "conceal",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to hide something so it cannot be seen or known",
+  "meaning_ar": "يُخفي / يُخبّئ",
+  "pronunciation": "kənˈsiːl",
+  "synonyms": [
+   "hide",
+   "cover up",
+   "disguise"
+  ],
+  "antonyms": [
+   "reveal",
+   "expose"
+  ],
+  "collocations": [
+   "conceal the truth",
+   "conceal feelings",
+   "carefully conceal"
+  ],
+  "example": "He tried to conceal his disappointment."
+ },
+ {
+  "word": "condemn",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to say strongly that something is very bad",
+  "meaning_ar": "يُدين / يَستنكر",
+  "pronunciation": "kənˈdem",
+  "synonyms": [
+   "denounce",
+   "criticize",
+   "censure"
+  ],
+  "antonyms": [
+   "praise",
+   "approve"
+  ],
+  "collocations": [
+   "condemn violence",
+   "strongly condemn",
+   "widely condemned"
+  ],
+  "example": "World leaders condemned the attack."
+ },
+ {
+  "word": "confront",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to face a difficult situation or person directly",
+  "meaning_ar": "يُواجه",
+  "pronunciation": "kənˈfrʌnt",
+  "synonyms": [
+   "face",
+   "tackle",
+   "challenge"
+  ],
+  "antonyms": [
+   "avoid",
+   "evade"
+  ],
+  "collocations": [
+   "confront a problem",
+   "confront someone",
+   "be confronted with"
+  ],
+  "example": "She decided to confront him about the lie."
+ },
+ {
+  "word": "consensus",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "general agreement among a group of people",
+  "meaning_ar": "إجماع / توافق",
+  "pronunciation": "kənˈsensəs",
+  "synonyms": [
+   "agreement",
+   "accord",
+   "unanimity"
+  ],
+  "antonyms": [
+   "disagreement"
+  ],
+  "collocations": [
+   "reach a consensus",
+   "general consensus",
+   "broad consensus"
+  ],
+  "example": "The team reached a consensus after a long debate."
+ },
+ {
+  "word": "constrain",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to limit or restrict something",
+  "meaning_ar": "يُقيّد / يَحدّ من",
+  "pronunciation": "kənˈstreɪn",
+  "synonyms": [
+   "restrict",
+   "limit",
+   "hamper"
+  ],
+  "antonyms": [
+   "free",
+   "liberate"
+  ],
+  "collocations": [
+   "constrain growth",
+   "severely constrain",
+   "feel constrained"
+  ],
+  "example": "A tight budget constrained their plans."
+ },
+ {
+  "word": "contradict",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to say the opposite of what was said before",
+  "meaning_ar": "يُناقض / يُكذّب",
+  "pronunciation": "ˌkɒntrəˈdɪkt",
+  "synonyms": [
+   "oppose",
+   "conflict with",
+   "refute"
+  ],
+  "antonyms": [
+   "confirm",
+   "agree"
+  ],
+  "collocations": [
+   "contradict yourself",
+   "directly contradict",
+   "contradict the evidence"
+  ],
+  "example": "His statement contradicts the report."
+ },
+ {
+  "word": "controversy",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "public disagreement about something",
+  "meaning_ar": "جدل / خلاف",
+  "pronunciation": "ˈkɒntrəvɜːsi",
+  "synonyms": [
+   "dispute",
+   "debate",
+   "argument"
+  ],
+  "antonyms": [
+   "agreement"
+  ],
+  "collocations": [
+   "cause controversy",
+   "a major controversy",
+   "surrounded by controversy"
+  ],
+  "example": "The decision caused a lot of controversy."
+ },
+ {
+  "word": "cope",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to deal successfully with a difficult situation",
+  "meaning_ar": "يتأقلم / يتدبّر أمره",
+  "pronunciation": "kəʊp",
+  "synonyms": [
+   "manage",
+   "handle",
+   "get by"
+  ],
+  "antonyms": [
+   "struggle"
+  ],
+  "collocations": [
+   "cope with",
+   "cope well",
+   "struggle to cope"
+  ],
+  "example": "She copes well with stress at work."
+ },
+ {
+  "word": "credible",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to be believed or trusted",
+  "meaning_ar": "موثوق / ذو مصداقية",
+  "pronunciation": "ˈkredəbl",
+  "synonyms": [
+   "believable",
+   "reliable",
+   "convincing"
+  ],
+  "antonyms": [
+   "incredible",
+   "unbelievable"
+  ],
+  "collocations": [
+   "a credible witness",
+   "credible evidence",
+   "highly credible"
+  ],
+  "example": "The story came from a credible source."
+ },
+ {
+  "word": "deteriorate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to become progressively worse",
+  "meaning_ar": "يتدهور / يَسوء",
+  "pronunciation": "dɪˈtɪəriəreɪt",
+  "synonyms": [
+   "worsen",
+   "decline",
+   "degrade"
+  ],
+  "antonyms": [
+   "improve",
+   "recover"
+  ],
+  "collocations": [
+   "rapidly deteriorate",
+   "conditions deteriorate",
+   "deteriorate over time"
+  ],
+  "example": "His health began to deteriorate quickly."
+ },
+ {
+  "word": "deviate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to move away from the usual way or standard",
+  "meaning_ar": "ينحرف / يحيد",
+  "pronunciation": "ˈdiːvieɪt",
+  "synonyms": [
+   "diverge",
+   "stray",
+   "depart"
+  ],
+  "antonyms": [
+   "conform",
+   "adhere"
+  ],
+  "collocations": [
+   "deviate from",
+   "slightly deviate",
+   "never deviate"
+  ],
+  "example": "Don't deviate from the original plan."
+ },
+ {
+  "word": "dispute",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "a serious argument or disagreement",
+  "meaning_ar": "نزاع / خلاف",
+  "pronunciation": "dɪˈspjuːt",
+  "synonyms": [
+   "argument",
+   "conflict",
+   "quarrel"
+  ],
+  "antonyms": [
+   "agreement"
+  ],
+  "collocations": [
+   "settle a dispute",
+   "a legal dispute",
+   "in dispute"
+  ],
+  "example": "The two countries are in a border dispute."
+ },
+ {
+  "word": "disrupt",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to interrupt or stop something from continuing normally",
+  "meaning_ar": "يُعطّل / يُربك",
+  "pronunciation": "dɪsˈrʌpt",
+  "synonyms": [
+   "interrupt",
+   "upset",
+   "disturb"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "disrupt traffic",
+   "seriously disrupt",
+   "disrupt the meeting"
+  ],
+  "example": "The strike disrupted train services."
+ },
+ {
+  "word": "distort",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to change something so it is no longer true or accurate",
+  "meaning_ar": "يُشوّه / يُحرّف",
+  "pronunciation": "dɪˈstɔːt",
+  "synonyms": [
+   "twist",
+   "misrepresent",
+   "warp"
+  ],
+  "antonyms": [
+   "clarify"
+  ],
+  "collocations": [
+   "distort the facts",
+   "distort the truth",
+   "badly distorted"
+  ],
+  "example": "The article distorted what she actually said."
+ },
+ {
+  "word": "dominant",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "most powerful, important, or noticeable",
+  "meaning_ar": "مُهيمن / سائد",
+  "pronunciation": "ˈdɒmɪnənt",
+  "synonyms": [
+   "leading",
+   "prevailing",
+   "main"
+  ],
+  "antonyms": [
+   "minor",
+   "subordinate"
+  ],
+  "collocations": [
+   "a dominant role",
+   "dominant position",
+   "dominant force"
+  ],
+  "example": "The company is dominant in the market."
+ },
+ {
+  "word": "endeavour",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "an attempt to do something, especially something hard",
+  "meaning_ar": "مسعى / جهد",
+  "pronunciation": "ɪnˈdevə",
+  "synonyms": [
+   "effort",
+   "attempt",
+   "undertaking"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "a worthy endeavour",
+   "human endeavour",
+   "creative endeavour"
+  ],
+  "example": "Their endeavour to save the company succeeded."
+ },
+ {
+  "word": "evident",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "easily seen or understood; obvious",
+  "meaning_ar": "واضح / جليّ",
+  "pronunciation": "ˈevɪdənt",
+  "synonyms": [
+   "clear",
+   "obvious",
+   "apparent"
+  ],
+  "antonyms": [
+   "unclear",
+   "hidden"
+  ],
+  "collocations": [
+   "clearly evident",
+   "it is evident that",
+   "evident from"
+  ],
+  "example": "It was evident that she was upset."
+ },
+ {
+  "word": "exaggerate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to describe something as larger or better than it is",
+  "meaning_ar": "يُبالغ",
+  "pronunciation": "ɪɡˈzædʒəreɪt",
+  "synonyms": [
+   "overstate",
+   "overdo",
+   "inflate"
+  ],
+  "antonyms": [
+   "understate"
+  ],
+  "collocations": [
+   "exaggerate the problem",
+   "tend to exaggerate",
+   "wildly exaggerate"
+  ],
+  "example": "He tends to exaggerate his achievements."
+ },
+ {
+  "word": "formulate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to develop and express an idea or plan carefully",
+  "meaning_ar": "يصوغ / يضع (خطة)",
+  "pronunciation": "ˈfɔːmjuleɪt",
+  "synonyms": [
+   "devise",
+   "develop",
+   "draft"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "formulate a plan",
+   "formulate a policy",
+   "carefully formulate"
+  ],
+  "example": "They formulated a new marketing strategy."
+ },
+ {
+  "word": "hostile",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "unfriendly and ready to argue or fight",
+  "meaning_ar": "عدائي / معادٍ",
+  "pronunciation": "ˈhɒstaɪl",
+  "synonyms": [
+   "unfriendly",
+   "aggressive",
+   "antagonistic"
+  ],
+  "antonyms": [
+   "friendly",
+   "welcoming"
+  ],
+  "collocations": [
+   "a hostile reaction",
+   "hostile environment",
+   "openly hostile"
+  ],
+  "example": "The crowd was hostile to the speaker."
+ },
+ {
+  "word": "impose",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to officially force a rule, tax, or punishment on someone",
+  "meaning_ar": "يفرض",
+  "pronunciation": "ɪmˈpəʊz",
+  "synonyms": [
+   "enforce",
+   "levy",
+   "force"
+  ],
+  "antonyms": [
+   "lift",
+   "remove"
+  ],
+  "collocations": [
+   "impose a fine",
+   "impose restrictions",
+   "impose on"
+  ],
+  "example": "The government imposed new taxes on fuel."
+ },
+ {
+  "word": "indicate",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to show, point out, or be a sign of something",
+  "meaning_ar": "يُشير إلى / يدلّ على",
+  "pronunciation": "ˈɪndɪkeɪt",
+  "synonyms": [
+   "show",
+   "suggest",
+   "signal"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "indicate that",
+   "clearly indicate",
+   "results indicate"
+  ],
+  "example": "The survey indicates a change in opinion."
+ },
+ {
+  "word": "integrity",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "the quality of being honest and having strong morals",
+  "meaning_ar": "نزاهة / استقامة",
+  "pronunciation": "ɪnˈteɡrəti",
+  "synonyms": [
+   "honesty",
+   "probity",
+   "uprightness"
+  ],
+  "antonyms": [
+   "dishonesty"
+  ],
+  "collocations": [
+   "personal integrity",
+   "professional integrity",
+   "a person of integrity"
+  ],
+  "example": "She is admired for her honesty and integrity."
+ },
+ {
+  "word": "intricate",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "very detailed and complicated",
+  "meaning_ar": "معقّد / متشابك التفاصيل",
+  "pronunciation": "ˈɪntrɪkət",
+  "synonyms": [
+   "complex",
+   "elaborate",
+   "detailed"
+  ],
+  "antonyms": [
+   "simple"
+  ],
+  "collocations": [
+   "an intricate design",
+   "intricate details",
+   "intricate pattern"
+  ],
+  "example": "The watch has an intricate mechanism."
+ },
+ {
+  "word": "legitimate",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "allowed by law or reasonable and fair",
+  "meaning_ar": "شرعي / مشروع",
+  "pronunciation": "lɪˈdʒɪtɪmət",
+  "synonyms": [
+   "legal",
+   "valid",
+   "lawful"
+  ],
+  "antonyms": [
+   "illegitimate",
+   "illegal"
+  ],
+  "collocations": [
+   "a legitimate business",
+   "legitimate concerns",
+   "perfectly legitimate"
+  ],
+  "example": "They have a legitimate reason to complain."
+ },
+ {
+  "word": "obstacle",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "something that blocks your way or progress",
+  "meaning_ar": "عقبة / عائق",
+  "pronunciation": "ˈɒbstəkl",
+  "synonyms": [
+   "barrier",
+   "hurdle",
+   "hindrance"
+  ],
+  "antonyms": [
+   "aid",
+   "help"
+  ],
+  "collocations": [
+   "overcome an obstacle",
+   "a major obstacle",
+   "obstacle to"
+  ],
+  "example": "Fear of failure is a big obstacle to success."
+ },
+ {
+  "word": "optimistic",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "hopeful and confident about the future",
+  "meaning_ar": "متفائل",
+  "pronunciation": "ˌɒptɪˈmɪstɪk",
+  "synonyms": [
+   "hopeful",
+   "positive",
+   "upbeat"
+  ],
+  "antonyms": [
+   "pessimistic"
+  ],
+  "collocations": [
+   "cautiously optimistic",
+   "optimistic about",
+   "remain optimistic"
+  ],
+  "example": "She is optimistic about her chances."
+ },
+ {
+  "word": "overcome",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to succeed in dealing with a problem or difficulty",
+  "meaning_ar": "يتغلّب على",
+  "pronunciation": "ˌəʊvəˈkʌm",
+  "synonyms": [
+   "conquer",
+   "beat",
+   "surmount"
+  ],
+  "antonyms": [
+   "succumb"
+  ],
+  "collocations": [
+   "overcome a problem",
+   "overcome fear",
+   "overcome obstacles"
+  ],
+  "example": "She overcame many difficulties to succeed."
+ },
+ {
+  "word": "persistent",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "continuing firmly; lasting for a long time",
+  "meaning_ar": "مُثابر / مستمرّ",
+  "pronunciation": "pəˈsɪstənt",
+  "synonyms": [
+   "determined",
+   "persevering",
+   "constant"
+  ],
+  "antonyms": [
+   "intermittent"
+  ],
+  "collocations": [
+   "persistent effort",
+   "a persistent problem",
+   "persistent rain"
+  ],
+  "example": "His persistent efforts finally paid off."
+ },
+ {
+  "word": "plausible",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "seeming reasonable or probably true",
+  "meaning_ar": "معقول / قابل للتصديق",
+  "pronunciation": "ˈplɔːzəbl",
+  "synonyms": [
+   "believable",
+   "credible",
+   "reasonable"
+  ],
+  "antonyms": [
+   "implausible"
+  ],
+  "collocations": [
+   "a plausible explanation",
+   "sound plausible",
+   "perfectly plausible"
+  ],
+  "example": "That sounds like a plausible explanation."
+ },
+ {
+  "word": "predominant",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "most common, noticeable, or important",
+  "meaning_ar": "سائد / غالب",
+  "pronunciation": "prɪˈdɒmɪnənt",
+  "synonyms": [
+   "main",
+   "prevailing",
+   "dominant"
+  ],
+  "antonyms": [
+   "minor"
+  ],
+  "collocations": [
+   "the predominant view",
+   "predominant feature",
+   "predominant colour"
+  ],
+  "example": "Green is the predominant colour in the painting."
+ },
+ {
+  "word": "profound",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "very great, deep, or strongly felt",
+  "meaning_ar": "عميق / جوهري",
+  "pronunciation": "prəˈfaʊnd",
+  "synonyms": [
+   "deep",
+   "intense",
+   "far-reaching"
+  ],
+  "antonyms": [
+   "superficial",
+   "shallow"
+  ],
+  "collocations": [
+   "a profound effect",
+   "profound impact",
+   "profound change"
+  ],
+  "example": "The war had a profound effect on the country."
+ },
+ {
+  "word": "prospect",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "the possibility that something will happen",
+  "meaning_ar": "احتمال / فرصة مستقبلية",
+  "pronunciation": "ˈprɒspekt",
+  "synonyms": [
+   "possibility",
+   "likelihood",
+   "outlook"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "job prospects",
+   "the prospect of",
+   "good prospects"
+  ],
+  "example": "There is little prospect of rain today."
+ },
+ {
+  "word": "provoke",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to cause a reaction or make someone angry",
+  "meaning_ar": "يُثير / يستفزّ",
+  "pronunciation": "prəˈvəʊk",
+  "synonyms": [
+   "trigger",
+   "incite",
+   "spark"
+  ],
+  "antonyms": [
+   "calm",
+   "soothe"
+  ],
+  "collocations": [
+   "provoke anger",
+   "provoke a reaction",
+   "deliberately provoke"
+  ],
+  "example": "His comments provoked an angry response."
+ },
+ {
+  "word": "reinforce",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to make something stronger or more effective",
+  "meaning_ar": "يُعزّز / يُقوّي",
+  "pronunciation": "ˌriːɪnˈfɔːs",
+  "synonyms": [
+   "strengthen",
+   "support",
+   "bolster"
+  ],
+  "antonyms": [
+   "weaken",
+   "undermine"
+  ],
+  "collocations": [
+   "reinforce the idea",
+   "reinforce a message",
+   "reinforce a structure"
+  ],
+  "example": "The results reinforce our earlier findings."
+ },
+ {
+  "word": "resilient",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to recover quickly from difficulties",
+  "meaning_ar": "مرن / قادر على التعافي",
+  "pronunciation": "rɪˈzɪliənt",
+  "synonyms": [
+   "tough",
+   "strong",
+   "adaptable"
+  ],
+  "antonyms": [
+   "fragile",
+   "vulnerable"
+  ],
+  "collocations": [
+   "resilient economy",
+   "emotionally resilient",
+   "highly resilient"
+  ],
+  "example": "Children are often very resilient."
+ },
+ {
+  "word": "scrutiny",
+  "pos": "noun",
+  "level": "B2",
+  "meaning_en": "careful and detailed examination",
+  "meaning_ar": "تدقيق / فحص دقيق",
+  "pronunciation": "ˈskruːtəni",
+  "synonyms": [
+   "examination",
+   "inspection",
+   "analysis"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "close scrutiny",
+   "public scrutiny",
+   "under scrutiny"
+  ],
+  "example": "The accounts came under close scrutiny."
+ },
+ {
+  "word": "simultaneous",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "happening at exactly the same time",
+  "meaning_ar": "متزامن / آني",
+  "pronunciation": "ˌsɪmlˈteɪniəs",
+  "synonyms": [
+   "concurrent",
+   "at once"
+  ],
+  "antonyms": [
+   "sequential"
+  ],
+  "collocations": [
+   "simultaneous translation",
+   "a simultaneous attack",
+   "simultaneous events"
+  ],
+  "example": "The two events were almost simultaneous."
+ },
+ {
+  "word": "substantial",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "large in amount, size, or importance",
+  "meaning_ar": "كبير / جوهري",
+  "pronunciation": "səbˈstænʃl",
+  "synonyms": [
+   "considerable",
+   "significant",
+   "sizeable"
+  ],
+  "antonyms": [
+   "small",
+   "minor"
+  ],
+  "collocations": [
+   "a substantial amount",
+   "substantial increase",
+   "substantial evidence"
+  ],
+  "example": "They made a substantial profit this year."
+ },
+ {
+  "word": "undermine",
+  "pos": "verb",
+  "level": "B2",
+  "meaning_en": "to gradually weaken something or someone",
+  "meaning_ar": "يُقوّض / يُضعف",
+  "pronunciation": "ˌʌndəˈmaɪn",
+  "synonyms": [
+   "weaken",
+   "damage",
+   "sabotage"
+  ],
+  "antonyms": [
+   "strengthen",
+   "reinforce"
+  ],
+  "collocations": [
+   "undermine confidence",
+   "undermine authority",
+   "seriously undermine"
+  ],
+  "example": "Constant criticism can undermine confidence."
+ },
+ {
+  "word": "versatile",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "able to be used for many purposes; skilled at many things",
+  "meaning_ar": "متعدّد الاستخدامات / متنوّع المواهب",
+  "pronunciation": "ˈvɜːsətaɪl",
+  "synonyms": [
+   "adaptable",
+   "flexible",
+   "all-round"
+  ],
+  "antonyms": [
+   "limited"
+  ],
+  "collocations": [
+   "a versatile tool",
+   "versatile player",
+   "highly versatile"
+  ],
+  "example": "He is a versatile actor who plays many roles."
+ },
+ {
+  "word": "vulnerable",
+  "pos": "adjective",
+  "level": "B2",
+  "meaning_en": "easily harmed or hurt physically or emotionally",
+  "meaning_ar": "ضعيف / معرّض للخطر",
+  "pronunciation": "ˈvʌlnərəbl",
+  "synonyms": [
+   "exposed",
+   "at risk",
+   "defenceless"
+  ],
+  "antonyms": [
+   "protected",
+   "secure"
+  ],
+  "collocations": [
+   "vulnerable people",
+   "vulnerable to",
+   "particularly vulnerable"
+  ],
+  "example": "Young children are especially vulnerable to disease."
+ },
+ {
+  "word": "back down",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to stop demanding something or admit you are wrong",
+  "meaning_ar": "يتراجع / يرضخ",
+  "pronunciation": "bæk daʊn",
+  "synonyms": [
+   "give in",
+   "concede",
+   "retreat"
+  ],
+  "antonyms": [
+   "stand firm"
+  ],
+  "collocations": [
+   "back down from",
+   "refuse to back down",
+   "eventually back down"
+  ],
+  "example": "Neither side was willing to back down."
+ },
+ {
+  "word": "bring up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to raise a child; to mention a topic",
+  "meaning_ar": "يُربّي / يطرح موضوعًا",
+  "pronunciation": "brɪŋ ʌp",
+  "synonyms": [
+   "raise",
+   "mention",
+   "rear"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "bring up a child",
+   "bring up a subject",
+   "bring it up"
+  ],
+  "example": "She brought up an interesting point in the meeting."
+ },
+ {
+  "word": "call for",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to need or demand something",
+  "meaning_ar": "يتطلّب / يدعو إلى",
+  "pronunciation": "kɔːl fɔː",
+  "synonyms": [
+   "require",
+   "demand",
+   "need"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "call for action",
+   "call for help",
+   "this calls for"
+  ],
+  "example": "The situation calls for immediate action."
+ },
+ {
+  "word": "carry on",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to continue doing something",
+  "meaning_ar": "يُواصل / يستمرّ",
+  "pronunciation": "ˈkæri ɒn",
+  "synonyms": [
+   "continue",
+   "keep going",
+   "proceed"
+  ],
+  "antonyms": [
+   "stop"
+  ],
+  "collocations": [
+   "carry on working",
+   "carry on with",
+   "please carry on"
+  ],
+  "example": "Carry on with your work."
+ },
+ {
+  "word": "come down with",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to become ill with a particular illness",
+  "meaning_ar": "يُصاب بمرض (خفيف)",
+  "pronunciation": "kʌm daʊn wɪð",
+  "synonyms": [
+   "catch",
+   "get",
+   "fall ill with"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "come down with a cold",
+   "come down with flu",
+   "come down with something"
+  ],
+  "example": "I think I'm coming down with a cold."
+ },
+ {
+  "word": "cut off",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to stop a supply; to isolate or interrupt",
+  "meaning_ar": "يقطع / يعزل",
+  "pronunciation": "kʌt ɒf",
+  "synonyms": [
+   "disconnect",
+   "isolate",
+   "interrupt"
+  ],
+  "antonyms": [
+   "connect"
+  ],
+  "collocations": [
+   "cut off the supply",
+   "be cut off",
+   "cut someone off"
+  ],
+  "example": "The village was cut off by the floods."
+ },
+ {
+  "word": "draw up",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to prepare a document or plan in writing",
+  "meaning_ar": "يُعدّ / يصوغ (وثيقة)",
+  "pronunciation": "drɔː ʌp",
+  "synonyms": [
+   "prepare",
+   "draft",
+   "compose"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "draw up a contract",
+   "draw up a plan",
+   "draw up a list"
+  ],
+  "example": "The lawyers drew up a new contract."
+ },
+ {
+  "word": "fall through",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to fail to happen or be completed",
+  "meaning_ar": "يفشل / لا يتمّ",
+  "pronunciation": "fɔːl θruː",
+  "synonyms": [
+   "fail",
+   "collapse",
+   "fall apart"
+  ],
+  "antonyms": [
+   "succeed"
+  ],
+  "collocations": [
+   "plans fall through",
+   "the deal fell through",
+   "fall through at the last minute"
+  ],
+  "example": "Our holiday plans fell through."
+ },
+ {
+  "word": "get by",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to manage to live or cope with what you have",
+  "meaning_ar": "يتدبّر أمره / يكتفي",
+  "pronunciation": "ɡet baɪ",
+  "synonyms": [
+   "manage",
+   "cope",
+   "make do"
+  ],
+  "antonyms": [
+   "thrive"
+  ],
+  "collocations": [
+   "get by on",
+   "just get by",
+   "get by without"
+  ],
+  "example": "It's hard to get by on a low salary."
+ },
+ {
+  "word": "look up to",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to admire and respect someone",
+  "meaning_ar": "يحترم / يقتدي بـ",
+  "pronunciation": "lʊk ʌp tuː",
+  "synonyms": [
+   "admire",
+   "respect",
+   "esteem"
+  ],
+  "antonyms": [
+   "look down on"
+  ],
+  "collocations": [
+   "look up to a parent",
+   "really look up to",
+   "someone to look up to"
+  ],
+  "example": "He has always looked up to his older brother."
+ },
+ {
+  "word": "put forward",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to suggest an idea or plan for consideration",
+  "meaning_ar": "يطرح / يقترح",
+  "pronunciation": "pʊt ˈfɔːwəd",
+  "synonyms": [
+   "propose",
+   "suggest",
+   "submit"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "put forward a proposal",
+   "put forward an idea",
+   "put forward a name"
+  ],
+  "example": "She put forward a sensible proposal."
+ },
+ {
+  "word": "set out",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to start a journey; to begin with a clear aim",
+  "meaning_ar": "ينطلق / يشرع بهدف",
+  "pronunciation": "set aʊt",
+  "synonyms": [
+   "start",
+   "embark",
+   "begin"
+  ],
+  "antonyms": [
+   "arrive"
+  ],
+  "collocations": [
+   "set out to do",
+   "set out early",
+   "set out on a journey"
+  ],
+  "example": "They set out to build a better product."
+ },
+ {
+  "word": "stand for",
+  "pos": "phrasal verb",
+  "level": "B2",
+  "meaning_en": "to represent or be an abbreviation of something",
+  "meaning_ar": "يرمز إلى / يمثّل",
+  "pronunciation": "stænd fɔː",
+  "synonyms": [
+   "represent",
+   "mean",
+   "symbolize"
+  ],
+  "antonyms": [],
+  "collocations": [
+   "stand for",
+   "what does it stand for",
+   "stand for values"
+  ],
+  "example": "UN stands for United Nations."
+ },
+ {
+  "word": "take up",
+  "pos": "phrasal verb",
+  "level": "B1",
+  "meaning_en": "to start a hobby; to use time or space",
+  "meaning_ar": "يبدأ ممارسة / يشغل (وقتًا)",
+  "pronunciation": "teɪk ʌp",
+  "synonyms": [
+   "begin",
+   "start",
+   "occupy"
+  ],
+  "antonyms": [
+   "drop",
+   "give up"
+  ],
+  "collocations": [
+   "take up a hobby",
+   "take up space",
+   "take up time"
+  ],
+  "example": "She took up painting last year."
+ }
+]
