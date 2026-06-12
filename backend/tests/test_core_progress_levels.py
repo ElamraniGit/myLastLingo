@@ -41,3 +41,7 @@ def test_by_level_reflects_a_review(client, auth):
     b2 = next(row for row in by_level if row["level"] == "B2")
     assert b2["total"] > 0
     assert b2["started"] >= 1
+    # New per-level breakdown exposes in-progress counts so the UI can show
+    # movement before words reach the long-term "mastered" threshold.
+    assert "learning" in b2 and "reviewing" in b2
+    assert (b2["learning"] + b2["reviewing"] + b2["learned"]) >= 1

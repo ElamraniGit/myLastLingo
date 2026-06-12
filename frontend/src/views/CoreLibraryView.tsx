@@ -56,7 +56,7 @@ interface Progress {
   learned: number;
   due_now: number;
   not_started: number;
-  by_level: { level: string; started: number; learned: number; total: number }[];
+  by_level: { level: string; started: number; learned: number; total: number; learning?: number; reviewing?: number }[];
 }
 
 const LEVELS  = ['A1','A2','B1','B2','C1','C2'] as const;
@@ -1502,6 +1502,7 @@ function ProgressTab() {
             {[
               { label: 'Total words',   val: progress.total_words, color: 'text-heading' },
               { label: 'Started',       val: progress.started,     color: 'text-blue-500' },
+              { label: 'In progress',   val: (progress.learning || 0) + (progress.reviewing || 0), color: 'text-blue-400' },
               { label: 'Mastered',      val: progress.learned,     color: 'text-green-500' },
               { label: 'Due now',       val: progress.due_now,     color: 'text-amber-500' },
             ].map(s => (
@@ -1518,25 +1519,35 @@ function ProgressTab() {
       <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">By CEFR Level</h3>
       {LEVELS.map(l => {
         const d = progress.by_level.find(b => b.level === l);
-        const total   = d?.total   || 0;
-        const learned = d?.learned || 0;
-        const started = d?.started || 0;
-        const pct = total > 0 ? Math.round((learned / total) * 100) : 0;
+        const total     = d?.total   || 0;
+        const learned   = d?.learned || 0;
+        const started   = d?.started || 0;
+        // "In progress" = words the user has begun but not yet mastered
+        // (learning + reviewing). Falls back to started-learned if the older
+        // API shape (without learning/reviewing) is returned.
+        const inProgress = (d?.learning != null || d?.reviewing != null)
+          ? ((d?.learning || 0) + (d?.reviewing || 0))
+          : Math.max(0, started - learned);
+        const masteredPct = total > 0 ? Math.round((learned / total) * 100) : 0;
+        const progressPct = total > 0 ? Math.round((inProgress / total) * 100) : 0;
         return (
           <div key={l} className="bg-card border border-default rounded-2xl p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={`text-xs px-2 py-0.5 rounded-lg border font-bold ${LEVEL_COLORS[l]}`}>{l}</span>
               <div className="text-right">
-                <span className="text-xs text-muted">{learned} / {total} mastered</span>
+                <span className="text-xs text-muted">{started} / {total} started</span>
               </div>
             </div>
-            <div className="h-2 bg-elevated rounded-full overflow-hidden">
-              <div className="h-full bg-green-500 rounded-full transition-all duration-700"
-                style={{ width: `${pct}%` }} />
+            {/* Two-tier bar: green = mastered, blue = in progress */}
+            <div className="h-2 bg-elevated rounded-full overflow-hidden flex">
+              <div className="h-full bg-green-500 transition-all duration-700"
+                style={{ width: `${masteredPct}%` }} />
+              <div className="h-full bg-blue-500/70 transition-all duration-700"
+                style={{ width: `${progressPct}%` }} />
             </div>
-            <div className="flex justify-between mt-1">
-              <span className="text-xs text-faint">{started - learned} learning</span>
-              <span className="text-xs text-faint">{pct}%</span>
+            <div className="flex justify-between mt-1 text-xs text-faint">
+              <span>{inProgress} in progress · {learned} mastered</span>
+              <span>{masteredPct}%</span>
             </div>
           </div>
         );

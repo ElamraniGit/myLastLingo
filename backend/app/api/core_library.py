@@ -457,7 +457,9 @@ async def get_user_progress(
             """SELECT cw.level,
                       COUNT(*) AS total,
                       COALESCE(SUM(CASE WHEN ucp.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS started,
-                      COALESCE(SUM(CASE WHEN ucp.status='learned' THEN 1 ELSE 0 END), 0) AS learned
+                      COALESCE(SUM(CASE WHEN ucp.status='learning'  THEN 1 ELSE 0 END), 0) AS learning,
+                      COALESCE(SUM(CASE WHEN ucp.status='reviewing' THEN 1 ELSE 0 END), 0) AS reviewing,
+                      COALESCE(SUM(CASE WHEN ucp.status='learned'   THEN 1 ELSE 0 END), 0) AS learned
                FROM core_words cw
                LEFT JOIN user_core_progress ucp
                  ON ucp.core_word_id = cw.id AND ucp.user_id = ?
