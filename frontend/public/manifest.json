@@ -46,5 +46,14 @@
       "icons": [{ "src": "/icons/icon-192x192.svg", "sizes": "192x192" }]
     }
   ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "share_title",
+      "text": "share",
+      "url": "share_url"
+    }
+  },
   "prefer_related_applications": false
 }

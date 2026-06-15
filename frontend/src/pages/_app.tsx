@@ -16,11 +16,61 @@ import InstallPrompt from '@/components/common/InstallPrompt';
 import OfflineBanner from '@/components/common/OfflineBanner';
 import NotificationCenter from '@/components/common/NotificationCenter';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useDictionary } from '@/hooks/useDictionary';
 import { AppLogo } from '@/components/ui/Icons';
 import { warmUpTTS } from '@/lib/tts';
 
 function NotificationsBootstrap() {
   useNotifications();
+  return null;
+}
+
+/**
+ * ShareTargetHandler — when text is shared into the PWA (Web Share Target) or
+ * the URL carries ?share=/?text=/?page=, act on it once after the app mounts.
+ * Shared text opens the dictionary popup for the relevant word; ?page= just
+ * navigates. The query is then stripped so a refresh doesn't repeat it.
+ */
+function ShareTargetHandler() {
+  const { lookupWord } = useDictionary();
+  const setPage = useStore(s => s.setPage);
+  const didHandle = useRef(false);
+
+  useEffect(() => {
+    if (didHandle.current || typeof window === 'undefined') return;
+    didHandle.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const page   = params.get('page');
+    let shared   = (params.get('share') || params.get('text') || params.get('share_title') || '').trim();
+
+    if (!page && !shared) return;
+
+    // Clean the URL so refresh/back doesn't re-trigger the share.
+    try { window.history.replaceState(null, '', window.location.pathname); } catch {}
+
+    if (page) { setPage(page as any); return; }
+
+    // Some apps share "word - source" or a URL tail; keep the meaningful part.
+    shared = shared.replace(/https?:\/\/\S+/g, ' ').trim();
+    const words = shared.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return;
+
+    // Pick the best single word to look up: for a short selection use it as-is
+    // (supports phrasal verbs / short phrases); for longer text pick the longest
+    // alphabetic word (most likely the term the user cares about).
+    let target = shared;
+    if (words.length > 3) {
+      target = words
+        .map(w => w.replace(/[^A-Za-z'-]/g, ''))
+        .filter(w => w.length >= 3)
+        .sort((a, b) => b.length - a.length)[0] || words[0];
+    }
+
+    // Small delay lets the popup mount cleanly after first render.
+    setTimeout(() => { lookupWord(target).catch(() => {}); }, 500);
+  }, [lookupWord, setPage]);
+
   return null;
 }
 
@@ -238,6 +288,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <Layout>
         <NotificationsBootstrap />
+        <ShareTargetHandler />
         <NotificationCenter />
         <OfflineBanner />
         <InstallPrompt />
