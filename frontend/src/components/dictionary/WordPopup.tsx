@@ -22,6 +22,7 @@ import type {
 } from '@/types';
 import PronunciationTrainer from './PronunciationTrainer';
 import MnemonicSection from './MnemonicSection';
+import WordImage from './WordImage';
 import { speak as ttsSpeak } from '@/lib/tts';
 import { SpeakIcon, MicIcon, CloseIcon } from '@/components/ui/Icons';
 import * as sfx from '@/lib/sfx';
@@ -422,9 +423,12 @@ export default function WordPopup() {
         </Section>
       )}
 
-      {/* Memory hook (mnemonic) */}
+      {/* Memory hook (mnemonic) + visual association */}
       <Section title="Remember It" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9.5 2a5.5 5.5 0 0 1 5 7.8c-.4.9-.5 1.4-.5 2.2V14H10v-2c0-.8-.1-1.3-.5-2.2A5.5 5.5 0 0 1 9.5 2z"/><path d="M9 18h6M10 21h4"/></svg>}>
-        <MnemonicSection word={w.word} meaningAr={w.meaning_ar} meaningEn={w.meaning_en} variant="sheet" />
+        <div className="space-y-3">
+          <MnemonicSection word={w.word} meaningAr={w.meaning_ar} meaningEn={w.meaning_en} variant="sheet" />
+          <WordImage word={w.word} variant="sheet" />
+        </div>
       </Section>
 
       {meanings.length > 0 ? (

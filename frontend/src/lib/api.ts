@@ -212,7 +212,20 @@ export const dictionaryApi = {
 
   /** Re-enrich a cached word with AI (uses user's saved Groq key). */
   enrich: (word: string) => req<any>(`/dictionary/enrich/${encodeURIComponent(word)}`, { method: 'POST', timeout: 25000 }),
+
+  /** Fetch an illustrative (Creative Commons) image for a word. */
+  image: (word: string) =>
+    req<WordImage>(`/dictionary/image/${encodeURIComponent(word)}`, { timeout: 15000 }),
 };
+
+export interface WordImage {
+  found: boolean;
+  thumbnail: string;
+  source: string;
+  title: string;
+  creator: string;
+  cached?: boolean;
+}
 
 export const vocabularyApi = {
   save: (word: string, videoId?: string, sentence?: string, context?: string) =>

@@ -400,6 +400,98 @@ async def _fallback_lookup(term: str, existing_entry: dict) -> dict:
         return existing_entry
 
 
+# ── Visual word images (free, no API key — Openverse Creative Commons) ────────
+
+import aiohttp as _aiohttp
+
+_OPENVERSE_URL = "https://api.openverse.org/v1/images/"
+_IMG_TIMEOUT = _aiohttp.ClientTimeout(total=10)
+# Words too abstract/short to illustrate usefully are skipped to avoid noise.
+_SKIP_IMAGE_POS = {"preposition", "conjunction", "pronoun", "article", "determiner"}
+
+
+async def _ensure_image_table():
+    if not db_manager:
+        return
+    async with db_manager.get_connection() as conn:
+        await conn.execute(
+            """CREATE TABLE IF NOT EXISTS word_images (
+                   word        TEXT PRIMARY KEY,
+                   data_json   TEXT NOT NULL,
+                   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+               )"""
+        )
+
+
+async def _get_cached_image(word: str):
+    try:
+        async with db_manager.get_connection() as conn:
+            async with conn.execute(
+                "SELECT data_json FROM word_images WHERE word = ?", (word.lower(),)
+            ) as cur:
+                row = await cur.fetchone()
+        return json.loads(dict(row)["data_json"]) if row else None
+    except Exception:
+        return None
+
+
+async def _save_image(word: str, data: dict):
+    try:
+        async with db_manager.get_connection() as conn:
+            await conn.execute(
+                "INSERT OR REPLACE INTO word_images (word, data_json) VALUES (?, ?)",
+                (word.lower(), json.dumps(data, ensure_ascii=False)),
+            )
+    except Exception:
+        pass
+
+
+@router.get("/image/{word:path}")
+async def get_word_image(word: str, current_user: dict = Depends(get_current_user)):
+    """
+    Return an illustrative image for a word (Creative Commons via Openverse,
+    no API key). Cached and shared across users. Returns {found, thumbnail,
+    source, title, creator} — empty/found=False when nothing suitable exists.
+    """
+    term = (word or "").strip().lower()
+    if not term:
+        raise HTTPException(400, "Missing word")
+
+    await _ensure_image_table()
+    cached = await _get_cached_image(term)
+    if cached is not None:
+        return {**cached, "cached": True}
+
+    # Use the first alphabetic word of a phrase as the visual subject.
+    subject = "".join(ch for ch in term.split(" ")[0] if ch.isalpha() or ch == "-")
+    result = {"found": False, "thumbnail": "", "source": "", "title": "", "creator": ""}
+    if subject:
+        try:
+            params = {"q": subject, "page_size": "1", "license_type": "all", "mature": "false"}
+            async with _aiohttp.ClientSession(headers={"User-Agent": "LinguaLearn/1.0"}) as s:
+                async with s.get(_OPENVERSE_URL, params=params, timeout=_IMG_TIMEOUT) as r:
+                    if r.status == 200:
+                        data = await r.json()
+                        items = data.get("results") or []
+                        if items:
+                            it = items[0]
+                            thumb = it.get("thumbnail") or it.get("url") or ""
+                            if thumb:
+                                result = {
+                                    "found": True,
+                                    "thumbnail": thumb,
+                                    "source": it.get("foreign_landing_url") or it.get("url") or "",
+                                    "title": (it.get("title") or "")[:120],
+                                    "creator": (it.get("creator") or "")[:80],
+                                }
+        except Exception as exc:
+            logger.debug("Openverse image fetch failed for %r: %s", subject, exc)
+
+    # Cache both hits and misses (a miss avoids repeated slow lookups).
+    await _save_image(term, result)
+    return {**result, "cached": False}
+
+
 def init_api(db):
     global db_manager
     db_manager = db
