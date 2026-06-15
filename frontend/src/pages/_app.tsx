@@ -26,50 +26,76 @@ function NotificationsBootstrap() {
 }
 
 /**
- * ShareTargetHandler — when text is shared into the PWA (Web Share Target) or
- * the URL carries ?share=/?text=/?page=, act on it once after the app mounts.
- * Shared text opens the dictionary popup for the relevant word; ?page= just
- * navigates. The query is then stripped so a refresh doesn't repeat it.
+ * Web Share Target capture.
+ *
+ * Captured at module load (and again on each navigation) BEFORE any auth
+ * redirect can strip the query, then stashed so it survives login/onboarding.
+ * ShareTargetHandler consumes it once the app is ready.
  */
+const SHARE_STASH_KEY = 'll-pending-share';
+
+function captureShareParam(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get('share') || params.get('text') || params.get('share_title') || '').trim();
+    if (raw) {
+      sessionStorage.setItem(SHARE_STASH_KEY, raw);
+      // Strip the query immediately so a refresh can't reprocess it.
+      try { window.history.replaceState(null, '', window.location.pathname); } catch {}
+    }
+  } catch { /* ignore */ }
+}
+
+// Run as early as possible — the moment this module is evaluated in the browser.
+if (typeof window !== 'undefined') captureShareParam();
+
+function pickShareWord(shared: string): string {
+  const cleaned = shared.replace(/https?:\/\/\S+/g, ' ').trim();
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  if (words.length <= 3) return cleaned;          // short selection / phrasal verb
+  return (
+    words
+      .map(w => w.replace(/[^A-Za-z'-]/g, ''))
+      .filter(w => w.length >= 3)
+      .sort((a, b) => b.length - a.length)[0] || words[0]
+  );
+}
+
 function ShareTargetHandler() {
   const { lookupWord } = useDictionary();
-  const setPage = useStore(s => s.setPage);
-  const didHandle = useRef(false);
+  const isAuthenticated = useStore(s => s.isAuthenticated);
 
   useEffect(() => {
-    if (didHandle.current || typeof window === 'undefined') return;
-    didHandle.current = true;
+    if (typeof window === 'undefined') return;
 
-    const params = new URLSearchParams(window.location.search);
-    const page   = params.get('page');
-    let shared   = (params.get('share') || params.get('text') || params.get('share_title') || '').trim();
+    const consume = () => {
+      if (!useStore.getState().isAuthenticated) return;
+      // Re-capture in case the app was already open when the share arrived
+      // (Chrome reuses the window and only updates the URL).
+      captureShareParam();
+      let shared = '';
+      try { shared = sessionStorage.getItem(SHARE_STASH_KEY) || ''; } catch {}
+      if (!shared) return;
+      try { sessionStorage.removeItem(SHARE_STASH_KEY); } catch {}
 
-    if (!page && !shared) return;
+      const target = pickShareWord(shared);
+      if (!target) return;
+      setTimeout(() => { lookupWord(target).catch(() => {}); }, 600);
+    };
 
-    // Clean the URL so refresh/back doesn't re-trigger the share.
-    try { window.history.replaceState(null, '', window.location.pathname); } catch {}
-
-    if (page) { setPage(page as any); return; }
-
-    // Some apps share "word - source" or a URL tail; keep the meaningful part.
-    shared = shared.replace(/https?:\/\/\S+/g, ' ').trim();
-    const words = shared.split(/\s+/).filter(Boolean);
-    if (words.length === 0) return;
-
-    // Pick the best single word to look up: for a short selection use it as-is
-    // (supports phrasal verbs / short phrases); for longer text pick the longest
-    // alphabetic word (most likely the term the user cares about).
-    let target = shared;
-    if (words.length > 3) {
-      target = words
-        .map(w => w.replace(/[^A-Za-z'-]/g, ''))
-        .filter(w => w.length >= 3)
-        .sort((a, b) => b.length - a.length)[0] || words[0];
-    }
-
-    // Small delay lets the popup mount cleanly after first render.
-    setTimeout(() => { lookupWord(target).catch(() => {}); }, 500);
-  }, [lookupWord, setPage]);
+    // 1) On mount / when auth becomes true.
+    consume();
+    // 2) When the PWA regains focus (already-open share delivery).
+    const onFocus = () => consume();
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, [isAuthenticated, lookupWord]);
 
   return null;
 }
