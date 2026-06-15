@@ -245,6 +245,9 @@ export const vocabularyApi = {
 
   due: (limit = 20) => req<any>(`/vocabulary/due?limit=${limit}`),
 
+  /** Hard words the learner repeatedly forgets (leeches). */
+  leeches: (limit = 50) => req<{ words: any[]; count: number; total: number }>(`/vocabulary/leeches?limit=${limit}`),
+
   reviewSummary: () => req<any>('/vocabulary/review/summary'),
 
   reviewHistory: (savedWordId: string, limit = 20) => req<any>(`/vocabulary/review/history/${savedWordId}?limit=${limit}`),

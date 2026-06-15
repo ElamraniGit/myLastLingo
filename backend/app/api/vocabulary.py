@@ -269,6 +269,18 @@ async def get_due_words(limit: int = Query(20, ge=1, le=100), current_user: dict
     return {"words": words, "count": len(words), "summary": summary}
 
 
+@router.get("/leeches")
+async def get_leech_words(limit: int = Query(50, ge=1, le=200), current_user: dict = Depends(get_current_user)):
+    """
+    Get the user's "hard words" (leeches) — words they repeatedly forget or
+    answer poorly — so practice can be focused where it's needed most.
+    """
+    uid = current_user["sub"]
+    words = await db_manager.get_leech_words(limit, user_id=uid)
+    total = await db_manager.count_leech_words(user_id=uid)
+    return {"words": words, "count": len(words), "total": total}
+
+
 @router.get("/review/summary")
 async def get_review_summary(current_user: dict = Depends(get_current_user)):
     """Get compact review queue summary."""

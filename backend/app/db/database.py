@@ -1114,6 +1114,61 @@ class DatabaseManager:
                 rows = await cursor.fetchall()
                 return [self._parse_saved_word_row(row) for row in rows]
 
+    # ── Leeches: words the learner repeatedly gets wrong ──────────────────────
+    @staticmethod
+    def _leech_where() -> str:
+        """
+        SQL predicate that defines a "leech" (hard/sticky word):
+          - lapsed at least twice (forgotten after learning), OR
+          - reviewed at least 3 times yet the last answer was poor (quality<=2).
+        """
+        return (
+            "(COALESCE(sw.lapses, 0) >= 2 "
+            " OR (COALESCE(sw.reviewed_count, 0) >= 3 AND COALESCE(sw.last_quality, 5) <= 2))"
+        )
+
+    async def get_leech_words(self, limit: int = 50, user_id: str = "") -> List[Dict[str, Any]]:
+        """Return the user's hardest words (most lapses / worst recall first)."""
+        uid_filter = "sw.user_id = ?" if user_id else "1=1"
+        params = (user_id, limit) if user_id else (limit,)
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                f"""
+                SELECT sw.*, w.word, w.pronunciation, w.part_of_speech,
+                       w.meaning_ar, w.meaning_en, w.level, w.examples,
+                       w.synonyms, w.antonyms, w.conjugations, w.related_words,
+                       w.collocations, w.definitions, w.how_to_use, w.usage_notes,
+                       w.grammar_notes, w.ai_payload, w.entry_type, w.difficulty_score, w.priority_score,
+                       COALESCE(v.title, '') as source_video_title,
+                       COALESCE(v.channel, '') as source_video_channel
+                FROM saved_words sw
+                JOIN words w ON sw.word_id = w.id
+                LEFT JOIN videos v ON sw.video_id = v.id
+                WHERE {uid_filter} AND {self._leech_where()}
+                ORDER BY
+                    COALESCE(sw.lapses, 0) DESC,
+                    COALESCE(sw.last_quality, 5) ASC,
+                    COALESCE(sw.reviewed_count, 0) DESC,
+                    sw.created_at ASC
+                LIMIT ?
+                """,
+                params,
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [self._parse_saved_word_row(row) for row in rows]
+
+    async def count_leech_words(self, user_id: str = "") -> int:
+        uid_filter = "sw.user_id = ?" if user_id else "1=1"
+        params = (user_id,) if user_id else ()
+        async with self.get_connection() as conn:
+            async with conn.execute(
+                f"SELECT COUNT(*) AS total FROM saved_words sw "
+                f"WHERE {uid_filter} AND {self._leech_where()}",
+                params,
+            ) as cursor:
+                row = await cursor.fetchone()
+                return int(dict(row).get("total", 0) if row else 0)
+
     async def get_review_summary(self, user_id: str = "") -> Dict[str, Any]:
         """
         Return a summary of the user's review queue.

@@ -59,6 +59,8 @@ export default function VocabularyView() {
   const { savedWords, setPage, currentPage, setCurrentSavedWordId } = useStore();
   const { loadVocabulary, loadStats, loadReviewSummary, deleteWord, lookupWord } = useDictionary();
   const [status,  setStatus]  = useState<string | undefined>(undefined);
+  const [leechMode, setLeechMode] = useState(false);
+  const [leechWords, setLeechWords] = useState<any[]>([]);
   const [search,  setSearch]  = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort,    setSort]    = useState<SortOption>('newest');
@@ -81,6 +83,17 @@ export default function VocabularyView() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      if (leechMode) {
+        // Focused "hard words" view — loaded directly (not the store list).
+        const [res, s] = await Promise.all([
+          vocabularyApi.leeches(200).catch(() => ({ words: [], total: 0 })),
+          loadReviewSummary().catch(() => null),
+        ]);
+        setLeechWords(res.words || []);
+        setTotalCount(res.total || 0);
+        setSummary(s);
+        return;
+      }
       const [vocabResult, s] = await Promise.all([
         loadVocabulary({ status: status as any, search: debouncedSearch, sort, page: 1, limit: 200 }),
         loadReviewSummary().catch(() => null),
@@ -94,15 +107,15 @@ export default function VocabularyView() {
     } finally {
       setLoading(false);
     }
-  }, [status, debouncedSearch, sort, loadVocabulary, loadReviewSummary, loadStats]);
+  }, [leechMode, status, debouncedSearch, sort, loadVocabulary, loadReviewSummary, loadStats]);
 
   // Reload when page becomes active
   useEffect(() => { if (currentPage === 'vocabulary') load(); }, [currentPage]); // eslint-disable-line
 
-  // Auto-reload when status or sort changes (instant)
+  // Auto-reload when status, sort, or leech mode changes (instant)
   useEffect(() => {
     if (currentPage === 'vocabulary') load();
-  }, [status, sort]); // eslint-disable-line
+  }, [status, sort, leechMode]); // eslint-disable-line
 
   // Auto-reload when debounced search changes
   useEffect(() => {
@@ -166,8 +179,11 @@ export default function VocabularyView() {
     { id: 'learned',    label: 'Learned' },
   ];
 
+  // Words to render: the leech list in "Hard" mode, otherwise the store list.
+  const displayWords = leechMode ? leechWords : savedWords;
+
   // Use server total when available, fall back to local count
-  const displayTotal = totalCount > 0 ? totalCount : savedWords.length;
+  const displayTotal = totalCount > 0 ? totalCount : displayWords.length;
 
   const STATS = [
     { label: 'Total',     val: displayTotal,             color: 'text-heading' },
@@ -257,14 +273,24 @@ export default function VocabularyView() {
           {FILTERS.map(f => (
             <button
               key={String(f.id)}
-              onClick={() => { setStatus(f.id); }}
+              onClick={() => { setLeechMode(false); setStatus(f.id); }}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                status === f.id
+                !leechMode && status === f.id
                   ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
                   : 'text-muted hover:text-body bg-card border border-default'
               }`}
             >{f.label}</button>
           ))}
+          {/* Hard words (leeches) — focused practice on what you forget most */}
+          <button
+            onClick={() => { setStatus(undefined); setLeechMode(v => !v); }}
+            title="Words you repeatedly forget"
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              leechMode
+                ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                : 'text-muted hover:text-body bg-card border border-default'
+            }`}
+          >🎯 Hard</button>
           <select
             value={sort}
             onChange={e => setSort(e.target.value as SortOption)}
@@ -287,15 +313,21 @@ export default function VocabularyView() {
               <div key={i} className="skeleton h-16 rounded-2xl" />
             ))}
           </div>
-        ) : savedWords.length === 0 ? (
+        ) : displayWords.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center"><svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><path d="M17 3l4 2v14l-4 2V3z"/></svg></div>
-            <div className="text-base font-semibold text-heading mb-1">No words yet</div>
-            <div className="text-sm text-muted">Start learning from a video in the Library</div>
+            <div className="text-base font-semibold text-heading mb-1">
+              {leechMode ? 'No hard words — great job!' : 'No words yet'}
+            </div>
+            <div className="text-sm text-muted">
+              {leechMode
+                ? 'Words you repeatedly forget will appear here for focused practice.'
+                : 'Start learning from a video in the Library'}
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
-            {savedWords.map(w => (
+            {displayWords.map(w => (
               <div
                 key={w.id}
                 onClick={() => { setCurrentSavedWordId(w.id); setPage('worddetail'); }}
