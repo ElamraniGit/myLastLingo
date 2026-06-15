@@ -38,6 +38,7 @@ import type {
 } from '@/types';
 import { LevelBadge } from '@/components/ui/Badge';
 import PronunciationTrainer from '@/components/dictionary/PronunciationTrainer';
+import MnemonicSection from '@/components/dictionary/MnemonicSection';
 
 function fmtDate(v?: string): string {
   if (!v) return '—';
@@ -549,6 +550,11 @@ export default function WordDetailView() {
           </div>
         </Section>
       )}
+
+      {/* Memory hook (mnemonic) — helps the word stick */}
+      <Section title="Remember It" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M9.5 2a5.5 5.5 0 0 1 5 7.8c-.4.9-.5 1.4-.5 2.2V14H10v-2c0-.8-.1-1.3-.5-2.2A5.5 5.5 0 0 1 9.5 2z"/><path d="M9 18h6M10 21h4"/></svg>}>
+        <MnemonicSection word={word.word} meaningAr={word.meaning_ar} meaningEn={word.meaning_en} variant="page" />
+      </Section>
 
       {meanings.length > 0 ? (
         <Section title="Meaning Breakdown" icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="3" width="5" height="18" rx="1" /><rect x="10" y="3" width="5" height="18" rx="1" /><path d="M17 3l4 2v14l-4 2V3z" /></svg>}>

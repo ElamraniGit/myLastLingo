@@ -465,12 +465,29 @@ export interface SentenceFeedback {
   tip: string;
 }
 
+export interface Mnemonic {
+  hook: string;
+  hook_ar: string;
+  sound_link: string;
+  image: string;
+  tip: string;
+  cached?: boolean;
+}
+
 export const practiceApi = {
   /** Submit a user-written sentence for AI evaluation. */
   checkSentence: (word: string, sentence: string, meaning?: string) =>
     req<SentenceFeedback>('/practice/check-sentence', {
       method: 'POST',
       body: { word, sentence, meaning: meaning || '' },
+      timeout: 35000,
+    }),
+
+  /** Generate (or fetch cached) a memory hook / mnemonic for a word. */
+  mnemonic: (word: string, meaningAr?: string, meaningEn?: string, refresh = false) =>
+    req<Mnemonic>('/practice/mnemonic', {
+      method: 'POST',
+      body: { word, meaning_ar: meaningAr || '', meaning_en: meaningEn || '', refresh },
       timeout: 35000,
     }),
 };
